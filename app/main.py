@@ -112,23 +112,31 @@ def dns_records():
 
 
 # Initialize services when app starts
-def initialize_services():
+# Global flag to prevent double initialization
+_services_initialized = False
+
+
+def initialize_services() -> None:
     """Initialize DNS server and Docker monitor."""
+    global _services_initialized
+    
+    if _services_initialized:
+        logger.warning("Services already initialized, skipping...")
+        return
+        
     try:
+        logger.info("Initializing services...")
         dns_server.start()
         docker_monitor.start()
+        _services_initialized = True
         logger.info("Services initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
         raise
 
 
-# Initialize services on module import (for production)
+# Services will be initialized when running as main
 # In testing, services won't start due to TESTING config or environment
-testing_mode = (app.config.get('TESTING', False) or
-                os.getenv('TESTING', '').lower() == 'true')
-if not testing_mode:
-    initialize_services()
 
 
 # Cleanup on shutdown
@@ -143,6 +151,16 @@ atexit.register(cleanup_services)
 
 
 if __name__ == '__main__':
+    # Initialize services only when running as main and not in Flask reloader
+    testing_mode = (app.config.get('TESTING', False) or
+                    os.getenv('TESTING', '').lower() == 'true')
+    
+    # Flask reloader sets WERKZEUG_RUN_MAIN=true in the reloaded process
+    is_reloaded_process = os.getenv('WERKZEUG_RUN_MAIN') == 'true'
+    
+    if not testing_mode and not is_reloaded_process:
+        initialize_services()
+    
     app.run(
         host=app.config['HOST'],
         port=app.config['PORT'],
