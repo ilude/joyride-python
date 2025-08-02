@@ -14,6 +14,8 @@ fi
 echo "Setting up dotfiles from: $USER_DOTFILES_URL"
 
 # Clone or update dotfiles repository
+NEED_INSTALL=false
+
 if [ -d "$DOTFILES_DIR" ]; then
     echo "Dotfiles directory exists, updating..."
     cd "$DOTFILES_DIR"
@@ -40,10 +42,22 @@ if [ -d "$DOTFILES_DIR" ]; then
         fi
     fi
     
+    # Capture current HEAD before pull
+    OLD_HEAD=$(git rev-parse HEAD)
+    
     git pull || {
         echo "Failed to update dotfiles repository"
         exit 1
     }
+    
+    # Check if pull resulted in new commits
+    NEW_HEAD=$(git rev-parse HEAD)
+    if [ "$OLD_HEAD" != "$NEW_HEAD" ]; then
+        echo "Updates pulled successfully"
+        NEED_INSTALL=true
+    else
+        echo "No updates available"
+    fi
 else
     echo "Cloning dotfiles repository..."
     git clone "$USER_DOTFILES_URL" "$DOTFILES_DIR" || {
@@ -51,26 +65,33 @@ else
         exit 1
     }
     cd "$DOTFILES_DIR"
+    echo "Repository cloned successfully"
+    NEED_INSTALL=true
 fi
 
-# Look for and run install script
-INSTALL_SCRIPTS=("install.sh" "install" "bootstrap.sh" "bootstrap" "setup.sh" "setup")
+# Look for and run install script only if we cloned or pulled updates
+if [ "$NEED_INSTALL" = true ]; then
+    echo "Running install script due to new/updated dotfiles..."
+    INSTALL_SCRIPTS=("install.sh" "install" "bootstrap.sh" "bootstrap" "setup.sh" "setup")
 
-for script in "${INSTALL_SCRIPTS[@]}"; do
-    if [ -f "$script" ] && [ -x "$script" ]; then
-        echo "Running install script: $script"
-        ./"$script" || {
-            echo "Install script failed, but continuing..."
-        }
-        break
-    elif [ -f "$script" ]; then
-        echo "Running install script: $script (making executable)"
-        chmod +x "$script"
-        ./"$script" || {
-            echo "Install script failed, but continuing..."
-        }
-        break
-    fi
-done
+    for script in "${INSTALL_SCRIPTS[@]}"; do
+        if [ -f "$script" ] && [ -x "$script" ]; then
+            echo "Running install script: $script"
+            ./"$script" || {
+                echo "Install script failed, but continuing..."
+            }
+            break
+        elif [ -f "$script" ]; then
+            echo "Running install script: $script (making executable)"
+            chmod +x "$script"
+            ./"$script" || {
+                echo "Install script failed, but continuing..."
+            }
+            break
+        fi
+    done
+else
+    echo "No changes detected, skipping install script"
+fi
 
 echo "Dotfiles setup complete"

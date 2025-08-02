@@ -12,9 +12,6 @@
       "WORKDIR": "/workspace"
     }
   },
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -40,7 +37,6 @@
         "editor.codeActionsOnSave": {
           "source.organizeImports": "explicit"
         },
-        "git.enabled": false,
         "terminal.integrated.defaultProfile.windows": "PowerShell",
         "terminal.integrated.profiles.windows": {
           "PowerShell": {
@@ -70,7 +66,6 @@
     "--hostname",
     "joyride"
   ],
-  "initializeCommand": "docker buildx version || echo 'BuildKit not available'",
   "mounts": [
     "source=devcontainer-home,target=/home/vscode,type=volume",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
