@@ -53,6 +53,8 @@ test: .install-dev
 # Run linting
 lint: .install-dev
 	@echo "Running flake8 linting..."
+	# E203: whitespace before ':' (conflicts with black formatting)
+	# W503: line break before binary operator (conflicts with black formatting)
 	flake8 app tests --max-line-length=88 --extend-ignore=E203,W503
 	@echo "Linting completed successfully!"
 
@@ -62,6 +64,8 @@ format: .install-dev
 	black app tests --line-length=88
 	@echo "Organizing imports with isort..."
 	isort app tests --profile black
+	@echo "Removing trailing whitespace..."
+	find app tests -name "*.py" -exec sed -i 's/[[:space:]]*$$//' {} \;
 	@echo "Code formatting completed!"
 
 # Clean Python cache files
