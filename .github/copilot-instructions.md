@@ -1,24 +1,24 @@
-# Copilot Instructions for Flask Status Service
+# Copilot Instructions for Joyride DNS Service
+
+## CRITICAL: Communication Style & Response Format
+
+### Default Behavior: BE BRIEF
+- **Complete tasks without verbose explanations** - Action over commentary
+- **One sentence summary maximum** unless explicitly requested otherwise
+- **Let code and file changes speak for themselves** - no need to describe what was done
+- **Only explain when user asks "explain", "why", or "how"**
+
+### When to Provide Details
+- User explicitly asks "explain", "why", or "how"  
+- Complex architectural decisions affecting future development
+- Breaking changes impacting existing functionality
+- Security implications requiring highlighting
 
 ## Project Overview
-This is a Python Flask microservice that provides a status web page and health check endpoints. It's designed to run in Docker containers with Alpine Linux base images and follows 12-factor app principles for cloud-native deployment.
-
-## Communication Style & Response Format
-
-### Concise Responses
-- **Be Brief**: Complete requested tasks without verbose explanations unless explicitly asked, a one or two sentence summary is sufficient and expected.
-- **Focus on Action**: Prioritize doing the work over explaining what was done
-- **Explain When Asked**: Only provide detailed explanations when the user specifically requests them
-- **Code Over Commentary**: Let the code and file changes speak for themselves
+This is a Python Flask microservice that provides dynamic DNS services by monitoring Docker container events. It's designed to run in Docker containers with Alpine Linux base images and follows 12-factor app principles for cloud-native deployment.
 
 ### Terminology & Acronyms
 - **DRY**: When the user says "DRY", they mean "Don't Repeat Yourself" - the coding best practice of avoiding code duplication by extracting common functionality into reusable components, functions, or modules
-
-### When to Explain
-- User explicitly asks "explain", "why", or "how"
-- Complex architectural decisions that affect future development
-- Breaking changes that might impact existing functionality
-- Security implications that need highlighting
 
 ## Architecture Principles
 

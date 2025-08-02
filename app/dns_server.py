@@ -67,7 +67,7 @@ class DNSServerManager:
         if self.server is not None:
             logger.warning("DNS server already running")
             return
-            
+
         try:
             # Create custom handler class with access to dns_records
             def create_handler(*args, **kwargs):
