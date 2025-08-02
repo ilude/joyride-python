@@ -1,82 +1,113 @@
 # Multi-stage Dockerfile for Flask Status Service
 
-# Development stage
-FROM python:3.12-alpine AS development
+###################################
+# Base stage with common setup
+###################################
+FROM python:3.12-alpine AS base
 
-# Install system dependencies for development
-RUN apk add --no-cache \
+# Install common system dependencies with cache mount
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache \
+    curl \
+    sudo
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Set default PUID and PGID
+ARG PUID=1000
+ARG PGID=1000
+ARG USER=appuser
+ARG WORKDIR=/app
+
+ENV PUID=$PUID
+ENV PGID=$PGID
+ENV USER=$USER
+ENV WORKDIR=$WORKDIR
+
+# Create a non-root user
+RUN addgroup -g $PGID $USER && \
+    adduser -D -s /bin/sh -u $PUID -G $USER -h /home/$USER $USER && \
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Set working directory
+WORKDIR $WORKDIR
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+# Expose Flask port
+EXPOSE 5000
+
+###################################
+# Development stage
+###################################
+FROM base AS development
+
+# Install additional development dependencies with cache mount
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache \
+    apk-tools-zsh-completion \
     bash \
     build-base \
-    curl \
+    coreutils \
     git \
     linux-headers \
+    make \
     openssh-client \
-    sudo \
+    py3-pip \
+    py3-setuptools \
+    shadow \
+    ssh-import-id \
     zsh \
     zsh-autosuggestions \
     zsh-syntax-highlighting \
-    && rm -rf /var/cache/apk/*
+    zsh-vcs
 
-# Create a non-root user
-RUN addgroup -g 1000 vscode && \
-    adduser -D -s /bin/zsh -u 1000 -G vscode -h /home/vscode vscode && \
-    echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Update user shell to zsh for development
+RUN usermod -s /bin/zsh $USER
 
-# Set working directory
-WORKDIR /workspace
-
-# Copy requirements files
+# Copy requirements files first (for better caching)
 COPY requirements*.txt ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
+# Install Python dependencies with cache mount
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-dev.txt
 
-# Change ownership of workspace to vscode user
-RUN chown -R vscode:vscode /workspace
+# Change ownership of workspace to user
+RUN chown -R $USER:$USER $WORKDIR
 
 # Switch to non-root user
-USER vscode
-
-# Expose Flask development port
-EXPOSE 5000
+USER $USER
 
 # Default command for development
 CMD ["python", "run.py"]
 
+
+
+###################################
 # Production stage
-FROM python:3.12-alpine AS production
+###################################
+FROM base AS production
 
-# Install system dependencies
-RUN apk add --no-cache \
-    curl \
-    && rm -rf /var/cache/apk/*
-
-# Create a non-root user for security
-RUN addgroup -g 1000 appuser && \
-    adduser -D -s /bin/sh -u 1000 -G appuser appuser
-
-# Set working directory
-WORKDIR /app
-
-# Copy requirements file
+# Copy requirements file first (for better caching)
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
+# Install Python dependencies with cache mount
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app/ ./
 
-# Change ownership to appuser
-RUN chown -R appuser:appuser /app
+# Change ownership to user
+RUN chown -R $USER:$USER $WORKDIR
 
 # Switch to non-root user
-USER appuser
-
-# Expose Flask port
-EXPOSE 5000
+USER $USER
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

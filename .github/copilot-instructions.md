@@ -11,6 +11,9 @@ This is a Python Flask microservice that provides a status web page and health c
 - **Explain When Asked**: Only provide detailed explanations when the user specifically requests them
 - **Code Over Commentary**: Let the code and file changes speak for themselves
 
+### Terminology & Acronyms
+- **DRY**: When the user says "DRY", they mean "Don't Repeat Yourself" - the coding best practice of avoiding code duplication by extracting common functionality into reusable components, functions, or modules
+
 ### When to Explain
 - User explicitly asks "explain", "why", or "how"
 - Complex architectural decisions that affect future development
