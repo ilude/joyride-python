@@ -17,6 +17,29 @@ echo "Setting up dotfiles from: $USER_DOTFILES_URL"
 if [ -d "$DOTFILES_DIR" ]; then
     echo "Dotfiles directory exists, updating..."
     cd "$DOTFILES_DIR"
+    
+    # Check if there are any uncommitted changes
+    if ! git diff-index --quiet HEAD --; then
+        echo "Uncommitted changes detected, checking if they're just VS Code .gitconfig helpers..."
+        
+        # Get list of modified files
+        MODIFIED_FILES=$(git diff-index --name-only HEAD --)
+        
+        # Check if only .gitconfig is modified
+        if [ "$MODIFIED_FILES" = ".gitconfig" ] || [ "$MODIFIED_FILES" = "git/.gitconfig" ] || [ "$MODIFIED_FILES" = "gitconfig" ]; then
+            # Check if changes are only VS Code credential helper additions
+            if git diff HEAD -- "$MODIFIED_FILES" | grep -q "helper.*vscode" && \
+               ! git diff HEAD -- "$MODIFIED_FILES" | grep -v -E "(helper.*vscode|^\+\+\+|^---|^@@|^\+.*helper|^\-.*helper)" | grep -q "^[\+\-]"; then
+                echo "Only VS Code credential helper changes detected, resetting..."
+                git reset --hard HEAD
+            else
+                echo "Non-VS Code changes detected in .gitconfig, keeping changes and attempting pull..."
+            fi
+        else
+            echo "Changes to files other than .gitconfig detected, keeping changes and attempting pull..."
+        fi
+    fi
+    
     git pull || {
         echo "Failed to update dotfiles repository"
         exit 1

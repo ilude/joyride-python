@@ -23,6 +23,8 @@ htmlcov/
 .env.staging
 .env.test
 
+.install-*
+
 # Flask
 instance/
 
