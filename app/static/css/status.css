@@ -1,7 +1,7 @@
 body { 
     font-family: Arial, sans-serif; 
     margin: 40px auto; 
-    max-width: 800px; 
+    max-width: 1000px; 
     background-color: #f5f5f5;
 }
 
@@ -16,13 +16,25 @@ body {
     color: #28a745; 
     font-weight: bold; 
     font-size: 24px;
+    margin-bottom: 30px;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.info-section, .dns-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
 }
 
 .info { 
     margin: 15px 0; 
-    padding: 10px; 
-    background-color: #f8f9fa; 
-    border-radius: 4px;
+    line-height: 1.6;
 }
 
 .environment { 
@@ -47,4 +59,48 @@ body {
 
 .environment.default {
     background-color: #6c757d;
+}
+
+.dns-records {
+    margin-top: 15px;
+}
+
+.dns-record {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 5px 0;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+}
+
+.hostname {
+    color: #0066cc;
+    font-weight: bold;
+    flex: 1;
+}
+
+.arrow {
+    margin: 0 10px;
+    color: #6c757d;
+}
+
+.ip {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.no-records {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+@media (max-width: 768px) {
+    .status-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
 }

@@ -1,1 +1,1 @@
-"""Tests for Flask Status Service."""
+"""Tests for Joyride DNS Service."""

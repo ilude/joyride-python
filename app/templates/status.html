@@ -9,17 +9,41 @@
         <h1>{{ service_name }}</h1>
         <div class="status">🟢 Service is running</div>
         
-        <div class="info">
-            <strong>Version:</strong> {{ version }}<br>
-            <strong>Environment:</strong> <span class="environment {{ environment }}">{{ environment }}</span><br>
-            <strong>Current Time:</strong> {{ current_time }}<br>
-            <strong>Host:</strong> {{ host }}:{{ port }}
+        <div class="status-grid">
+            <div class="info-section">
+                <h3>Service Information</h3>
+                <div class="info">
+                    <strong>Version:</strong> {{ version }}<br>
+                    <strong>Environment:</strong> <span class="environment {{ environment }}">{{ environment }}</span><br>
+                    <strong>Current Time:</strong> {{ current_time }}<br>
+                    <strong>HTTP Port:</strong> {{ port }}<br>
+                    <strong>DNS Port:</strong> {{ dns_port }}
+                </div>
+            </div>
+            
+            <div class="dns-section">
+                <h3>DNS Records ({{ dns_records|length }})</h3>
+                {% if dns_records %}
+                    <div class="dns-records">
+                        {% for hostname, ip in dns_records.items() %}
+                            <div class="dns-record">
+                                <span class="hostname">{{ hostname }}</span>
+                                <span class="arrow">→</span>
+                                <span class="ip">{{ ip }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-records">No containers with joyride.host.name label found</p>
+                {% endif %}
+            </div>
         </div>
         
         <h3>API Endpoints:</h3>
         <ul>
             <li><a href="/health">/health</a> - Health check endpoint</li>
             <li><a href="/status">/status</a> - Detailed status information</li>
+            <li><a href="/dns/records">/dns/records</a> - Current DNS records</li>
         </ul>
     </div>
 </body>

@@ -40,4 +40,16 @@ def test_main_status_page(client):
     response = client.get('/')
     assert response.status_code == 200
     assert b'Service is running' in response.data
-    assert b'Flask Status Service' in response.data
+    assert b'Joyride DNS' in response.data
+
+
+def test_dns_records_endpoint(client):
+    """Test the DNS records endpoint."""
+    response = client.get('/dns/records')
+    assert response.status_code == 200
+    
+    data = response.get_json()
+    assert 'records' in data
+    assert 'count' in data
+    assert isinstance(data['records'], dict)
+    assert isinstance(data['count'], int)

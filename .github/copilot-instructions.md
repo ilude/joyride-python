@@ -152,6 +152,18 @@ def client():
 - **Debugging**: Configure proper debugging in devcontainer
 - **Shell**: Use zsh with autosuggestions and syntax highlighting; add additional zsh completion libraries as project needs grow
 
+## Future Architecture Considerations
+
+### Gossip Protocol Integration (Planned)
+- **Future Enhancement**: Will add gossip protocol support for distributed DNS record synchronization across multiple Joyride DNS instances
+- **Design Consideration**: Current architecture should remain flexible for distributed operation - avoid hard coupling between DNS server and record storage
+- **State Management**: Consider how current in-memory DNS records will transition to distributed state with eventual consistency
+- **Network Communication**: Plan for peer-to-peer communication alongside current Docker event monitoring
+- **Conflict Resolution**: Design DNS record management to handle eventual consistency scenarios and record conflicts
+- **Service Discovery**: Current single-node Docker monitoring will expand to multi-node gossip-based discovery
+
+When implementing current features, maintain loose coupling and avoid hard dependencies that would complicate future gossip protocol integration. Keep DNS record storage abstracted and network communication patterns flexible.
+
 ## Current Project Architecture
 
 ### Application Structure
