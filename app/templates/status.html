@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ service_name }} - Status</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/status.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ service_name }}</h1>
+        <div class="status">🟢 Service is running</div>
+        
+        <div class="info">
+            <strong>Version:</strong> {{ version }}<br>
+            <strong>Environment:</strong> <span class="environment {{ environment }}">{{ environment }}</span><br>
+            <strong>Current Time:</strong> {{ current_time }}<br>
+            <strong>Host:</strong> {{ host }}:{{ port }}
+        </div>
+        
+        <h3>API Endpoints:</h3>
+        <ul>
+            <li><a href="/health">/health</a> - Health check endpoint</li>
+            <li><a href="/status">/status</a> - Detailed status information</li>
+        </ul>
+    </div>
+</body>
+</html>

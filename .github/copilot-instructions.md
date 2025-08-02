@@ -39,6 +39,7 @@ This is a Python Flask microservice that provides a status web page and health c
 ### Python Best Practices
 - **Version**: Use Python 3.12+ features when appropriate
 - **Style**: Follow PEP 8 religiously, use Black formatter (line length 88)
+- **Function Spacing**: Always use two blank lines before top-level function definitions (PEP 8)
 - **Type Hints**: Always include type hints for parameters and return values
 - **Error Handling**: Use specific exception types, provide meaningful error messages
 - **Logging**: Use Python's logging module, structured logging for production

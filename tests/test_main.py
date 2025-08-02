@@ -1,4 +1,5 @@
 import pytest
+
 from app import app
 
 
@@ -14,7 +15,7 @@ def test_health_endpoint(client):
     """Test the health check endpoint."""
     response = client.get('/health')
     assert response.status_code == 200
-    
+
     data = response.get_json()
     assert data['status'] == 'healthy'
     assert 'service' in data
@@ -27,7 +28,7 @@ def test_status_endpoint(client):
     """Test the detailed status endpoint."""
     response = client.get('/status')
     assert response.status_code == 200
-    
+
     data = response.get_json()
     assert 'service' in data
     assert 'system' in data

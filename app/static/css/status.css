@@ -1,0 +1,50 @@
+body { 
+    font-family: Arial, sans-serif; 
+    margin: 40px auto; 
+    max-width: 800px; 
+    background-color: #f5f5f5;
+}
+
+.container { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.status { 
+    color: #28a745; 
+    font-weight: bold; 
+    font-size: 24px;
+}
+
+.info { 
+    margin: 15px 0; 
+    padding: 10px; 
+    background-color: #f8f9fa; 
+    border-radius: 4px;
+}
+
+.environment { 
+    display: inline-block; 
+    padding: 4px 8px; 
+    border-radius: 4px; 
+    font-weight: bold; 
+    color: white;
+}
+
+.environment.production {
+    background-color: #dc3545;
+}
+
+.environment.staging {
+    background-color: #fd7e14;
+}
+
+.environment.development {
+    background-color: #28a745;
+}
+
+.environment.default {
+    background-color: #6c757d;
+}
