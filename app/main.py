@@ -14,101 +14,102 @@ load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
 # Configuration from environment variables
-app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
-app.config['HOST'] = os.getenv('FLASK_HOST', '0.0.0.0')
-app.config['PORT'] = int(os.getenv('FLASK_PORT', 5000))
-app.config['SERVICE_NAME'] = os.getenv('SERVICE_NAME', 'Joyride DNS')
-app.config['SERVICE_VERSION'] = os.getenv('SERVICE_VERSION', '1.0.0')
-app.config['ENVIRONMENT'] = os.getenv('ENVIRONMENT', 'development')
-app.config['DNS_PORT'] = int(os.getenv('DNS_PORT', 53))
-app.config['DNS_BIND'] = os.getenv('DNS_BIND_ADDRESS', '0.0.0.0')
+app.config["DEBUG"] = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+app.config["HOST"] = os.getenv("FLASK_HOST", "0.0.0.0")
+app.config["PORT"] = int(os.getenv("FLASK_PORT", 5000))
+app.config["SERVICE_NAME"] = os.getenv("SERVICE_NAME", "Joyride DNS")
+app.config["SERVICE_VERSION"] = os.getenv("SERVICE_VERSION", "1.0.0")
+app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
+app.config["DNS_PORT"] = int(os.getenv("DNS_PORT", 53))
+app.config["DNS_BIND"] = os.getenv("DNS_BIND_ADDRESS", "0.0.0.0")
 
 # Initialize DNS server and Docker monitor
 dns_server = DNSServerManager(
-    bind_address=app.config['DNS_BIND'],
-    bind_port=app.config['DNS_PORT']
+    bind_address=app.config["DNS_BIND"], bind_port=app.config["DNS_PORT"]
 )
 
 
 def dns_record_callback(action: str, hostname: str, ip_address: str) -> None:
     """Callback for Docker monitor to update DNS records."""
-    if action == 'add':
+    if action == "add":
         dns_server.add_record(hostname, ip_address)
-    elif action == 'remove':
+    elif action == "remove":
         dns_server.remove_record(hostname)
 
 
 docker_monitor = DockerEventMonitor(dns_record_callback)
 
 
-@app.route('/')
+@app.route("/")
 def status_page():
     """Main status page"""
     dns_records = dns_server.get_records()
     return render_template(
-        'status.html',
-        service_name=app.config['SERVICE_NAME'],
-        version=app.config['SERVICE_VERSION'],
-        environment=app.config['ENVIRONMENT'],
-        current_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC'),
-        host=app.config['HOST'],
-        port=app.config['PORT'],
+        "status.html",
+        service_name=app.config["SERVICE_NAME"],
+        version=app.config["SERVICE_VERSION"],
+        environment=app.config["ENVIRONMENT"],
+        current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        host=app.config["HOST"],
+        port=app.config["PORT"],
         dns_records=dns_records,
-        dns_port=app.config['DNS_PORT']
+        dns_port=app.config["DNS_PORT"],
     )
 
 
-@app.route('/health')
+@app.route("/health")
 def health_check():
     """Health check endpoint for monitoring"""
-    return jsonify({
-        'status': 'healthy',
-        'service': app.config['SERVICE_NAME'],
-        'version': app.config['SERVICE_VERSION'],
-        'environment': app.config['ENVIRONMENT'],
-        'timestamp': datetime.now().isoformat()
-    })
+    return jsonify(
+        {
+            "status": "healthy",
+            "service": app.config["SERVICE_NAME"],
+            "version": app.config["SERVICE_VERSION"],
+            "environment": app.config["ENVIRONMENT"],
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
 
 
-@app.route('/status')
+@app.route("/status")
 def detailed_status():
     """Detailed status information in JSON format"""
-    return jsonify({
-        'service': {
-            'name': app.config['SERVICE_NAME'],
-            'version': app.config['SERVICE_VERSION'],
-            'environment': app.config['ENVIRONMENT'],
-            'debug': app.config['DEBUG']
-        },
-        'system': {
-            'timestamp': datetime.now().isoformat(),
-            'host': app.config['HOST'],
-            'port': app.config['PORT']
-        },
-        'dns': {
-            'port': app.config['DNS_PORT'],
-            'bind_address': app.config['DNS_BIND'],
-            'records': dns_server.get_records()
-        },
-        'status': 'running'
-    })
+    return jsonify(
+        {
+            "service": {
+                "name": app.config["SERVICE_NAME"],
+                "version": app.config["SERVICE_VERSION"],
+                "environment": app.config["ENVIRONMENT"],
+                "debug": app.config["DEBUG"],
+            },
+            "system": {
+                "timestamp": datetime.now().isoformat(),
+                "host": app.config["HOST"],
+                "port": app.config["PORT"],
+            },
+            "dns": {
+                "port": app.config["DNS_PORT"],
+                "bind_address": app.config["DNS_BIND"],
+                "records": dns_server.get_records(),
+            },
+            "status": "running",
+        }
+    )
 
 
-@app.route('/dns/records')
+@app.route("/dns/records")
 def dns_records():
     """Get current DNS records"""
-    return jsonify({
-        'records': dns_server.get_records(),
-        'count': len(dns_server.get_records())
-    })
+    return jsonify(
+        {"records": dns_server.get_records(), "count": len(dns_server.get_records())}
+    )
 
 
 # Initialize services when app starts
@@ -119,11 +120,11 @@ _services_initialized = False
 def initialize_services() -> None:
     """Initialize DNS server and Docker monitor."""
     global _services_initialized
-    
+
     if _services_initialized:
         logger.warning("Services already initialized, skipping...")
         return
-        
+
     try:
         logger.info("Initializing services...")
         dns_server.start()
@@ -150,19 +151,16 @@ def cleanup_services():
 atexit.register(cleanup_services)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize services only when running as main and not in Flask reloader
-    testing_mode = (app.config.get('TESTING', False) or
-                    os.getenv('TESTING', '').lower() == 'true')
-    
+    testing_mode = (
+        app.config.get("TESTING", False) or os.getenv("TESTING", "").lower() == "true"
+    )
+
     # Flask reloader sets WERKZEUG_RUN_MAIN=true in the reloaded process
-    is_reloaded_process = os.getenv('WERKZEUG_RUN_MAIN') == 'true'
-    
+    is_reloaded_process = os.getenv("WERKZEUG_RUN_MAIN") == "true"
+
     if not testing_mode and not is_reloaded_process:
         initialize_services()
-    
-    app.run(
-        host=app.config['HOST'],
-        port=app.config['PORT'],
-        debug=app.config['DEBUG']
-    )
+
+    app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
