@@ -53,6 +53,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     build-base \
     coreutils \
     git \
+    github-cli \
     linux-headers \
     make \
     openssh-client \
