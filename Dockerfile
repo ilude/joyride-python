@@ -57,6 +57,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     docker-cli \
     git \
     github-cli \
+    jq \
     linux-headers \
     make \
     openssh-client \

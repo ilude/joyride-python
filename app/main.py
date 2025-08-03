@@ -278,7 +278,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
     
-    # Initialize services only when running as main and not in Flask reloader
+    # Initialize services only when running as main and not in testing mode
     testing_mode = (
         app.config.get("TESTING", False) or os.getenv("TESTING", "").lower() == "true"
     )
@@ -286,9 +286,11 @@ if __name__ == "__main__":
     # Flask reloader sets WERKZEUG_RUN_MAIN=true in the reloaded process
     is_reloaded_process = os.getenv("WERKZEUG_RUN_MAIN") == "true"
 
-    if not testing_mode and not is_reloaded_process:
-        # Create PID file
-        create_pid_file()
+    # Initialize services only in the reloaded process or when not using reloader
+    if not testing_mode and (is_reloaded_process or not app.config["DEBUG"]):
+        # Create PID file only in main process when not in debug mode
+        if not app.config["DEBUG"]:
+            create_pid_file()
         initialize_services()
 
     app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
