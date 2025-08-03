@@ -48,6 +48,35 @@ def get_service_status(service_name: str) -> ServiceStatus:
 
 ### Configuration
 - Use classes for environment configs
+- Load via `python-dotenv` for development
+- Use `os.getenv()` with sensible defaults
+- Separate development and production configurations
+
+### Network Services & Background Processing
+- Use threading for background services (DNS server, Docker monitoring)
+- Implement proper signal handling for graceful shutdown
+- Use threading.Lock for shared resources
+- Create PID files for process management in `/tmp/` for development
+- Use proper cleanup with `atexit.register()`
+
+### Flask Applications
+- Structure with `app/` package using `__init__.py` exports
+- Use `run.py` as clean entry point
+- Disable debug mode for background processes (`FLASK_DEBUG=false`)
+- Implement health check endpoints (`/health`, `/status`)
+- Use Pydantic for API response models
+
+### Service Integration Patterns
+```python
+# Signal handling for services
+def signal_handler(signum, frame):
+    logger.info(f"Received signal {signum}, shutting down gracefully...")
+    cleanup_services()
+    exit(0)
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+```
 - Load via `python-dotenv`
 - Validate configuration at startup
 

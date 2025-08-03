@@ -36,6 +36,11 @@ def client():
 - Mock external dependencies
 - Use factories or fixtures, avoid hardcoded test data
 
+### Integration Testing
+- Test real DNS resolution with `dig` commands
+- Use Make targets for complex integration scenarios
+
 ## Coverage
-- Run with: `pytest tests/ --cov=app`
+- Aim for >90% coverage on critical paths
 - Coverage reports in `.htmlcov/`
+- Use `make test` for consistent test execution

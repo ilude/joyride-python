@@ -18,8 +18,16 @@
 - **Use specific applyTo patterns** when possible to target exact file types
 - **Combine related rules** when applyTo patterns cannot differentiate (e.g., Flask + Python)
 - **Create new files only when** applyTo patterns can uniquely target the files
-- **Example patterns**: `"**/Dockerfile*"`, `"**/.{gitignore,dockerignore}"`, `"**/*.py"`, `"**/tests/**/*.py"`
+- **Example patterns**: `"**/Dockerfile*"`, `"**/.{gitignore,dockerignore}"`, `"**/*.py"`, `"**/tests/**/*.py"`, `"**/Makefile"`, `"**/.devcontainer/**"`
 - **Avoid overly broad patterns** that would apply to unintended files
+
+### Current Instruction Files
+- `dockerfile.instructions.md` - Docker containerization best practices
+- `ignore-files.instructions.md` - .gitignore and .dockerignore management  
+- `python.instructions.md` - Python coding standards including network services
+- `testing.instructions.md` - Testing standards with Docker integration
+- `makefile.instructions.md` - Build system and process management
+- `devcontainer.instructions.md` - Development environment configuration
 
 ### When to Provide Details
 - User explicitly asks "explain", "why", or "how"  
@@ -51,8 +59,7 @@
 
 ### Git Practices
 - **Commit Messages**: Use conventional commits format
-- **Branch Strategy**: Feature branches, main branch protected
-- **PR Requirements**: Tests pass, code review, no merge commits
+- **Branch Strategy**: Feature branches
 - **Semantic Versioning**: Follow semver for releases
 
 ### Development Environment
