@@ -1,6 +1,7 @@
 import atexit
 import logging
 import os
+import signal
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -66,11 +67,50 @@ app.config["DEBUG"] = os.getenv("FLASK_DEBUG", "False").lower() == "true"
 app.config["HOST"] = os.getenv("FLASK_HOST", "0.0.0.0")
 app.config["PORT"] = int(os.getenv("FLASK_PORT", 5000))
 app.config["SERVICE_NAME"] = os.getenv("SERVICE_NAME", "Joyride DNS")
-app.config["SERVICE_VERSION"] = os.getenv("SERVICE_VERSION", "1.0.0")
 app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
-app.config["DNS_PORT"] = int(os.getenv("DNS_PORT", 53))
+app.config["DNS_PORT"] = int(os.getenv("DNS_PORT", 5353))
 app.config["DNS_BIND"] = os.getenv("DNS_BIND_ADDRESS", "0.0.0.0")
 app.config["HOSTIP"] = os.getenv("HOSTIP", "127.0.0.1")
+
+
+# PID file management
+def get_pid_file_path():
+    """Get the standard PID file path for the application."""
+    # Use /tmp for development environment since /var/run requires root
+    return "/tmp/joyride-dns.pid"
+
+
+def create_pid_file():
+    """Create PID file with current process ID."""
+    pid_file = get_pid_file_path()
+    try:
+        with open(pid_file, 'w') as f:
+            f.write(str(os.getpid()))
+        logger.debug(f"Created PID file: {pid_file}")
+        return pid_file
+    except Exception as e:
+        logger.warning(f"Could not create PID file {pid_file}: {e}")
+        return None
+
+
+def remove_pid_file():
+    """Remove PID file if it exists."""
+    pid_file = get_pid_file_path()
+    try:
+        if os.path.exists(pid_file):
+            os.remove(pid_file)
+            logger.debug(f"Removed PID file: {pid_file}")
+    except Exception as e:
+        logger.warning(f"Could not remove PID file {pid_file}: {e}")
+
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully."""
+    logger.debug(f"Received signal {signum}, shutting down gracefully...")
+    cleanup_services()
+    remove_pid_file()
+    exit(0)
+
 
 # Initialize DNS server and Docker monitor
 dns_server = DNSServerManager(
@@ -96,7 +136,7 @@ def status_page():
     return render_template(
         "status.html",
         service_name=app.config["SERVICE_NAME"],
-        version=app.config["SERVICE_VERSION"],
+        version="1.0.0",
         environment=app.config["ENVIRONMENT"],
         current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
         host=app.config["HOST"],
@@ -113,7 +153,7 @@ def health_check():
         status="healthy",
         timestamp=datetime.now().isoformat(),
         service=app.config["SERVICE_NAME"],
-        version=app.config["SERVICE_VERSION"],
+        version="1.0.0",
     )
     return jsonify(response.model_dump())
 
@@ -125,7 +165,7 @@ def detailed_status():
         status="running",
         timestamp=datetime.now().isoformat(),
         service=app.config["SERVICE_NAME"],
-        version=app.config["SERVICE_VERSION"],
+        version="1.0.0",
         environment=app.config["ENVIRONMENT"],
         dns_server={
             "port": app.config["DNS_PORT"],
@@ -168,7 +208,6 @@ def initialize_services() -> None:
         return
 
     try:
-        logger.info("Initializing services...")
         dns_server.start()
         docker_monitor.start()
         _services_initialized = True
@@ -185,15 +224,20 @@ def initialize_services() -> None:
 # Cleanup on shutdown
 def cleanup_services():
     """Cleanup services on shutdown."""
-    logger.info("Shutting down services...")
+    logger.debug("Shutting down services...")
     docker_monitor.stop()
     dns_server.stop()
+    remove_pid_file()
 
 
 atexit.register(cleanup_services)
 
 
 if __name__ == "__main__":
+    # Setup signal handlers
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    
     # Initialize services only when running as main and not in Flask reloader
     testing_mode = (
         app.config.get("TESTING", False) or os.getenv("TESTING", "").lower() == "true"
@@ -203,6 +247,8 @@ if __name__ == "__main__":
     is_reloaded_process = os.getenv("WERKZEUG_RUN_MAIN") == "true"
 
     if not testing_mode and not is_reloaded_process:
+        # Create PID file
+        create_pid_file()
         initialize_services()
 
     app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])

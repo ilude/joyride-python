@@ -155,7 +155,7 @@ class TestDockerEventMonitor:
         """Test processing existing containers on startup."""
         mock_container1 = Mock()
         mock_container1.attrs = {
-            "Config": {"Labels": {"joyride.host.name": "app1.local"}}
+            "Config": {"Labels": {"joyride.host.name": "app1.internal"}}
         }
 
         mock_container2 = Mock()
@@ -163,7 +163,7 @@ class TestDockerEventMonitor:
 
         mock_container3 = Mock()
         mock_container3.attrs = {
-            "Config": {"Labels": {"joyride.host.name": "app2.local"}}
+            "Config": {"Labels": {"joyride.host.name": "app2.internal"}}
         }
 
         with patch.object(monitor, "client") as mock_client:
@@ -182,8 +182,8 @@ class TestDockerEventMonitor:
             # Should only call DNS callback for containers with joyride labels
             # using HOSTIP
             expected_calls = [
-                call("add", "app1.local", "192.168.1.100"),
-                call("add", "app2.local", "192.168.1.100"),
+                call("add", "app1.internal", "192.168.1.100"),
+                call("add", "app2.internal", "192.168.1.100"),
             ]
             dns_callback.assert_has_calls(expected_calls, any_order=True)
             assert dns_callback.call_count == 2

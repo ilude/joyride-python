@@ -61,7 +61,7 @@ class DockerEventMonitor:
             )
             self.monitor_thread.start()
 
-            logger.info("Docker event monitor started")
+            logger.debug("Docker event monitor started")
         except DockerException as e:
             logger.error(f"Failed to connect to Docker: {e}")
             raise
@@ -78,7 +78,7 @@ class DockerEventMonitor:
             self.client.close()
             self.client = None
         self.monitor_thread = None
-        logger.info("Docker event monitor stopped")
+        logger.debug("Docker event monitor stopped")
 
     def _monitor_events(self) -> None:
         """
@@ -131,7 +131,7 @@ class DockerEventMonitor:
 
             if hostname:
                 self.dns_callback("add", hostname, self.host_ip)
-                logger.info(f"Container started: {hostname} -> {self.host_ip}")
+                logger.debug(f"Container started: {hostname} -> {self.host_ip}")
         except Exception as e:
             logger.error(f"Error handling container start {container_id}: {e}")
 
@@ -149,7 +149,7 @@ class DockerEventMonitor:
 
             if hostname:
                 self.dns_callback("remove", hostname, "")
-                logger.info(f"Container stopped: removed {hostname}")
+                logger.debug(f"Container stopped: removed {hostname}")
         except Exception as e:
             logger.debug(f"Error handling container stop {container_id}: {e}")
 
@@ -169,7 +169,7 @@ class DockerEventMonitor:
                 hostname = self._get_container_hostname(container)
                 if hostname:
                     self.dns_callback("add", hostname, self.host_ip)
-                    logger.info(f"Existing container: {hostname} -> {self.host_ip}")
+                    logger.debug(f"Existing container: {hostname} -> {self.host_ip}")
         except Exception as e:
             logger.error(f"Error processing existing containers: {e}")
 

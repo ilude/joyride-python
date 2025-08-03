@@ -50,12 +50,17 @@
     }
   },
   "forwardPorts": [
-    5000
+    5000,
+    5353
   ],
   "portsAttributes": {
     "5000": {
-      "label": "joyride",
+      "label": "joyride-web",
       "onAutoForward": "notify"
+    },
+    "5353": {
+      "label": "joyride-dns",
+      "onAutoForward": "ignore"
     }
   },
   "postCreateCommand": "pip install -r requirements-dev.txt && ./.devcontainer/setup-dotfiles.sh",
@@ -63,6 +68,8 @@
   "runArgs": [
     "--env-file",
     ".env",
+    "--env-file",
+    ".devcontainer/.env",
     "--hostname",
     "joyride"
   ],

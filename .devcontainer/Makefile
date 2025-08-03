@@ -2,18 +2,10 @@
 # This file contains targets that are primarily useful in development environments
 
 # Initialize development environment
-initialize: $(INITIALIZER)
+initialize: 
 	@echo "Initializing development environment for $(DETECTED_OS)..."
 	@echo "HOSTIP: $(HOSTIP)"
-	@sed -i '/^HOSTIP=/d; $$a HOSTIP=$(HOSTIP)' .env 2>/dev/null || echo "HOSTIP=$(HOSTIP)" > .env
-
-initialize-linux:
-	
-
-initialize-macos:
-	
-
-initialize-windows:
+	@echo "HOSTIP=$(HOSTIP)" > .devcontainer/.env
 
 # Install development dependencies (only if requirements-dev.txt changed)
 .install-dev: requirements-dev.txt
@@ -53,6 +45,7 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
 	rm -rf .coverage .htmlcov/ .pytest_cache/
 	rm -f .install-prod .install-dev
+	@rm -f /tmp/joyride-dns.pid 2>/dev/null || true
 	@echo "Clean completed!"
 
 # Check if application is healthy
@@ -65,3 +58,32 @@ health-check:
 dns-status:
 	@echo "Current DNS records:"
 	@curl -s http://localhost:5000/dns/records | python -m json.tool || echo "❌ Could not fetch DNS records"
+
+# Start Joyride DNS server in background (real target based on PID file)
+/tmp/joyride-dns.pid: .install-dev
+	python -m app.main &
+	@sleep 2
+
+
+# Stop background Joyride DNS server
+stop-app:
+	@if [ -f /tmp/joyride-dns.pid ]; then \
+		kill -TERM `cat /tmp/joyride-dns.pid` 2>/dev/null || true; \
+	fi
+
+# Run Flask application locally
+run:
+	@FLASK_DEBUG=true python -m app.main
+
+
+# Docker testing commands (requires Docker-in-Docker)
+test-docker: .install-dev /tmp/joyride-dns.pid
+	@docker run --rm -d --name test-joyride --label joyride.host.name=test.internal nginx:alpine >/dev/null
+	@sleep 2
+	
+	@dig @localhost -p 5353 test.internal +short | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$$' >/dev/null 2>&1 && echo "✅ DNS resolution successful" || echo "❌ DNS resolution failed"
+	@curl -s http://localhost:5000/dns/records | grep -q test.internal && echo "✅ API responded with DNS record" || echo "❌ API did not return expected DNS record"
+
+	@docker stop test-joyride >/dev/null 2>&1 || true
+	@$(MAKE) --no-print-directory stop-app
+	@echo "✅ Docker testing completed!"

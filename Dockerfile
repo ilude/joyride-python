@@ -51,8 +51,10 @@ RUN --mount=type=cache,target=/var/cache/apk \
     apk add --no-cache \
     apk-tools-zsh-completion \
     bash \
+    bind-tools \
     build-base \
     coreutils \
+    docker-cli \
     git \
     github-cli \
     linux-headers \

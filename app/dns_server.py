@@ -37,7 +37,7 @@ class DNSRequestHandler(BaseRequestHandler):
             if qtype == QTYPE.A and qname in self.dns_records:
                 ip_address = self.dns_records[qname]
                 reply.add_answer(RR(qname, QTYPE.A, rdata=A(ip_address), ttl=60))
-                logger.info(f"Resolved {qname} -> {ip_address}")
+                logger.debug(f"Resolved {qname} -> {ip_address}")
             else:
                 logger.debug(f"No record found for {qname}")
 
@@ -89,7 +89,7 @@ class DNSServerManager:
             self.server.shutdown()
             self.server.server_close()
             self.server = None
-            logger.info("DNS server stopped")
+            logger.debug("DNS server stopped")
 
     def add_record(self, hostname: str, ip_address: str) -> None:
         """Add or update a DNS record."""

@@ -27,9 +27,6 @@
 - Breaking changes impacting existing functionality
 - Security implications requiring highlighting
 
-## Project Overview
-This is a Python Flask microservice that provides dynamic DNS services by monitoring Docker container events. It's designed to run in Docker containers with Alpine Linux base images and follows 12-factor app principles for cloud-native deployment.
-
 ### Terminology & Acronyms
 - **DRY**: When the user says "DRY", they mean "Don't Repeat Yourself" - the coding best practice of avoiding code duplication by extracting common functionality into reusable components, functions, or modules
 
@@ -64,6 +61,8 @@ This is a Python Flask microservice that provides dynamic DNS services by monito
 - **Hot Reload**: Enable in development for faster iteration
 - **Debugging**: Configure proper debugging in devcontainer
 - **Shell**: Use zsh with autosuggestions and syntax highlighting; add additional zsh completion libraries as project needs grow
+- **ALWAYS use `.internal`** for container-generated DNS records
+- **NEVER use `.local`** as it conflicts with mDNS/Bonjour services
 
 ## Future Architecture Considerations
 

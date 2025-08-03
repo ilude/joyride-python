@@ -23,7 +23,7 @@ else
 		DETECTED_OS := macos
 	endif
 endif
-INITIALIZER := initialize-$(DETECTED_OS)
+
 
 # Host IP detection (simplified for devcontainer)
 ifndef HOSTIP
@@ -79,16 +79,16 @@ help:
 		echo "  clean        - Clean Python cache files"; \
 		echo "  health-check - Check application health"; \
 		echo "  dns-status   - Show current DNS records"; \
+		echo "  stop-bg      - Stop background Joyride DNS server"; \
+		echo "  test-docker  - Test Docker integration (requires DinD)"; \
+		echo "  test-dns-full- Full DNS resolution test with dig"; \
 		echo ""; \
 	fi
 
-# Run Flask application locally
-run:
-	@echo "Starting Joyride DNS server..."
-	python -m app.main
+.env:
+	touch .env
 
-
-build:
+build: .env
 	$(CONTAINER_RUNTIME) compose build
 
 
