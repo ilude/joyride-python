@@ -66,6 +66,7 @@
     "--hostname",
     "joyride"
   ],
+  "initializeCommand": "make initialize",
   "mounts": [
     "source=devcontainer-home,target=/home/vscode,type=volume",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",

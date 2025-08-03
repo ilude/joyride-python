@@ -1,10 +1,90 @@
-# Joyride DNS - Development Makefile
+# https://docs.docker.com/develop/develop-images/build_enhancements/
+# https://www.docker.com/blog/faster-builds-in-compose-thanks-to-buildkit-support/
+export DOCKER_BUILDKIT := 1
+export DOCKER_SCAN_SUGGEST := false
+export COMPOSE_DOCKER_CLI_BUILD := 1
 
-.PHONY: help install install-dev test lint format clean build run logs docker-build docker-run docker-stop dev-setup health-check dns-status
+# Cross-platform detection
+ifeq ($(OS),Windows_NT)
+	DETECTED_OS := windows
+	SHELL_CMD := powershell
+	ifneq (, $(shell where pwsh 2>nul))
+		SHELL_CMD := pwsh
+	endif
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		DETECTED_OS := linux
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		DETECTED_OS := macos
+	endif
+endif
+INITIALIZER := initialize-$(DETECTED_OS)
 
-# Default target
+# Host IP detection (simplified for devcontainer)
+ifndef HOSTIP
+	ifeq ($(DETECTED_OS),linux)
+		# In devcontainer/Docker, get the host gateway IP (Docker host)
+		HOSTIP := $(shell ip route get 1 | head -1 | awk '{print $$7}' )
+	else ifeq ($(DETECTED_OS),macos)
+		HOSTIP := $(shell ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $$2}' )
+	else ifeq ($(DETECTED_OS),windows)
+		HOSTIP := $(shell powershell -noprofile -command '(Get-NetIPConfiguration | Where-Object {$$_.IPv4DefaultGateway -ne $$null -and $$_.NetAdapter.Status -ne "Disconnected"}).IPv4Address.IPAddress' )
+	endif
+endif
+
+
+# Container runtime detection
+ifndef CONTAINER_RUNTIME
+	ifneq (, $(shell which podman 2>/dev/null))
+		CONTAINER_RUNTIME := podman
+	else
+		CONTAINER_RUNTIME := docker
+	endif
+endif
+
+
+# Export variables
+export HOSTIP
+export CONTAINER_RUNTIME
+export DETECTED_OS
+
+.PHONY: help install install-dev test lint format clean build run logs docker-build docker-run docker-stop dev-setup health-check dns-status version initialize initialize-linux initialize-macos initialize-windows
+
+# Initialize development environment
+initialize: $(INITIALIZER)
+	@echo "Initializing development environment for $(DETECTED_OS)..."
+	@echo "HOSTIP: $(HOSTIP)"
+	@sed -i '/^HOSTIP=/d; $$a HOSTIP=$(HOSTIP)' .env 2>/dev/null || echo "HOSTIP=$(HOSTIP)" > .env
+
+initialize-linux:
+	
+
+initialize-macos:
+	
+
+initialize-windows:
+
+# Display version and environment info
+version:
+	@echo "Joyride DNS Service - Development Environment"
+	@echo "=============================================="
+	@echo "Detected OS: $(DETECTED_OS)"
+	@echo "Container Runtime: $(CONTAINER_RUNTIME)"
+	@echo "Host IP: $(HOSTIP)"
+	@echo "Python: $(shell python --version 2>&1)"
+	@echo "Docker: $(shell docker --version 2>/dev/null || echo 'Not available')"
+	@echo ""
+
+# help target
 help:
-	@echo "Joyride DNS - Available targets:"
+	@echo "Available targets:"
+	@echo "Detected OS: $(DETECTED_OS), Container Runtime: $(CONTAINER_RUNTIME), Host IP: $(HOSTIP)"
+	@echo ""
+	@echo "Setup:"
+	@echo "  version      - Display version and environment info"
+	@echo "  initialize   - Initialize development environment"
 	@echo ""
 	@echo "Development:"
 	@echo "  install      - Install production dependencies"
@@ -81,26 +161,23 @@ clean:
 # Run Flask application locally
 run:
 	@echo "Starting Joyride DNS server..."
-	@echo "Note: DNS server requires elevated privileges (sudo) to bind to port 53"
 	python -m app.main
-
-# Show application logs (for when running in background)
-logs:
-	@echo "Recent application logs:"
-	@if [ -f app.log ]; then tail -f app.log; else echo "No log file found. Run 'make run' first."; fi
 
 # Build Docker image
 docker-build:
 	@echo "Building Docker image..."
-	docker build -t joyride-dns:latest .
+	@echo "Detected HOSTIP: $(HOSTIP)"
+	HOSTIP=$(HOSTIP) docker build -t joyride-dns:latest .
 	@echo "Docker image built successfully!"
 
 # Run application in Docker
 docker-run:
 	@echo "Starting Joyride DNS in Docker..."
-	docker-compose up -d
+	@echo "Detected HOSTIP: $(HOSTIP)"
+	HOSTIP=$(HOSTIP) docker-compose up -d
 	@echo "Application running at http://localhost:5000"
 	@echo "DNS server running on port 5353"
+	@echo "DNS records will point to: $(HOSTIP)"
 
 # Stop Docker containers
 docker-stop:
@@ -112,10 +189,7 @@ docker-stop:
 build: clean .install-dev lint test
 	@echo ""
 	@echo "✅ Build pipeline completed successfully!"
-	@echo "  - Dependencies installed"
-	@echo "  - Code linting passed"
-	@echo "  - All tests passed"
-	@echo ""
+
 
 # Development setup (one-time setup for new developers)
 dev-setup: .install-dev
