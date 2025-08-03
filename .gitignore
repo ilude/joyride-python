@@ -34,3 +34,5 @@ instance/
 
 # Development tools
 .mypy_cache/
+
+nul

@@ -128,14 +128,15 @@ install-dev: .install-dev
 test: .install-dev
 	@echo "Running tests with coverage..."
 	pytest tests/ --cov=app --cov-report=term-missing --cov-report=html:.htmlcov
-	@echo "Coverage report generated in .htmlcov/"
+
 
 # Run linting
 lint: .install-dev
 	@echo "Running flake8 linting..."
 	# E203: whitespace before ':' (conflicts with black formatting)
 	# W503: line break before binary operator (conflicts with black formatting)
-	flake8 app tests --max-line-length=88 --extend-ignore=E203,W503
+	# E501: line too long (disabled to match black's line length handling)
+	flake8 app tests --max-line-length=88 --extend-ignore=E203,W503,E501
 	@echo "Linting completed successfully!"
 
 # Format code

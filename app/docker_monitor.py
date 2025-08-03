@@ -18,7 +18,7 @@ class DockerEventMonitor:
     Docker daemon and processes events in a background thread.
     """
 
-    def __init__(self, dns_callback: Callable[[str, str, str], None]):
+    def __init__(self, dns_callback: Callable[[str, str, str], None], host_ip: str):
         """
         Initialize Docker event monitor.
 
@@ -27,9 +27,11 @@ class DockerEventMonitor:
                          Called with (action, hostname, ip_address) where:
                          - action: 'add' to create record, 'remove' to delete
                          - hostname: DNS hostname from container label
-                         - ip_address: Container's IP address (empty for remove)
+                         - ip_address: Host IP address for all DNS records
+            host_ip: IP address to use for all DNS records (typically HOSTIP)
         """
         self.dns_callback = dns_callback
+        self.host_ip = host_ip
         self.client: Optional[docker.DockerClient] = None
         self.monitor_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -121,17 +123,15 @@ class DockerEventMonitor:
 
         Args:
             container_id: Docker container ID to process. Extracts hostname
-                         from labels and registers DNS record if present.
+                         from labels and registers DNS record with host IP.
         """
         try:
             container = self.client.containers.get(container_id)
             hostname = self._get_container_hostname(container)
 
             if hostname:
-                ip_address = self._get_container_ip(container)
-                if ip_address:
-                    self.dns_callback("add", hostname, ip_address)
-                    logger.info(f"Container started: {hostname} -> {ip_address}")
+                self.dns_callback("add", hostname, self.host_ip)
+                logger.info(f"Container started: {hostname} -> {self.host_ip}")
         except Exception as e:
             logger.error(f"Error handling container start {container_id}: {e}")
 
@@ -158,8 +158,9 @@ class DockerEventMonitor:
         Process already running containers on startup.
 
         Scans all currently running containers and registers DNS records
-        for any that have the 'joyride.host.name' label. This ensures
-        the DNS server has records for containers started before monitoring.
+        for any that have the 'joyride.host.name' label using host IP.
+        This ensures the DNS server has records for containers started
+        before monitoring.
         """
         try:
             containers = self.client.containers.list(filters={"status": "running"})
@@ -167,10 +168,8 @@ class DockerEventMonitor:
             for container in containers:
                 hostname = self._get_container_hostname(container)
                 if hostname:
-                    ip_address = self._get_container_ip(container)
-                    if ip_address:
-                        self.dns_callback("add", hostname, ip_address)
-                        logger.info(f"Existing container: {hostname} -> {ip_address}")
+                    self.dns_callback("add", hostname, self.host_ip)
+                    logger.info(f"Existing container: {hostname} -> {self.host_ip}")
         except Exception as e:
             logger.error(f"Error processing existing containers: {e}")
 
@@ -186,33 +185,3 @@ class DockerEventMonitor:
         """
         labels = container.attrs.get("Config", {}).get("Labels", {})
         return labels.get("joyride.host.name")
-
-    def _get_container_ip(self, container) -> Optional[str]:
-        """
-        Get container IP address from default network.
-
-        Args:
-            container: Docker container object to inspect for IP address.
-
-        Returns:
-            Container's IP address string, or None if not found. Prefers
-            bridge network, falls back to first available network.
-        """
-        try:
-            network_settings = container.attrs.get("NetworkSettings", {})
-            networks = network_settings.get("Networks", {})
-
-            # Try to get IP from default bridge network first
-            if "bridge" in networks:
-                return networks["bridge"].get("IPAddress")
-
-            # Fall back to first available network
-            for network_name, network_info in networks.items():
-                ip_address = network_info.get("IPAddress")
-                if ip_address:
-                    return ip_address
-
-            return None
-        except Exception as e:
-            logger.error(f"Error getting container IP: {e}")
-            return None

@@ -70,6 +70,7 @@ app.config["SERVICE_VERSION"] = os.getenv("SERVICE_VERSION", "1.0.0")
 app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
 app.config["DNS_PORT"] = int(os.getenv("DNS_PORT", 53))
 app.config["DNS_BIND"] = os.getenv("DNS_BIND_ADDRESS", "0.0.0.0")
+app.config["HOSTIP"] = os.getenv("HOSTIP", "127.0.0.1")
 
 # Initialize DNS server and Docker monitor
 dns_server = DNSServerManager(
@@ -85,7 +86,7 @@ def dns_record_callback(action: str, hostname: str, ip_address: str) -> None:
         dns_server.remove_record(hostname)
 
 
-docker_monitor = DockerEventMonitor(dns_record_callback)
+docker_monitor = DockerEventMonitor(dns_record_callback, app.config["HOSTIP"])
 
 
 @app.route("/")
