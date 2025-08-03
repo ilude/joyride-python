@@ -52,12 +52,25 @@ export CONTAINER_RUNTIME
 export DETECTED_OS
 export SEMANTIC_VERSION
 
-.PHONY: help build run start up down restart docker-clean
+.PHONY: help build run start up down restart docker-clean install install-prod
+
+# Installation targets
+install:
+	@echo "Installing development dependencies..."
+	uv pip install --system -r requirements-dev.txt
+
+install-prod:
+	@echo "Installing production dependencies..."
+	uv pip install --system -r requirements.txt
 
 # help target
 help:
 	@echo "Available targets:"
 	@echo "Detected OS: $(DETECTED_OS), Container Runtime: $(CONTAINER_RUNTIME), Host IP: $(HOSTIP)"
+	@echo ""
+	@echo "Dependencies:"
+	@echo "  install      - Install development dependencies with uv"
+	@echo "  install-prod - Install production dependencies with uv"
 	@echo ""
 	@echo "Application:"
 	@echo "  run          - Run the Flask application locally"

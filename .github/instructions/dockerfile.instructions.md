@@ -28,7 +28,6 @@ applyTo: "**/Dockerfile*"
 
 ### Package Organization  
 - Maintain alphabetical order in `RUN apk add` commands
-- Maintain alphabetical order in requirements.txt files
 
 ### Environment Variables
 - Use ARG for build-time variables (PUID, PGID, USER, WORKDIR)
@@ -48,18 +47,20 @@ applyTo: "**/Dockerfile*"
 
 ```dockerfile
 FROM python:3.12-alpine AS base
+# Install uv for fast dependency management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ARG PUID=1000 PGID=1000 USER=appuser WORKDIR=/app
 RUN addgroup -g ${PGID} ${USER} && \
-    adduser -D -u ${PUID} -G ${USER} -s /bin/sh ${USER}
+    adduser -D -u ${PGID} -G ${USER} -s /bin/sh ${USER}
 WORKDIR ${WORKDIR}
 
 FROM base AS production
 COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir -r requirements.txt
-COPY app/ ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --no-cache -r requirements.txt
+COPY app/ ./app/
 USER ${USER}
 HEALTHCHECK --interval=30s --timeout=10s \
     CMD curl -f http://localhost:5000/health || exit 1
-CMD ["python", "run.py"]
+CMD ["python", "-m", "app.main"]
 ```

@@ -8,6 +8,9 @@ FROM python:3.12-alpine AS base
 # Add project label for image cleanup
 LABEL project=joyride-dns-service
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 # Set default PUID and PGID
 ARG PUID=1000
 ARG PGID=1000
@@ -77,9 +80,8 @@ RUN usermod -s /bin/zsh $USER
 COPY requirements*.txt ./
 
 # Install Python dependencies with cache mount
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-dev.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --no-cache -r requirements-dev.txt
 
 # Switch to non-root user
 USER $USER
@@ -97,12 +99,11 @@ FROM base AS production
 COPY requirements.txt .
 
 # Install Python dependencies with cache mount
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --no-cache -r requirements.txt
 
 # Copy application code
-COPY app/ ./
+COPY app/ ./app/
 
 # Change ownership to user
 RUN chown -R $USER:$USER $WORKDIR
@@ -111,4 +112,4 @@ RUN chown -R $USER:$USER $WORKDIR
 USER $USER
 
 # Run the application
-CMD ["python", "main.py"]
+CMD ["python", "-m", "app.main"]

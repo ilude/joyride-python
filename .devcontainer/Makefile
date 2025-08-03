@@ -12,7 +12,7 @@ initialize:
 # Install development dependencies (only if requirements-dev.txt changed)
 .install-dev: requirements-dev.txt
 	@echo "Installing development dependencies..."
-	pip install -r requirements-dev.txt
+	uv pip install --system -r requirements-dev.txt
 	@touch .install-dev
 
 # Run tests with coverage
@@ -21,11 +21,10 @@ test: .install-dev
 	pytest tests/ --cov=app --cov-report=term-missing --cov-report=html:.htmlcov
 
 # Run linting
+# E203: whitespace before ':' (conflicts with black formatting)
+# W503: line break before binary operator (conflicts with black formatting)
+# E501: line too long (disabled to match black's line length handling)
 lint: .install-dev
-	@echo "Running flake8 linting..."
-	# E203: whitespace before ':' (conflicts with black formatting)
-	# W503: line break before binary operator (conflicts with black formatting)
-	# E501: line too long (disabled to match black's line length handling)
 	flake8 app tests --extend-ignore=E203,W503,E501
 	@echo "Linting completed successfully!"
 
