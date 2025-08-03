@@ -25,29 +25,8 @@ applyTo: "**/Makefile"
 - `run` - Start application locally
 
 ### Background Process Management
-- Use real PID file targets (e.g., `/tmp/service.pid`)
 - Send SIGTERM for graceful shutdown
-- Clean up PID files in cleanup targets
 - Use `--no-print-directory` for nested make calls
-
-### Example Patterns
-```makefile
-# Real file target for background services
-/tmp/service.pid: .install-dev
-	@FLASK_DEBUG=false python -m app.main &
-	@sleep 2
-
-# Graceful shutdown
-stop-app:
-	@if [ -f /tmp/service.pid ]; then \
-		kill -TERM `cat /tmp/service.pid` 2>/dev/null || true; \
-	fi
-
-# Quiet output for commands
-test-integration: /tmp/service.pid
-	@docker run --rm nginx >/dev/null
-	@$(MAKE) --no-print-directory stop-app
-```
 
 ### DevContainer Integration
 - Separate `.devcontainer/Makefile` for development-specific targets
