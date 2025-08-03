@@ -2,4 +2,5 @@ dnslib==0.9.24
 docker==7.1.0
 flask==3.0.0
 gunicorn==21.2.0
+pydantic==2.8.2
 python-dotenv==1.0.0

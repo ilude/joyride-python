@@ -2,12 +2,53 @@ import atexit
 import logging
 import os
 from datetime import datetime
+from typing import Any, Dict, List
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template
+from pydantic import BaseModel
 
 from .dns_server import DNSServerManager
 from .docker_monitor import DockerEventMonitor
+
+
+class HealthResponse(BaseModel):
+    """Health check response model."""
+
+    status: str
+    timestamp: str
+    service: str
+    version: str
+
+
+class DetailedStatusResponse(BaseModel):
+    """Detailed status response model."""
+
+    status: str
+    timestamp: str
+    service: str
+    version: str
+    environment: str
+    dns_server: Dict[str, Any]
+    docker_monitor: Dict[str, Any]
+    uptime: str
+
+
+class DNSRecord(BaseModel):
+    """DNS record model."""
+
+    hostname: str
+    ip_address: str
+    ttl: int = 300
+
+
+class DNSRecordsResponse(BaseModel):
+    """DNS records response model."""
+
+    status: str
+    total_records: int
+    records: List[DNSRecord]
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -67,49 +108,49 @@ def status_page():
 @app.route("/health")
 def health_check():
     """Health check endpoint for monitoring"""
-    return jsonify(
-        {
-            "status": "healthy",
-            "service": app.config["SERVICE_NAME"],
-            "version": app.config["SERVICE_VERSION"],
-            "environment": app.config["ENVIRONMENT"],
-            "timestamp": datetime.now().isoformat(),
-        }
+    response = HealthResponse(
+        status="healthy",
+        timestamp=datetime.now().isoformat(),
+        service=app.config["SERVICE_NAME"],
+        version=app.config["SERVICE_VERSION"],
     )
+    return jsonify(response.model_dump())
 
 
 @app.route("/status")
 def detailed_status():
     """Detailed status information in JSON format"""
-    return jsonify(
-        {
-            "service": {
-                "name": app.config["SERVICE_NAME"],
-                "version": app.config["SERVICE_VERSION"],
-                "environment": app.config["ENVIRONMENT"],
-                "debug": app.config["DEBUG"],
-            },
-            "system": {
-                "timestamp": datetime.now().isoformat(),
-                "host": app.config["HOST"],
-                "port": app.config["PORT"],
-            },
-            "dns": {
-                "port": app.config["DNS_PORT"],
-                "bind_address": app.config["DNS_BIND"],
-                "records": dns_server.get_records(),
-            },
-            "status": "running",
-        }
+    response = DetailedStatusResponse(
+        status="running",
+        timestamp=datetime.now().isoformat(),
+        service=app.config["SERVICE_NAME"],
+        version=app.config["SERVICE_VERSION"],
+        environment=app.config["ENVIRONMENT"],
+        dns_server={
+            "port": app.config["DNS_PORT"],
+            "bind_address": app.config["DNS_BIND"],
+            "running": True,
+        },
+        docker_monitor={"running": True},
+        uptime="N/A",
     )
+    return jsonify(response.model_dump())
 
 
 @app.route("/dns/records")
 def dns_records():
     """Get current DNS records"""
-    return jsonify(
-        {"records": dns_server.get_records(), "count": len(dns_server.get_records())}
+    records = dns_server.get_records()
+    dns_record_list = [
+        DNSRecord(hostname=hostname, ip_address=ip, ttl=300)
+        for hostname, ip in records.items()
+    ]
+    response = DNSRecordsResponse(
+        status="success",
+        total_records=len(records),
+        records=dns_record_list,
     )
+    return jsonify(response.model_dump())
 
 
 # Initialize services when app starts

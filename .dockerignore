@@ -1,0 +1,26 @@
+# .dockerignore
+*$py.class
+*.egg
+*.egg-info/
+*.py[cod]
+*.pyc
+*.pyo
+*.so
+__pycache__/
+.coverage
+.env
+.env.*
+.git/
+.github/
+.gitignore
+.history/
+.htmlcov/
+.install-*
+.mypy_cache/
+.pytest_cache/
+.specstory/
+.vscode/
+build/
+coverage.xml
+dist/
+instance/

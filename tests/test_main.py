@@ -20,7 +20,6 @@ def test_health_endpoint(client):
     assert data["status"] == "healthy"
     assert "service" in data
     assert "version" in data
-    assert "environment" in data
     assert "timestamp" in data
 
 
@@ -31,7 +30,10 @@ def test_status_endpoint(client):
 
     data = response.get_json()
     assert "service" in data
-    assert "system" in data
+    assert "version" in data
+    assert "environment" in data
+    assert "dns_server" in data
+    assert "docker_monitor" in data
     assert data["status"] == "running"
 
 
@@ -50,6 +52,8 @@ def test_dns_records_endpoint(client):
 
     data = response.get_json()
     assert "records" in data
-    assert "count" in data
-    assert isinstance(data["records"], dict)
-    assert isinstance(data["count"], int)
+    assert "total_records" in data
+    assert "status" in data
+    assert data["status"] == "success"
+    assert isinstance(data["records"], list)
+    assert isinstance(data["total_records"], int)

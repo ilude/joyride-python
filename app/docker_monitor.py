@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class DockerEventMonitor:
     """
     Monitors Docker container events and manages DNS records.
-    
+
     This class watches for Docker container lifecycle events (start, stop, etc.)
     and automatically creates/removes DNS records for containers that have the
     'joyride.host.name' label. It maintains a persistent connection to the
@@ -37,7 +37,7 @@ class DockerEventMonitor:
     def start(self) -> None:
         """
         Start monitoring Docker events.
-        
+
         Establishes connection to Docker daemon, processes existing running
         containers, and starts background thread to monitor new events.
         Raises DockerException if connection fails.
@@ -67,7 +67,7 @@ class DockerEventMonitor:
     def stop(self) -> None:
         """
         Stop monitoring Docker events.
-        
+
         Signals the monitoring thread to stop, closes Docker client connection,
         and cleans up resources. Safe to call multiple times.
         """
@@ -81,7 +81,7 @@ class DockerEventMonitor:
     def _monitor_events(self) -> None:
         """
         Monitor Docker events in background thread.
-        
+
         Continuously listens for Docker daemon events and processes container
         lifecycle events. Runs until stop_event is set or an error occurs.
         """
@@ -99,7 +99,7 @@ class DockerEventMonitor:
     def _handle_container_event(self, event: Dict[str, Any]) -> None:
         """
         Handle container lifecycle events.
-        
+
         Args:
             event: Docker event dictionary containing event type, action,
                   and container ID. Filters for container start/stop actions.
@@ -118,7 +118,7 @@ class DockerEventMonitor:
     def _handle_container_start(self, container_id: str) -> None:
         """
         Handle container start event.
-        
+
         Args:
             container_id: Docker container ID to process. Extracts hostname
                          from labels and registers DNS record if present.
@@ -131,9 +131,7 @@ class DockerEventMonitor:
                 ip_address = self._get_container_ip(container)
                 if ip_address:
                     self.dns_callback("add", hostname, ip_address)
-                    logger.info(
-                        f"Container started: {hostname} -> {ip_address}"
-                    )
+                    logger.info(f"Container started: {hostname} -> {ip_address}")
         except Exception as e:
             logger.error(f"Error handling container start {container_id}: {e}")
 
@@ -164,9 +162,7 @@ class DockerEventMonitor:
         the DNS server has records for containers started before monitoring.
         """
         try:
-            containers = self.client.containers.list(
-                filters={"status": "running"}
-            )
+            containers = self.client.containers.list(filters={"status": "running"})
 
             for container in containers:
                 hostname = self._get_container_hostname(container)
@@ -174,16 +170,14 @@ class DockerEventMonitor:
                     ip_address = self._get_container_ip(container)
                     if ip_address:
                         self.dns_callback("add", hostname, ip_address)
-                        logger.info(
-                            f"Existing container: {hostname} -> {ip_address}"
-                        )
+                        logger.info(f"Existing container: {hostname} -> {ip_address}")
         except Exception as e:
             logger.error(f"Error processing existing containers: {e}")
 
     def _get_container_hostname(self, container) -> Optional[str]:
         """
         Extract hostname from container labels.
-        
+
         Args:
             container: Docker container object to inspect for hostname label.
 

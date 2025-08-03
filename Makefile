@@ -47,8 +47,8 @@ install-dev: .install-dev
 # Run tests with coverage
 test: .install-dev
 	@echo "Running tests with coverage..."
-	pytest tests/ --cov=app --cov-report=term-missing --cov-report=html
-	@echo "Coverage report generated in htmlcov/"
+	pytest tests/ --cov=app --cov-report=term-missing --cov-report=html:.htmlcov
+	@echo "Coverage report generated in .htmlcov/"
 
 # Run linting
 lint: .install-dev
@@ -74,7 +74,7 @@ clean:
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name "__pycache__" -delete
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
-	rm -rf .coverage htmlcov/ .pytest_cache/
+	rm -rf .coverage .htmlcov/ .pytest_cache/
 	rm -f .install-prod .install-dev
 	@echo "Clean completed!"
 

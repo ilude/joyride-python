@@ -8,6 +8,19 @@
 - **Let code and file changes speak for themselves** - no need to describe what was done
 - **Only explain when user asks "explain", "why", or "how"**
 
+### Instruction Files Guidelines
+- **Keep *.instructions.md files concise** - Essential rules only, no user context
+- **Avoid VS Code integration explanations** - Users don't need tool usage details
+- **Focus on actionable rules** - What to do, not how to use the file
+- **Remove verbose examples** - Keep only necessary code patterns
+
+### Creating .github/instructions/*.instructions.md Files
+- **Use specific applyTo patterns** when possible to target exact file types
+- **Combine related rules** when applyTo patterns cannot differentiate (e.g., Flask + Python)
+- **Create new files only when** applyTo patterns can uniquely target the files
+- **Example patterns**: `"**/Dockerfile*"`, `"**/.{gitignore,dockerignore}"`, `"**/*.py"`, `"**/tests/**/*.py"`
+- **Avoid overly broad patterns** that would apply to unintended files
+
 ### When to Provide Details
 - User explicitly asks "explain", "why", or "how"  
 - Complex architectural decisions affecting future development
@@ -37,91 +50,7 @@ This is a Python Flask microservice that provides dynamic DNS services by monito
 - Validate all input, even from trusted sources
 - Include health checks for container orchestration
 
-## Coding Standards & Preferences
-
-### Python Best Practices
-- **Version**: Use Python 3.12+ features when appropriate
-- **Style**: Follow PEP 8 religiously, use Black formatter (line length 88)
-- **Function Spacing**: Always use two blank lines before top-level function definitions (PEP 8)
-- **Type Hints**: Always include type hints for parameters and return values
-- **Error Handling**: Use specific exception types, provide meaningful error messages
-- **Logging**: Use Python's logging module, structured logging for production
-- **Imports**: Use isort with Black profile, group imports logically
-
-```python
-# Good: Type hints and clear error handling
-def get_service_status(service_name: str) -> dict[str, Any]:
-    try:
-        return {"status": "healthy", "service": service_name}
-    except ServiceError as e:
-        logger.error(f"Service check failed: {e}")
-        raise
-```
-
-### Flask Development Patterns
-- **Application Organization**: Main Flask app is in `app/main.py`, with `app/__init__.py` exporting the app instance
-- **Entry Point**: Use `run.py` as the clean entry point for starting the application
-- **Blueprint Organization**: When the app grows, group related routes in blueprints within the `app/` directory
-- **Configuration Classes**: Use classes for different environment configs, load via `python-dotenv`
-- **Error Handling**: Custom error handlers for consistent API responses
-- **Request Validation**: Validate inputs early, fail fast with clear messages
-- **Response Format**: Consistent JSON structure for API endpoints
-- **Package Structure**: Keep the app as a proper Python package with `__init__.py` files
-
-```python
-# Preferred error response format
-{
-    "error": {
-        "code": "INVALID_INPUT",
-        "message": "Service name is required",
-        "details": {"field": "service_name", "value": null}
-    }
-}
-```
-
-### Environment & Configuration
-- **Environment Variables**: All configuration via env vars, provide defaults
-- **Secrets Management**: Never commit secrets, use Docker secrets or external vaults
-- **Environment Files**: Use .env for development, separate files per environment
-- **Validation**: Validate configuration at startup, fail fast on invalid config
-- **Documentation**: Document all environment variables in README
-
-### Testing Strategy
-- **Test Coverage**: Aim for >90% code coverage, focus on critical paths
-- **Test Organization**: Tests in dedicated `tests/` directory, separate from application code
-- **Test Types**: Unit tests for business logic, integration tests for endpoints
-- **Test Structure**: Use pytest fixtures, descriptive test names
-- **Import Pattern**: Import app from the package: `from app import app`
-- **Mocking**: Mock external dependencies, test in isolation
-- **Test Data**: Use factories or fixtures, avoid hardcoded test data
-- **Coverage**: Use pytest-cov for coverage reporting: `pytest tests/ --cov=app`
-
-```python
-# Good: Descriptive test name, proper fixtures
-def test_health_endpoint_returns_correct_status_when_service_is_running(client):
-    response = client.get('/health')
-    assert response.status_code == 200
-    assert response.json['status'] == 'healthy'
-
-# Good: Import pattern for tests
-import pytest
-from app import app
-
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
-```
-
 ## Development Workflow
-
-### Code Quality Tools
-- **Formatter**: Black with 88 character line length
-- **Import Sorting**: isort with Black profile
-- **Linter**: flake8 with appropriate plugins
-- **Type Checker**: mypy for static type analysis
-- **Security**: bandit for security issue scanning
 
 ### Git Practices
 - **Commit Messages**: Use conventional commits format
@@ -151,64 +80,18 @@ When implementing current features, maintain loose coupling and avoid hard depen
 ## Current Project Architecture
 
 ### Application Structure
-The project follows a clean, package-based organization:
-
-- **`app/`**: Contains all application logic as a proper Python package
-  - `__init__.py`: Exports the Flask app instance for easy importing
-  - `main.py`: Contains routes, configuration, and application logic
-- **`tests/`**: Dedicated test directory with proper package structure
-  - Import the app using `from app import app`
-  - Run tests with `pytest tests/` for the full test suite
+- **`app/`**: Application logic as Python package with `__init__.py` exports
+- **`tests/`**: Dedicated test directory using `from app import app` import pattern  
 - **`run.py`**: Clean entry point that imports and runs the app
-- **Docker Integration**: All containers use `python run.py` as the command
+- **Docker Integration**: All containers use `python run.py` as command
 
-### Entry Point Pattern
-```python
-# run.py - Application entry point
-from app import app
-
-if __name__ == '__main__':
-    app.run(host=app.config['HOST'], port=app.config['PORT'], debug=app.config['DEBUG'])
-```
-
-### Application Package Pattern
-```python
-# app/__init__.py - Package exports
-from .main import app
-__version__ = "1.0.0"
-
-# app/main.py - Application logic
-import os
-from flask import Flask
-from dotenv import load_dotenv
-
-load_dotenv()
-app = Flask(__name__)
-# ... configuration and routes
-```
-
-### Testing Integration
-- Tests are in separate `tests/` directory
-- Use `pytest tests/` to run all tests
-- Use `pytest tests/ --cov=app` for coverage reporting
-- Import pattern: `from app import app` in test files
-
-## File Organization & Structure
-
-### Project Layout
+### File Organization
 ```
 .
 ├── .devcontainer/          # Development container config
-│   ├── devcontainer.json  # VS Code dev container configuration
-│   └── Dockerfile         # Development container image
-├── .github/               # GitHub specific files (workflows, templates)
-│   └── copilot-instructions.md # This file - Copilot context and guidelines
+├── .github/               # GitHub workflows and instructions
 ├── app/                   # Application source code
-│   ├── __init__.py        # Package initialization, exports Flask app
-│   └── main.py            # Main Flask application with routes and logic
 ├── tests/                 # Test files
-│   ├── __init__.py        # Test package initialization
-│   └── test_main.py       # Integration and unit tests
 ├── run.py                 # Application entry point
 ├── requirements*.txt      # Python dependencies
 ├── .env*                  # Environment configurations
@@ -218,7 +101,7 @@ app = Flask(__name__)
 
 ### Naming Conventions
 - **Files**: snake_case for Python files and modules
-- **Classes**: PascalCase for class names
+- **Classes**: PascalCase for class names  
 - **Functions/Variables**: snake_case for functions and variables
 - **Constants**: UPPER_SNAKE_CASE for constants
 - **Environment Variables**: UPPER_SNAKE_CASE with service prefix
@@ -226,107 +109,49 @@ app = Flask(__name__)
 ## Error Handling & Logging
 
 ### Error Response Patterns
-- **Consistent Structure**: Use consistent JSON error format
-- **HTTP Status Codes**: Use appropriate status codes (400, 404, 500, etc.)
-- **Error Codes**: Include machine-readable error codes
-- **User Messages**: Provide helpful error messages for API consumers
+- Consistent JSON error format with appropriate HTTP status codes
+- Include machine-readable error codes and helpful messages
 
 ### Logging Standards
-- **Structured Logging**: Use JSON format for production logs
-- **Log Levels**: Use appropriate levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- **Context**: Include request IDs, user context in logs
-- **Security**: Never log sensitive data (passwords, tokens, PII)
+- Use JSON format for production logs with appropriate levels
+- Include request context, never log sensitive data
 
 ## Performance & Monitoring
 
 ### Health Check Implementation
-- **Multiple Endpoints**: /health (simple), /status (detailed), /ready (readiness)
-- **Dependency Checks**: Check external dependencies in detailed health
-- **Response Time**: Health checks should respond quickly (<1s)
-- **Graceful Degradation**: Partial failures should be reported but not fail health
+- Multiple endpoints: /health (simple), /status (detailed), /ready (readiness)
+- Check external dependencies, respond quickly (<1s)
+- Support graceful degradation for partial failures
 
 ### Metrics & Observability
-- **Application Metrics**: Response times, error rates, request counts
-- **Business Metrics**: Service-specific metrics relevant to functionality
-- **Infrastructure Metrics**: CPU, memory, disk usage
-- **Distributed Tracing**: Include trace IDs for request correlation
+- Track application metrics (response times, error rates, request counts)
+- Include business metrics and distributed tracing with trace IDs
 
 ## Security Considerations
 
 ### Input Validation
-- **Validate Early**: Validate all inputs at entry points
-- **Sanitization**: Sanitize data for output contexts
-- **Rate Limiting**: Implement rate limiting for public endpoints
-- **CORS**: Configure CORS appropriately for API endpoints
+- Validate all inputs at entry points, sanitize for output contexts
+- Implement rate limiting and configure CORS appropriately
 
 ### Container Security
-- **Non-root Users**: Always run as non-root in containers
-- **Minimal Images**: Use distroless or Alpine images
-- **Secrets**: Use Docker secrets or external secret management
-- **Network Security**: Minimize exposed ports, use internal networks
+- Always run as non-root in containers, use minimal Alpine images
+- Use Docker secrets or external secret management, minimize exposed ports
 
 ## Deployment & Operations
 
 ### Production Readiness
-- **Graceful Shutdown**: Handle SIGTERM signals properly
-- **Resource Limits**: Set appropriate CPU/memory limits
-- **Rolling Updates**: Support zero-downtime deployments
-- **Configuration**: Externalize all configuration
+- Handle SIGTERM signals properly, set appropriate resource limits
+- Support zero-downtime deployments, externalize all configuration
 
 ### Monitoring Integration
-- **Health Checks**: Implement comprehensive health checking
-- **Metrics Export**: Export metrics in Prometheus format if needed
-- **Log Forwarding**: Structure logs for centralized logging systems
-- **Alerting**: Define clear alerting rules for operational issues
-
-## Common Patterns to Follow
-
-### Configuration Management
-```python
-# Good: Environment-based configuration with validation
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-class Config:
-    def __init__(self):
-        self.service_name = os.getenv('SERVICE_NAME', 'Flask Status Service')
-        self.port = int(os.getenv('FLASK_PORT', 5000))
-        self.debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
-        self._validate()
-    
-    def _validate(self):
-        if not self.service_name:
-            raise ValueError("SERVICE_NAME is required")
-```
-
-### API Response Patterns
-```python
-# Consistent success response
-{
-    "data": {...},
-    "meta": {
-        "timestamp": "2025-08-01T12:00:00Z",
-        "version": "1.0.0"
-    }
-}
-
-# Consistent error response  
-{
-    "error": {
-        "code": "VALIDATION_ERROR",
-        "message": "Invalid request parameters",
-        "details": {...}
-    }
-}
-```
+- Implement comprehensive health checking and metrics export
+- Structure logs for centralized systems, define clear alerting rules
 
 ## When Making Changes
 
 ### Adding New Features
 1. Update environment variable documentation
-2. Add appropriate tests (unit + integration)
+2. Add appropriate tests (unit + integration)  
 3. Update health check if new dependencies added
 4. Consider security implications
 5. Update README and API documentation
@@ -336,11 +161,5 @@ class Config:
 - Update tests to match new structure
 - Preserve existing environment variable contracts
 - Consider migration strategies for breaking changes
-
-### Performance Optimization
-- Profile before optimizing
-- Maintain readability over micro-optimizations
-- Cache appropriately but avoid premature caching
-- Monitor resource usage after changes
 
 This document should evolve with the project. Update it when architectural decisions change or new patterns emerge.
