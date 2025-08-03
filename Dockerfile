@@ -5,15 +5,8 @@
 ###################################
 FROM python:3.12-alpine AS base
 
-# Install common system dependencies with cache mount
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache \
-    curl \
-    sudo
-
-# Copy entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Add project label for image cleanup
+LABEL project=joyride-dns-service
 
 # Set default PUID and PGID
 ARG PUID=1000
@@ -33,6 +26,16 @@ RUN addgroup -g $PGID $USER && \
 
 # Set working directory
 WORKDIR $WORKDIR
+
+# Install common system dependencies with cache mount
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache \
+    curl \
+    sudo
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
@@ -75,9 +78,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-dev.txt
 
-# Change ownership of workspace to user
-RUN chown -R $USER:$USER $WORKDIR
-
 # Switch to non-root user
 USER $USER
 
@@ -106,10 +106,6 @@ RUN chown -R $USER:$USER $WORKDIR
 
 # Switch to non-root user
 USER $USER
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
 
 # Run the application
 CMD ["python", "main.py"]
