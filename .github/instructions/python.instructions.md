@@ -78,6 +78,21 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 ```
 - Load via `python-dotenv`
+- Use `os.getenv()` with sensible defaults
+- Separate development and production configurations
+
+### Network Services & Background Processing
+- Use threading for background services (DNS server, Docker monitoring)
+- Implement proper signal handling for graceful shutdown
+- Use threading.Lock for shared resources
+- Create PID files for process management in `/tmp/` for development
+- Use proper cleanup with `atexit.register()`
+
+### Flask Applications
+- Structure with `app/` package using `__init__.py` 
+- Disable debug mode for background processes (`FLASK_DEBUG=false`)
+- Implement health check endpoints (`/health`, `/status`)
+- Use Pydantic for API response models
 - Validate configuration at startup
 
 ### Package Structure
