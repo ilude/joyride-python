@@ -21,12 +21,12 @@ body {
 
 .status-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
     margin-bottom: 30px;
 }
 
-.info-section, .dns-section {
+.info-section, .dns-section, .hosts-section {
     background-color: #f8f9fa;
     padding: 20px;
     border-radius: 8px;

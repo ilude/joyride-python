@@ -8,7 +8,8 @@ A Python Flask microservice that provides dynamic DNS services by monitoring Doc
 - 🌐 Dynamic DNS server with automatic record management
 - 🐳 Docker event monitoring for container lifecycle
 - 🏷️ Label-based DNS registration (`joyride.host.name`)
-- 🔧 VS Code DevContainer with Docker-in-Docker support
+- � Static DNS records from hosts files (optional)
+- �🔧 VS Code DevContainer with Docker-in-Docker support
 - ⚙️ Configuration via environment variables
 - 🏥 Health check endpoints for monitoring  
 - 📊 Status web page with DNS records display
@@ -31,12 +32,17 @@ A Python Flask microservice that provides dynamic DNS services by monitoring Doc
 │   ├── main.py             # Main Flask application
 │   ├── dns_server.py       # DNS server implementation
 │   ├── docker_monitor.py   # Docker event monitoring
+│   ├── hosts_monitor.py    # Hosts file monitoring
 │   ├── static/             # CSS and static assets
 │   └── templates/          # HTML templates
 ├── tests/                  # Test files
 │   ├── conftest.py         # Test configuration
 │   ├── test_main.py        # Flask app tests
-│   └── test_docker_monitor.py  # Docker monitor tests
+│   ├── test_docker_monitor.py  # Docker monitor tests
+│   └── test_hosts_monitor.py   # Hosts monitor tests
+├── hosts/                  # Example hosts files (optional)
+│   ├── example.hosts       # Example hosts file format
+│   └── production.hosts    # Production environment example
 ├── run.py                  # Application entry point
 ├── Dockerfile             # Production container image
 ├── docker-compose.yml     # Docker Compose configuration
@@ -117,12 +123,24 @@ docker run -p 5000:5000 -p 5353:5353/udp \
 
 ## How It Works
 
-The Joyride DNS Service automatically creates DNS records for Docker containers:
+The Joyride DNS Service automatically creates DNS records from two sources:
+
+### 1. Docker Container Monitoring
+Automatically creates DNS records for Docker containers:
 
 1. **Container Labeling**: Add `joyride.host.name=your.domain.com` label to containers
 2. **Automatic Discovery**: Service monitors Docker events for container lifecycle
 3. **DNS Record Creation**: Creates A records pointing to the configured host IP
 4. **Dynamic Updates**: Automatically removes records when containers stop
+
+### 2. Static Hosts Files (Optional)
+Load DNS records from hosts files in a bind-mounted directory:
+
+1. **Hosts Directory**: Mount a directory containing hosts files via Docker volume
+2. **File Monitoring**: Service watches for changes to files in the directory
+3. **Standard Format**: Uses `/etc/hosts` format for maximum compatibility
+4. **Hidden File Exclusion**: Files starting with `.` are ignored for security
+5. **Live Updates**: Automatically reloads when files are modified
 
 ### Example Container Usage
 
@@ -134,6 +152,35 @@ docker run -d \
 
 # The DNS service will automatically create:
 # app.example.com -> [HOSTIP]
+```
+
+### Example Hosts File Format
+
+Create files in your hosts directory using standard `/etc/hosts` format:
+
+```bash
+# /path/to/hosts/internal.hosts
+# Format: IP_ADDRESS  HOSTNAME [HOSTNAME...]
+
+# Internal services
+192.168.1.100    api.internal dashboard.internal
+192.168.1.101    database.internal db.internal
+
+# Development services  
+10.0.0.10        dev-app.local app.local
+```
+
+### Using Hosts Files with Docker Compose
+
+```yaml
+services:
+  joyride:
+    # ... other configuration ...
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./hosts:/app/hosts:ro  # Mount hosts directory
+    environment:
+      - HOSTS_DIRECTORY=/app/hosts  # Enable hosts monitoring
 ```
 
 ## Configuration
@@ -156,6 +203,9 @@ ENVIRONMENT=development
 
 # Host IP for DNS records (auto-detected if not set)
 HOSTIP=192.168.1.100
+
+# Hosts File Monitoring (optional)
+HOSTS_DIRECTORY=/path/to/hosts
 ```
 
 ## API Endpoints

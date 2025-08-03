@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from .dns_server import DNSServerManager
 from .docker_monitor import DockerEventMonitor
+from .hosts_monitor import HostsFileMonitor
 
 
 class HealthResponse(BaseModel):
@@ -32,6 +33,7 @@ class DetailedStatusResponse(BaseModel):
     environment: str
     dns_server: Dict[str, Any]
     docker_monitor: Dict[str, Any]
+    hosts_monitor: Dict[str, Any]
     uptime: str
 
 
@@ -71,6 +73,7 @@ app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
 app.config["DNS_PORT"] = int(os.getenv("DNS_PORT", 5353))
 app.config["DNS_BIND"] = os.getenv("DNS_BIND_ADDRESS", "0.0.0.0")
 app.config["HOSTIP"] = os.getenv("HOSTIP", "127.0.0.1")
+app.config["HOSTS_DIRECTORY"] = os.getenv("HOSTS_DIRECTORY", "")
 
 
 # PID file management
@@ -128,11 +131,28 @@ def dns_record_callback(action: str, hostname: str, ip_address: str) -> None:
 
 docker_monitor = DockerEventMonitor(dns_record_callback, app.config["HOSTIP"])
 
+# Initialize hosts file monitor if directory is specified
+hosts_monitor = None
+if app.config["HOSTS_DIRECTORY"]:
+    hosts_monitor = HostsFileMonitor(
+        app.config["HOSTS_DIRECTORY"],
+        dns_record_callback,
+        poll_interval=5.0
+    )
+
 
 @app.route("/")
 def status_page():
     """Main status page"""
     dns_records = dns_server.get_records()
+    hosts_info = None
+    if hosts_monitor:
+        hosts_info = {
+            "directory": app.config["HOSTS_DIRECTORY"],
+            "running": hosts_monitor.running,
+            "records_count": len(hosts_monitor.get_current_records()),
+        }
+    
     return render_template(
         "status.html",
         service_name=app.config["SERVICE_NAME"],
@@ -143,6 +163,7 @@ def status_page():
         port=app.config["PORT"],
         dns_records=dns_records,
         dns_port=app.config["DNS_PORT"],
+        hosts_info=hosts_info,
     )
 
 
@@ -161,6 +182,13 @@ def health_check():
 @app.route("/status")
 def detailed_status():
     """Detailed status information in JSON format"""
+    hosts_monitor_info = {
+        "enabled": hosts_monitor is not None,
+        "directory": app.config["HOSTS_DIRECTORY"] if hosts_monitor else None,
+        "running": hosts_monitor.running if hosts_monitor else False,
+        "records_count": len(hosts_monitor.get_current_records()) if hosts_monitor else 0,
+    }
+    
     response = DetailedStatusResponse(
         status="running",
         timestamp=datetime.now().isoformat(),
@@ -173,6 +201,7 @@ def detailed_status():
             "running": True,
         },
         docker_monitor={"running": True},
+        hosts_monitor=hosts_monitor_info,
         uptime="N/A",
     )
     return jsonify(response.model_dump())
@@ -210,6 +239,11 @@ def initialize_services() -> None:
     try:
         dns_server.start()
         docker_monitor.start()
+        
+        # Start hosts monitor if configured
+        if hosts_monitor:
+            hosts_monitor.start()
+            
         _services_initialized = True
         logger.info("Services initialized successfully")
     except Exception as e:
@@ -227,6 +261,11 @@ def cleanup_services():
     logger.debug("Shutting down services...")
     docker_monitor.stop()
     dns_server.stop()
+    
+    # Stop hosts monitor if it exists
+    if hosts_monitor:
+        hosts_monitor.stop()
+        
     remove_pid_file()
 
 

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  joyride:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+      - 5353:5353/udp
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount hosts directory for static DNS records
+      - ./hosts:/app/hosts:ro
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
+      # Enable hosts file monitoring
+      - HOSTS_DIRECTORY=/app/hosts
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+
+  # Example application that will be registered via label
+  example-app:
+    image: nginx:alpine
+    labels:
+      # This will create DNS record: app.example.com -> HOSTIP
+      - "joyride.host.name=app.example.com"
+    expose:
+      - "80"
+
+  # Another example with multiple hostnames
+  api-service:
+    image: nginx:alpine
+    labels:
+      # Multiple DNS records for the same service
+      - "joyride.host.name=api.example.com"
+      - "joyride.host.name=api-v1.example.com"
+    expose:
+      - "80"

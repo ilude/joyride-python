@@ -21,6 +21,22 @@
                 </div>
             </div>
             
+            {% if hosts_info %}
+            <div class="hosts-section">
+                <h3>Hosts File Monitor</h3>
+                <div class="info">
+                    <strong>Status:</strong> 
+                    {% if hosts_info.running %}
+                        🟢 Running
+                    {% else %}
+                        🔴 Stopped
+                    {% endif %}<br>
+                    <strong>Directory:</strong> {{ hosts_info.directory }}<br>
+                    <strong>Records:</strong> {{ hosts_info.records_count }}
+                </div>
+            </div>
+            {% endif %}
+            
             <div class="dns-section">
                 <h3>DNS Records ({{ dns_records|length }})</h3>
                 {% if dns_records %}
@@ -34,7 +50,7 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="no-records">No containers with joyride.host.name label found</p>
+                    <p class="no-records">No DNS records found</p>
                 {% endif %}
             </div>
         </div>

@@ -1,0 +1,18 @@
+# Example hosts file for Joyride DNS Service
+# Format: IP_ADDRESS  HOSTNAME [HOSTNAME...]
+# Comments start with #
+# 
+# NOTE: Hidden files (starting with .) are ignored by default for security
+# This includes .gitignore, .DS_Store, .tmp files, etc.
+
+# Internal services
+192.168.1.100    api.internal dashboard.internal
+192.168.1.101    database.internal db.internal
+192.168.1.102    cache.internal redis.internal
+
+# Development services
+10.0.0.10        dev-app.local app.local
+10.0.0.11        dev-api.local api.local
+
+# Testing environment
+172.16.0.20      test.example.com staging.example.com

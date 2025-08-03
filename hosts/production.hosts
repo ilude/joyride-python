@@ -1,0 +1,19 @@
+# Production environment hosts
+# These are critical production services
+#
+# NOTE: Hidden files (starting with .) are ignored by default for security
+# This includes .gitignore, .DS_Store, .tmp files, etc.
+
+# Load balancers
+192.168.100.10   lb1.prod.local lb-primary.prod.local
+192.168.100.11   lb2.prod.local lb-secondary.prod.local
+
+# Web servers
+192.168.100.20   web1.prod.local
+192.168.100.21   web2.prod.local
+192.168.100.22   web3.prod.local
+
+# Database cluster
+192.168.100.30   db-master.prod.local primary.db.local
+192.168.100.31   db-slave1.prod.local secondary1.db.local
+192.168.100.32   db-slave2.prod.local secondary2.db.local

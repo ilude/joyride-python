@@ -11,7 +11,7 @@ export COMPOSE_DOCKER_CLI_BUILD := 1
 ifeq ($(OS),Windows_NT)
 	DETECTED_OS := windows
 	SHELL_CMD := powershell
-	ifneq (, $(shell where pwsh 2>nul))
+	ifneq (, $(shell where pwsh))
 		SHELL_CMD := pwsh
 	endif
 else

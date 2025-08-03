@@ -10,10 +10,15 @@ services:
       - 5353:5353/udp
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      # Optional: Mount hosts directory for static DNS records
+      # Hidden files (starting with .) are ignored for security
+      - ./hosts:/app/hosts:ro
     env_file:
       - .env
     environment:
       - ENVIRONMENT=production
+      # Optional: Enable hosts file monitoring
+      - HOSTS_DIRECTORY=/app/hosts
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
