@@ -19,6 +19,8 @@ services:
       - ENVIRONMENT=production
       # Optional: Enable hosts file monitoring
       - HOSTS_DIRECTORY=/app/hosts
+      # Application version from Makefile/git tags
+      - SEMANTIC_VERSION=${SEMANTIC_VERSION:-dev}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]

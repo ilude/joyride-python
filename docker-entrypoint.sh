@@ -6,9 +6,6 @@ if [ -v DOCKER_ENTRYPOINT_DEBUG ] && [ "$DOCKER_ENTRYPOINT_DEBUG" == 1 ]; then
   set -o xtrace
 fi
 
-echo "Docker entrypoint starting - current user: $(whoami) (UID: $(id -u))"
-echo "Target user from environment: $USER"
-
 if [ "$(id -u)" = "0" ]; then
   echo "Running as root - adjusting permissions and switching user"
   

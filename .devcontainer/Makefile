@@ -6,6 +6,8 @@ initialize:
 	@echo "Initializing development environment for $(DETECTED_OS)..."
 	@echo "HOSTIP: $(HOSTIP)"
 	@echo "HOSTIP=$(HOSTIP)" > .devcontainer/.env
+	@echo "SEMANTIC_VERSION=$(SEMANTIC_VERSION)" >> .devcontainer/.env
+	
 
 # Install development dependencies (only if requirements-dev.txt changed)
 .install-dev: requirements-dev.txt

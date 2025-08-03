@@ -74,6 +74,7 @@ app.config["DNS_PORT"] = int(os.getenv("DNS_PORT", 5353))
 app.config["DNS_BIND"] = os.getenv("DNS_BIND_ADDRESS", "0.0.0.0")
 app.config["HOSTIP"] = os.getenv("HOSTIP", "127.0.0.1")
 app.config["HOSTS_DIRECTORY"] = os.getenv("HOSTS_DIRECTORY", "")
+app.config["SEMANTIC_VERSION"] = os.getenv("SEMANTIC_VERSION", "dev")
 
 
 # PID file management
@@ -156,7 +157,7 @@ def status_page():
     return render_template(
         "status.html",
         service_name=app.config["SERVICE_NAME"],
-        version="1.0.0",
+        version=app.config["SEMANTIC_VERSION"],
         environment=app.config["ENVIRONMENT"],
         current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
         host=app.config["HOST"],
@@ -174,7 +175,7 @@ def health_check():
         status="healthy",
         timestamp=datetime.now().isoformat(),
         service=app.config["SERVICE_NAME"],
-        version="1.0.0",
+        version=app.config["SEMANTIC_VERSION"],
     )
     return jsonify(response.model_dump())
 
@@ -193,7 +194,7 @@ def detailed_status():
         status="running",
         timestamp=datetime.now().isoformat(),
         service=app.config["SERVICE_NAME"],
-        version="1.0.0",
+        version=app.config["SEMANTIC_VERSION"],
         environment=app.config["ENVIRONMENT"],
         dns_server={
             "port": app.config["DNS_PORT"],

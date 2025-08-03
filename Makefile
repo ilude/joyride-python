@@ -50,6 +50,7 @@ endif
 export HOSTIP
 export CONTAINER_RUNTIME
 export DETECTED_OS
+export SEMANTIC_VERSION
 
 .PHONY: help build run start up down restart docker-clean
 
@@ -116,11 +117,14 @@ docker-clean:
 # -------------------------------
 # Semantic version bumping logic
 # -------------------------------
-SEMVER_TAG := $(shell git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
-VERSION := $(shell echo $(SEMVER_TAG) | sed 's/^v//')
+SEMANTIC_VERSION := $(shell git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
+VERSION := $(shell echo $(SEMANTIC_VERSION) | sed 's/^v//')
+
+# Export for docker-compose
+export SEMANTIC_VERSION
 
 define bump_version
-  @echo "Latest version: $(SEMVER_TAG)"
+  @echo "Latest version: $(SEMANTIC_VERSION)"
   @NEW_VERSION=`echo $(VERSION) | awk -F. 'BEGIN {OFS="."} { \
 		if ("$(1)" == "patch") {$3+=1} \
 		else if ("$(1)" == "minor") {$2+=1; $3=0} \
@@ -148,7 +152,7 @@ publish: bump-patch
 version:
 	@echo "Joyride DNS Service - Development Environment"
 	@echo "=============================================="
-	@echo "Semantic Version: $(SEMVER_TAG)"
+	@echo "Semantic Version: $(SEMANTIC_VERSION)"
 	@if [ "$$USER" != "vscode" ]; then echo "Detected OS: $(DETECTED_OS)"; fi
 	@if [ "$$USER" != "vscode" ]; then echo "Container Runtime: $(CONTAINER_RUNTIME)"; fi
 	@echo "Host IP: $(HOSTIP)"
