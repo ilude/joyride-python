@@ -51,8 +51,6 @@ export HOSTIP
 export CONTAINER_RUNTIME
 export DETECTED_OS
 
-
-
 .PHONY: help build run start up down restart docker-clean
 
 # help target
@@ -83,17 +81,6 @@ help:
 		echo "  dns-status   - Show current DNS records"; \
 		echo ""; \
 	fi
-
-
-# Display version and environment info
-version:
-	@echo "Joyride DNS Service - Development Environment"
-	@echo "=============================================="
-	@echo "Detected OS: $(DETECTED_OS)"
-	@echo "Container Runtime: $(CONTAINER_RUNTIME)"
-	@echo "Host IP: $(HOSTIP)"
-	@echo "Python: $(shell python --version 2>&1)"
-	@echo ""
 
 # Run Flask application locally
 run:
@@ -126,3 +113,44 @@ docker-clean:
 	-$(CONTAINER_RUNTIME) image rm -f $(shell $(CONTAINER_RUNTIME) image ls -q --filter label=project=joyride-dns-service)
 
 
+# -------------------------------
+# Semantic version bumping logic
+# -------------------------------
+SEMVER_TAG := $(shell git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
+VERSION := $(shell echo $(SEMVER_TAG) | sed 's/^v//')
+
+define bump_version
+  @echo "Latest version: $(SEMVER_TAG)"
+  @NEW_VERSION=`echo $(VERSION) | awk -F. 'BEGIN {OFS="."} { \
+		if ("$(1)" == "patch") {$3+=1} \
+		else if ("$(1)" == "minor") {$2+=1; $3=0} \
+		else if ("$(1)" == "major") {$1+=1; $2=0; $3=0} \
+		print $1, $2, $3}'` && \
+	echo "New version: $$NEW_VERSION" && \
+	git tag -a "v$$NEW_VERSION" -m "Release v$$NEW_VERSION" && \
+	git push --tags && \
+	echo "Tagged and pushed as v$$NEW_VERSION"
+endef
+
+bump-patch:
+	$(call bump_version,patch)
+
+bump-minor:
+	$(call bump_version,minor)
+
+bump-major:
+	$(call bump_version,major)
+
+publish: bump-patch
+	@git push --all
+
+# Display version and environment info
+version:
+	@echo "Joyride DNS Service - Development Environment"
+	@echo "=============================================="
+	@echo "Semantic Version: $(SEMVER_TAG)"
+	@if [ "$$USER" != "vscode" ]; then echo "Detected OS: $(DETECTED_OS)"; fi
+	@if [ "$$USER" != "vscode" ]; then echo "Container Runtime: $(CONTAINER_RUNTIME)"; fi
+	@echo "Host IP: $(HOSTIP)"
+	@if [ "$$USER" = "vscode" ]; then echo "$(shell python --version 2>&1)"; fi
+	@echo ""
