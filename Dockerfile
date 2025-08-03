@@ -37,8 +37,6 @@ WORKDIR $WORKDIR
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
-# Expose Flask port
-EXPOSE 5000
 
 ###################################
 # Development stage
@@ -83,10 +81,9 @@ RUN chown -R $USER:$USER $WORKDIR
 # Switch to non-root user
 USER $USER
 
-# Default command for development
-CMD ["python", "run.py"]
-
-
+# Run the application
+# https://code.visualstudio.com/remote/advancedcontainers/start-processes#_adding-startup-commands-to-the-docker-image-instead
+CMD [ "sleep", "infinity" ]
 
 ###################################
 # Production stage

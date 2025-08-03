@@ -79,25 +79,6 @@ def get_service_status(service_name: str) -> dict[str, Any]:
 }
 ```
 
-### Docker & Containerization
-- **Base Images**: Always use Alpine Linux for smaller attack surface
-- **Multi-stage Builds**: Use for production to minimize final image size
-- **Layer Optimization**: Group RUN commands, clean package caches
-- **User Security**: Create and use non-root users in all containers
-- **Health Checks**: Include Docker health checks for orchestration
-- **Port Exposure**: Only expose necessary ports
-- **File Structure**: When copying application files, avoid creating unnecessary nested directories - copy contents directly to the intended location (e.g., `COPY app/ ./` not `COPY app/ ./app/` when WORKDIR is already the target)
-- **Package Organization**: Always maintain alphabetical order for packages in RUN apk add commands and requirements.txt files for better maintainability and merge conflict reduction
-
-```dockerfile
-# Good: Grouped commands, non-root user, health check
-RUN apk add --no-cache curl && \
-    rm -rf /var/cache/apk/* && \
-    adduser -D -s /bin/sh appuser
-USER appuser
-HEALTHCHECK --interval=30s --timeout=10s CMD curl -f http://localhost:5000/health
-```
-
 ### Environment & Configuration
 - **Environment Variables**: All configuration via env vars, provide defaults
 - **Secrets Management**: Never commit secrets, use Docker secrets or external vaults

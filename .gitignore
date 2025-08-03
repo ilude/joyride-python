@@ -31,5 +31,8 @@ instance/
 # VS Code
 .history/
 
+# specstory
+.specstory/
+
 # Development tools
 .mypy_cache/
