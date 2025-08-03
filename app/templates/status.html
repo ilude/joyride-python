@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="dark">
 <head>
     <title>{{ service_name }} - Status</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/status.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>{{ service_name }}</h1>
+        <div class="header">
+            <h1>{{ service_name }}</h1>
+            <div class="theme-toggle">
+                <button id="theme-toggle-btn" aria-label="Toggle theme">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </div>
         <div class="status">🟢 Service is running</div>
         
         <div class="status-grid">
@@ -62,5 +69,30 @@
             <li><a href="/dns/records">/dns/records</a> - Current DNS records</li>
         </ul>
     </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+
+        // Get saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+        }
+    </script>
 </body>
 </html>

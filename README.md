@@ -1,4 +1,17 @@
-# Joyride DNS Service
+# Jo## Features
+
+- 🐍 Python 3.12 with Flask web interface
+- 🌐 Dynamic DNS server with automatic record management  
+- 🐳 Docker event monitoring for container lifecycle
+- 🏷️ Label-based DNS registration (`joyride.host.name`)
+- 📁 Static DNS records from hosts files (optional)
+- 🌙 Dark/light mode theme toggle on web interface
+- 🔧 VS Code DevContainer with Docker-in-Docker support
+- ⚙️ Configuration via environment variables
+- 🏥 Health check endpoints for monitoring  
+- 📊 Status web page with DNS records display
+- 🔒 Non-root user for security
+- 🧪 Complete integration testing with Make commandsvice
 
 A Python Flask microservice that provides dynamic DNS services by monitoring Docker container events. It automatically creates DNS records for containers with the `joyride.host.name` label, routing all traffic to the configured host IP address.
 
