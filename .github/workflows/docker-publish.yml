@@ -141,8 +141,8 @@ jobs:
             ${{ steps.meta.outputs.tags }}
             have been published!
           details: |
-            📦 **Repository:** https://${{ github.server_url} }/${{ github.repository }}
-            🔧 **Commit:** [${{ github.ref_name }](${{ github.event.head_commit.url }})
+            📦 **Repository:** https://${{ github.server_url }}/${{ github.repository }}
+            🔧 **Commit:** [${{ github.ref_name }}](${{ github.event.head_commit.url }})
           footer: MafenBot became self aware
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
