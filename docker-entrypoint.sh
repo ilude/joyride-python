@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-if [ -v DOCKER_ENTRYPOINT_DEBUG ] && [ "$DOCKER_ENTRYPOINT_DEBUG" == 1 ]; then
+if [ "${DOCKER_ENTRYPOINT_DEBUG:-0}" = "1" ]; then
   set -x
-  set -o xtrace
 fi
 
 if [ "$(id -u)" = "0" ]; then
