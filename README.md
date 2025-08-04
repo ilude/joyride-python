@@ -9,14 +9,15 @@ A Python Flask microservice that provides dynamic DNS services by monitoring Doc
 - 🐳 Docker event monitoring for container lifecycle
 - 🏷️ Label-based DNS registration (`joyride.host.name`)
 - 📁 Static DNS records from hosts files (optional)
+- 🔗 **Distributed DNS synchronization** - Automatic DNS record distribution across discovered nodes
 - 🌙 Dark/light mode theme toggle on web interface
 - 🔧 VS Code DevContainer with Docker-in-Docker support
 - ⚙️ Configuration via environment variables and pyproject.toml
 - 🏥 Health check endpoints for monitoring  
-- 📊 Status web page with DNS records display
+- 📊 Status web page with DNS records display and cluster information
 - 🔒 Non-root user for security
 - 🧪 Complete integration testing with pytest
-- 📦 Integrated swimmies utility library
+- 📦 Integrated swimmies utility library with SWIM protocol
 
 ## Project Structure
 
@@ -359,12 +360,26 @@ For Kubernetes deployment, ensure:
 - Health checks for container orchestration
 - Input validation for DNS queries and API requests
 
+## DNS Record Distribution
+
+Joyride DNS now supports automatic DNS record distribution across multiple nodes using the integrated swimmies library with SWIM protocol. This provides high availability and automatic failover capabilities.
+
+**Key Features:**
+- Automatic node discovery on local networks
+- Distributed consensus using SWIM protocol
+- Real-time DNS record synchronization
+- Cluster health monitoring and status reporting
+- Failure detection and recovery
+
+For detailed information, see [DNS Sync Integration Documentation](docs/DNS_SYNC_INTEGRATION.md).
+
 ## Monitoring
 
 The service includes comprehensive monitoring capabilities:
 - Health check endpoint (`/health`) for load balancers
-- Detailed status endpoint (`/status`) with service metrics
+- Detailed status endpoint (`/status`) with service metrics  
 - DNS record listing (`/dns/records`) for operational visibility
+- **DNS cluster status** (`/dns/cluster`) for distributed deployments
 - Docker healthcheck configuration in compose file
 - Structured logging for centralized log management
 
@@ -382,6 +397,12 @@ The service includes comprehensive monitoring capabilities:
 - Verify Docker socket is mounted: `/var/run/docker.sock`
 - Check Docker daemon is running and accessible
 - Review Docker monitor logs for connection errors
+
+**DNS sync not working (distributed mode):**
+- Check firewall settings for UDP ports 8889 and 8890
+- Ensure nodes are on the same network segment
+- Verify `HOSTIP` is set correctly for each node
+- Use `/dns/cluster` endpoint to check cluster status
 
 **Web interface not accessible:**
 - Confirm Flask is bound to `0.0.0.0` not `127.0.0.1`

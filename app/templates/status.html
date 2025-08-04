@@ -67,7 +67,61 @@
             <li><a href="/health">/health</a> - Health check endpoint</li>
             <li><a href="/status">/status</a> - Detailed status information</li>
             <li><a href="/dns/records">/dns/records</a> - Current DNS records</li>
+            {% if dns_sync_enabled %}
+            <li><a href="/dns/cluster">/dns/cluster</a> - DNS cluster status</li>
+            <li><strong>POST</strong> /dns/sync - Force DNS synchronization</li>
+            {% endif %}
         </ul>
+
+        {% if dns_sync_enabled %}
+        <div class="info-section">
+            <h3>DNS Cluster Status</h3>
+            {% if dns_cluster_info %}
+                {% if dns_cluster_info.error %}
+                    <p class="error">Error: {{ dns_cluster_info.error }}</p>
+                {% else %}
+                    <div class="info">
+                        <strong>Node ID:</strong> {{ dns_cluster_info.node_id }}<br>
+                        <strong>Running:</strong> <span class="status-indicator {{ 'running' if dns_cluster_info.running else 'stopped' }}">{{ '🟢 Yes' if dns_cluster_info.running else '🔴 No' }}</span><br>
+                        <strong>Discovered Nodes:</strong> {{ dns_cluster_info.discovered_nodes or 0 }}<br>
+                        {% if dns_cluster_info.swim_cluster %}
+                        <strong>SWIM Alive Members:</strong> {{ dns_cluster_info.swim_cluster.alive_members }}<br>
+                        <strong>DNS Version:</strong> {{ dns_cluster_info.swim_cluster.dns_version }}<br>
+                        {% endif %}
+                    </div>
+                    
+                    {% if dns_cluster_info.statistics %}
+                    <h4>Statistics</h4>
+                    <div class="info">
+                        <strong>Nodes Discovered:</strong> {{ dns_cluster_info.statistics.nodes_discovered }}<br>
+                        <strong>Active Nodes:</strong> {{ dns_cluster_info.statistics.nodes_active }}<br>
+                        <strong>DNS Records Synced:</strong> {{ dns_cluster_info.statistics.dns_records_synced }}<br>
+                        <strong>Sync Operations:</strong> {{ dns_cluster_info.statistics.sync_operations }}<br>
+                        {% if dns_cluster_info.statistics.last_sync %}
+                        <strong>Last Sync:</strong> {{ dns_cluster_info.statistics.last_sync }}<br>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if dns_cluster_info.nodes %}
+                    <h4>Cluster Nodes</h4>
+                    <div class="dns-records">
+                        {% for node in dns_cluster_info.nodes %}
+                        <div class="dns-record">
+                            <span class="hostname">{{ node.node_id }}</span>
+                            <span class="arrow">→</span>
+                            <span class="ip">{{ node.ip_address }}</span>
+                            <span class="metadata">({{ node.metadata.role if node.metadata.role else 'unknown' }})</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <p class="no-records">DNS cluster information not available</p>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 
     <script>
