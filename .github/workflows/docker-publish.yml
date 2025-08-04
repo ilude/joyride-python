@@ -149,7 +149,7 @@ jobs:
             ${{ steps.meta.outputs.tags }}
 
             **For Commit:** [${{ steps.short-sha.outputs.sha }}](${{ github.event.head_commit.url }})
-            ** Changes: **
+            
             ${{ github.event.head_commit.message }}
           footer: MafenBot became self aware
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
