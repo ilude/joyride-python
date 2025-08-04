@@ -1,13 +1,9 @@
-version: '3.8'
-
 services:
   joyride:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - 5000:5000
-      - 5353:5353/udp
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # Mount hosts directory for static DNS records
@@ -15,9 +11,6 @@ services:
     env_file:
       - .env
     environment:
-      - ENVIRONMENT=production
-      # Enable hosts file monitoring
-      - HOSTS_DIRECTORY=/app/hosts
       # Application version from Makefile/git tags
       - SEMANTIC_VERSION=${SEMANTIC_VERSION:-dev}
     restart: unless-stopped

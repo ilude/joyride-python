@@ -22,11 +22,13 @@ ENV PGID=$PGID
 ENV USER=$USER
 ENV WORKDIR=$WORKDIR
 ENV UV_LINK_MODE=copy
+ENV UV_SYSTEM_PYTHON=1
 
 # Create a non-root user
 RUN addgroup -g $PGID $USER && \
     adduser -D -s /bin/sh -u $PUID -G $USER -h /home/$USER $USER && \
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    mkdir -p $WORKDIR/hosts
 
 # Set working directory
 WORKDIR $WORKDIR
@@ -84,7 +86,9 @@ COPY swimmies/ ./swimmies/
 
 # Install Python dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
-    UV_SYSTEM_PYTHON=1 uv sync --extra dev
+    uv sync --extra dev
+
+ENV ENVIRONMENT=development
 
 # Switch to non-root user
 USER $USER
@@ -104,14 +108,15 @@ COPY swimmies/ ./swimmies/
 
 # Install Python dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
-    UV_SYSTEM_PYTHON=1 uv sync
+    uv sync
 
 # Copy application code
 COPY app/ ./app/
-COPY run.py ./
 
 # Change ownership to user
 RUN chown -R $USER:$USER $WORKDIR
+
+ENV ENVIRONMENT=production
 
 # Switch to non-root user
 USER $USER

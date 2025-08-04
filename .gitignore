@@ -31,14 +31,6 @@ instance/
 # specstory
 .specstory/
 
-# Development tools
-.mypy_cache/
-
 # UV
 uv.lock
 .venv/
-
-# Submodules - track reference but ignore local changes during development
-# (swimmies is a Git submodule for library development)
-
-nul

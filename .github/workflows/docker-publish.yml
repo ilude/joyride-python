@@ -1,0 +1,140 @@
+name: Build and Publish Docker Image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ '**' ]
+    tags: [ 'v*.*.*' ]
+    paths:
+      - 'app/**/*'
+      - 'swimmies/**/*'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/docker-publish.yml'
+  pull_request:
+    branches: [ "main" ]
+    types: [ closed ]
+    paths:
+      - 'app/**/*'
+      - 'swimmies/**/*'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/docker-publish.yml'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write      # Needed for GitHub Release creation
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            🚀 **Joyride DNS Service** Docker image published for tag `${{ github.ref_name }}`
+            
+            ## What's New
+            - Built from commit `${{ github.sha }}`
+            - Multi-architecture support (linux/amd64, linux/arm64)
+            - Distributed DNS synchronization with SWIM protocol
+            
+            ## Docker Usage
+            ```bash
+            docker run -d \
+              --network host \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -e HOSTIP=your.host.ip \
+              ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ```
+            
+            ## Docker Compose
+            ```yaml
+            services:
+              joyride:
+                image: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+                network_mode: host
+                volumes:
+                  - /var/run/docker.sock:/var/run/docker.sock
+                  - ./hosts:/app/hosts:ro
+                environment:
+                  - HOSTIP=your.host.ip
+                  - HOSTS_DIRECTORY=/app/hosts
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Discord notification
+        if: success() && github.event_name != 'pull_request'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: info
+          username: JoyrideBot
+          color: '#00ff88'
+          avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png
+          description: 🚀 New **Joyride DNS Service** image `${{ steps.meta.outputs.tags }}` has been published
+          details: |
+            📦 **Repository:** ${{ github.repository }}
+            🔧 **Commit:** ${{ github.sha }}
+            🏷️ **Tags:** ${{ steps.meta.outputs.tags }}
+            🌐 **Platforms:** linux/amd64, linux/arm64
+          footer: Joyride DNS Service - Dynamic DNS for containers
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}

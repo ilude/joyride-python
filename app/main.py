@@ -77,7 +77,7 @@ app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
 app.config["DNS_PORT"] = int(os.getenv("DNS_PORT", 5353))
 app.config["DNS_BIND"] = os.getenv("DNS_BIND_ADDRESS", "0.0.0.0")
 app.config["HOSTIP"] = os.getenv("HOSTIP", "127.0.0.1")
-app.config["HOSTS_DIRECTORY"] = os.getenv("HOSTS_DIRECTORY", "")
+app.config["HOSTS_DIRECTORY"] = os.getenv("HOSTS_DIRECTORY", "/app/hosts")
 app.config["SEMANTIC_VERSION"] = os.getenv("SEMANTIC_VERSION", "dev")
 app.config["ENABLE_DNS_SYNC"] = os.getenv("ENABLE_DNS_SYNC", "true").lower() == "true"
 app.config["DISCOVERY_PORT"] = int(os.getenv("DISCOVERY_PORT", 8889))
