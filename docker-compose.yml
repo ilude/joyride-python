@@ -1,6 +1,10 @@
 services:
   joyride:
-    image: ghcr.io/ilude/joyride-python:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SEMANTIC_VERSION: ${SEMANTIC_VERSION:-dev}
     network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -9,9 +13,6 @@ services:
       - ./hosts:/app/hosts:ro
     env_file:
       - .env
-    environment:
-      # Application version from Makefile/git tags
-      - SEMANTIC_VERSION=${SEMANTIC_VERSION:-dev}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]

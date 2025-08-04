@@ -80,6 +80,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            SEMANTIC_VERSION=${{ github.ref_name }}
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
