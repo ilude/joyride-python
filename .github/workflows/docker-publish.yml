@@ -128,20 +128,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Discord notification
-        if: success() && github.event_name != 'pull_request'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: rjstone/discord-webhook-notify@v1
         with:
           severity: info
-          username: JoyrideBot
-          color: '#00ff88'
+          username: MafenBot
+          color: '#ff00aa'
           avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png
-          description: 🚀 New **Joyride DNS Service** image `${{ steps.meta.outputs.tags }}` has been published
+          description: |
+            New ${{ github.event.repository.name }} images
+            ${{ steps.meta.outputs.tags }}
+            have been published!
           details: |
-            📦 **Repository:** ${{ github.repository }}
-            🔧 **Commit:** ${{ github.sha }}
-            🏷️ **Tags:** ${{ steps.meta.outputs.tags }}
-            🌐 **Platforms:** linux/amd64, linux/arm64
-          footer: Joyride DNS Service - Dynamic DNS for containers
+            📦 **Repository:** https://${{ github.server_url} }/${{ github.repository }}
+            🔧 **Commit:** [${{ github.ref_name }](${{ github.event.head_commit.url }})
+          footer: MafenBot became self aware
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
