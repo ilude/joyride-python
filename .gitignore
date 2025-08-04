@@ -32,5 +32,4 @@ instance/
 .specstory/
 
 # UV
-uv.lock
 .venv/
