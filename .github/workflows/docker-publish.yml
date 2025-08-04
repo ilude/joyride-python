@@ -23,6 +23,11 @@ on:
       - 'uv.lock'
       - '.github/workflows/docker-publish.yml'
 
+# Ensure only one build runs at a time, cancelling any in-progress builds
+concurrency:
+  group: docker-build-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
