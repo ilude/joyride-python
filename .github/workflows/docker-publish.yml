@@ -143,11 +143,12 @@ jobs:
           color: '#ff00aa'
           avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png
           description: |
-            **The following ${{ github.event.repository.name }} images have been published:**
-            ${{ steps.meta.outputs.tags }}
+            **[${{ github.event.repository.name }}](https://${{ github.server_url }}/${{ github.repository }}) images have been published:**
           details: |
-            📦 **Repository:** https://${{ github.server_url }}/${{ github.repository }}
-            🔧 **Commit:** [${{ steps.short-sha.outputs.sha }}](${{ github.event.head_commit.url }})
+
+            ${{ steps.meta.outputs.tags }}
+            
+            **For Commit:** [${{ steps.short-sha.outputs.sha }}](${{ github.event.head_commit.url }})
           footer: MafenBot became self aware
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
