@@ -1,0 +1,28 @@
+services:
+  joyride:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SEMANTIC_VERSION: ${SEMANTIC_VERSION:-dev}
+    restart: unless-stopped
+    mem_limit: ${JOYRIDE_RELOADED_MEM_LIMIT:-1g}
+    network_mode: host
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Optional: Mount hosts directory for static DNS records
+      # Hidden files (starting with .) are ignored for security
+      - ./hosts:/app/hosts:ro
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - HOSTIP=${HOSTIP}
+    labels:
+      - joyride.host.name=${JOYRIDE_RELOADED_HOST_NAME:-joyride}.${HOST_DOMAIN:-example.com}
+      - traefik.enable=${JOYRIDE_RELOADED_TRAEFIK_ENABLED:-true}
+      - traefik.http.routers.joyride-reloaded.entrypoints=websecure
+      - traefik.http.routers.joyride-reloaded.rule=Host(`${JOYRIDE_RELOADED_HOST_NAME:-joyride}.${HOST_DOMAIN:-example.com}`)
+      - traefik.http.services.joyride-reloaded.loadbalancer.server.port=5000
+      - com.centurylinklabs.watchtower.enable=${JOYRIDE_RELOADED_WATCHTOWER_ENABLED:-true}
+      - autoheal=${JOYRIDE_RELOADED_AUTOHEAL_ENABLED:-true}

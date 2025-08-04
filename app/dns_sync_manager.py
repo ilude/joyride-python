@@ -160,7 +160,7 @@ class DNSSyncManager:
         logger.info("DNS sync manager stopped")
 
     def add_dns_record(
-        self, hostname: str, ip_address: str, record_type: str = "A"
+        self, hostname: str, ip_address: str, record_type: str = "A", local_only: bool = False
     ) -> None:
         """
         Add a DNS record and synchronize it across all nodes.
@@ -169,6 +169,7 @@ class DNSSyncManager:
             hostname: DNS hostname
             ip_address: IP address for the record
             record_type: DNS record type (default: A)
+            local_only: If True, don't call the DNS callback (prevents circular calls)
         """
         with self._lock:
             record_data = {
@@ -182,8 +183,9 @@ class DNSSyncManager:
             self.local_dns_records[hostname] = record_data
             logger.info(f"Added DNS record: {hostname} -> {ip_address}")
 
-            # Update local DNS server
-            if self.dns_callback:
+            # Update local DNS server only if this is not a local_only call
+            # (local_only is used when the call originates from the DNS callback to prevent circular calls)
+            if not local_only and self.dns_callback:
                 self.dns_callback("add", hostname, ip_address)
 
             # Sync to SWIM protocol for distribution
@@ -191,20 +193,22 @@ class DNSSyncManager:
                 self.swim_protocol.add_dns_record(hostname, record_data)
                 self.stats["dns_records_synced"] += 1
 
-    def remove_dns_record(self, hostname: str) -> None:
+    def remove_dns_record(self, hostname: str, local_only: bool = False) -> None:
         """
         Remove a DNS record and synchronize the removal across all nodes.
 
         Args:
             hostname: DNS hostname to remove
+            local_only: If True, don't call the DNS callback (prevents circular calls)
         """
         with self._lock:
             if hostname in self.local_dns_records:
                 del self.local_dns_records[hostname]
                 logger.info(f"Removed DNS record: {hostname}")
 
-                # Update local DNS server
-                if self.dns_callback:
+                # Update local DNS server only if this is not a local_only call
+                # (local_only is used when the call originates from the DNS callback to prevent circular calls)
+                if not local_only and self.dns_callback:
                     self.dns_callback("remove", hostname, "")
 
                 # Sync to SWIM protocol for distribution

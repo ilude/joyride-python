@@ -151,14 +151,16 @@ def dns_record_callback(action: str, hostname: str, ip_address: str) -> None:
     """Callback for Docker monitor and DNS sync to update DNS records."""
     if action == "add":
         dns_server.add_record(hostname, ip_address)
-        # Also sync to other nodes if DNS sync is enabled
-        if dns_sync_manager:
-            dns_sync_manager.add_dns_record(hostname, ip_address)
+        # Also sync to other nodes if DNS sync is enabled and running
+        # Use local_only=True to prevent the DNS sync manager from calling back to this callback
+        if dns_sync_manager and dns_sync_manager.running:
+            dns_sync_manager.add_dns_record(hostname, ip_address, local_only=True)
     elif action == "remove":
         dns_server.remove_record(hostname)
-        # Also sync removal to other nodes if DNS sync is enabled
-        if dns_sync_manager:
-            dns_sync_manager.remove_dns_record(hostname)
+        # Also sync removal to other nodes if DNS sync is enabled and running
+        # Use local_only=True to prevent the DNS sync manager from calling back to this callback
+        if dns_sync_manager and dns_sync_manager.running:
+            dns_sync_manager.remove_dns_record(hostname, local_only=True)
 
 
 # Set DNS callback for sync manager now that it's defined
@@ -333,14 +335,16 @@ _services_initialized = False
 def initialize_services() -> None:
     """Initialize DNS server, Docker monitor, and DNS sync manager."""
     global _services_initialized
-
+    
     if _services_initialized:
         logger.warning("Services already initialized, skipping...")
         return
 
     try:
         dns_server.start()
-        docker_monitor.start()
+        
+        # Start Docker monitor but defer processing existing containers
+        docker_monitor.start(process_existing=False)
 
         # Start DNS sync manager if enabled
         if dns_sync_manager:
@@ -350,8 +354,11 @@ def initialize_services() -> None:
         if hosts_monitor:
             hosts_monitor.start()
 
+        # Now that all services are started, process existing containers
+        docker_monitor.process_existing_containers()
+
         _services_initialized = True
-        logger.info("Services initialized successfully")
+        logger.info("All services initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
         raise
@@ -389,15 +396,14 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
 
     # Initialize swimmies library components
-    logger.info(f"Starting Joyride with swimmies library v{swimmies.__version__}")
-    gossip_node = GossipNode("joyride-main")
-    logger.info(f"Created gossip node: {gossip_node.node_id}")
+    logger.info(f"Starting Joyride in {app.config["ENVIRONMENT"]} with swimmies library v{swimmies.__version__}")
+    GossipNode("joyride-main")  # Initialize gossip node for future distributed features
 
     # Initialize services only when running as main and not in testing mode
     testing_mode = (
         app.config.get("TESTING", False) or os.getenv("TESTING", "").lower() == "true"
     )
-
+    
     # Flask reloader sets WERKZEUG_RUN_MAIN=true in the reloaded process
     is_reloaded_process = os.getenv("WERKZEUG_RUN_MAIN") == "true"
 
@@ -409,10 +415,12 @@ def main():
         initialize_services()
 
     # Start the Flask application
-    logger.info(
-        f"Starting Joyride DNS service on {app.config['HOST']}:{app.config['PORT']}"
-    )
-    app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
+    logger.info(f"Starting Joyride DNS service on {app.config['HOST']}:{app.config['PORT']}")
+    try:
+        app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
+    except Exception as e:
+        logger.error(f"Failed to start Flask application: {e}")
+        raise
 
 
 if __name__ == "__main__":

@@ -96,6 +96,41 @@ test-example-down:
 	docker compose -f docker-compose.example.yml down
 	@echo "✅ Example setup stopped!"
 
+# Rebuild production image and start with docker-compose.yml
+prod-start:
+	@echo "Rebuilding production Docker image and starting with docker-compose.yml..."
+	docker compose down --remove-orphans || true
+	docker compose build 
+	docker compose up --force-recreate --remove-orphans -d
+	@echo "✅ Production setup started!"
+	@echo "Access web interface: http://localhost:5000"
+	@echo ""
+	@echo "Check status:"
+	@echo "  docker compose ps"
+	@echo "  docker compose logs -f"
+
+# Stop production Docker Compose setup
+prod-down:
+	@echo "Stopping production Docker Compose setup..."
+	docker compose down --remove-orphans
+	@echo "✅ Production setup stopped!"
+
+# Show logs from production setup
+prod-logs:
+	docker compose logs -f
+
+prod-dump-logs:
+	docker compose logs
+
+# Show status of production setup
+prod-status:
+	@echo "Production Docker Compose Status:"
+	@echo "================================="
+	docker compose ps
+	@echo ""
+	@echo "DNS Records:"
+	@curl -s http://localhost:5000/dns/records | python -m json.tool 2>/dev/null || echo "❌ Could not fetch DNS records"
+
 # Show logs from example setup
 test-example-logs:
 	docker compose -f docker-compose.example.yml logs -f

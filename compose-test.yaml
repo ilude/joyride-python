@@ -6,6 +6,7 @@ services:
       args:
         SEMANTIC_VERSION: ${SEMANTIC_VERSION:-dev}
     network_mode: host
+    mem_limit: ${JOYRIDE_RELOADED_MEM_LIMIT:-200g}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # Optional: Mount hosts directory for static DNS records
@@ -14,4 +15,3 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-

@@ -36,12 +36,17 @@ class DockerEventMonitor:
         self.monitor_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
 
-    def start(self) -> None:
+    def start(self, process_existing: bool = True) -> None:
         """
         Start monitoring Docker events.
 
-        Establishes connection to Docker daemon, processes existing running
+        Establishes connection to Docker daemon, optionally processes existing running
         containers, and starts background thread to monitor new events.
+        
+        Args:
+            process_existing: Whether to process existing containers immediately.
+                            Set to False to defer processing until after full initialization.
+        
         Raises DockerException if connection fails.
         """
         if self.monitor_thread is not None:
@@ -52,8 +57,9 @@ class DockerEventMonitor:
             self.client = docker.from_env()
             self.client.ping()  # Test connection
 
-            # Process existing containers first
-            self._process_existing_containers()
+            # Optionally process existing containers
+            if process_existing:
+                self._process_existing_containers()
 
             # Start event monitoring thread
             self.monitor_thread = threading.Thread(
@@ -65,6 +71,18 @@ class DockerEventMonitor:
         except DockerException as e:
             logger.error(f"Failed to connect to Docker: {e}")
             raise
+
+    def process_existing_containers(self) -> None:
+        """
+        Process already running containers.
+        
+        Public method to manually trigger processing of existing containers.
+        Useful for calling after all services are fully initialized.
+        """
+        if self.client:
+            self._process_existing_containers()
+        else:
+            logger.warning("Docker client not initialized, cannot process existing containers")
 
     def stop(self) -> None:
         """
