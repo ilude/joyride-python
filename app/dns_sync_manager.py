@@ -9,7 +9,7 @@ import logging
 import threading
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 from swimmies.discovery import NodeDiscovery, NodeInfo
 from swimmies.swim import SwimProtocol, create_swim_node

@@ -49,7 +49,7 @@ def test_dns_records_endpoint(client):
     """Test the DNS records endpoint."""
     response = client.get("/dns/records")
     assert response.status_code == 200
-    
+
     data = response.get_json()
     assert "records" in data
     assert "total_records" in data
@@ -63,15 +63,15 @@ def test_theme_toggle_elements(client):
     """Test that theme toggle elements are present in the status page"""
     response = client.get("/")
     assert response.status_code == 200
-    
+
     html_content = response.get_data(as_text=True)
-    
+
     # Check for theme toggle elements
     assert 'data-theme="dark"' in html_content
     assert 'id="theme-toggle-btn"' in html_content
     assert 'id="theme-icon"' in html_content
     assert 'class="theme-toggle"' in html_content
-    
+
     # Check for JavaScript theme functionality
     assert "localStorage.getItem('theme')" in html_content
     assert "setAttribute('data-theme'" in html_content

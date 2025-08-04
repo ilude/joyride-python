@@ -73,14 +73,13 @@ class TestDNSSyncManager:
     def test_cluster_status(self):
         """Test getting cluster status information."""
         sync_manager = DNSSyncManager(
-            node_id="test-node-1",
-            host_ip="127.0.0.1"
+            node_id="test-node-1", host_ip="127.0.0.1"
         )
-        
+
         status = sync_manager.get_cluster_status()
-        
+
         assert status["node_id"] == "test-node-1"
-        assert status["running"] == False
+        assert status["running"] is False
         assert "statistics" in status
         assert status["statistics"]["nodes_discovered"] == 0
         assert status["statistics"]["dns_records_synced"] == 0

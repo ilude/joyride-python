@@ -17,7 +17,7 @@ class HostsFileMonitor:
         poll_interval: float = 5.0,
     ):
         """Initialize the hosts file monitor.
-        
+
         Args:
             hosts_directory: Directory containing hosts files
             dns_callback: Callback function(action, hostname, ip_address)
@@ -69,13 +69,18 @@ class HostsFileMonitor:
     def _check_for_changes(self) -> None:
         """Check for changes in hosts files."""
         new_records = self._load_hosts_records()
-        
+
         with self._lock:
             # Find additions and updates
             for hostname, ip_address in new_records.items():
-                if hostname not in self.current_records or self.current_records[hostname] != ip_address:
+                if (
+                    hostname not in self.current_records
+                    or self.current_records[hostname] != ip_address
+                ):
                     self.dns_callback("add", hostname, ip_address)
-                    logger.debug(f"Added/updated hosts record: {hostname} -> {ip_address}")
+                    logger.debug(
+                        f"Added/updated hosts record: {hostname} -> {ip_address}"
+                    )
 
             # Find removals
             for hostname in list(self.current_records.keys()):
@@ -92,25 +97,27 @@ class HostsFileMonitor:
             self.current_records = records
             for hostname, ip_address in records.items():
                 self.dns_callback("add", hostname, ip_address)
-        
+
         if records:
             logger.info(f"Loaded {len(records)} hosts records from files")
 
     def _load_hosts_records(self) -> Dict[str, str]:
         """Load DNS records from all hosts files in the directory."""
         records: Dict[str, str] = {}
-        
+
         if not self.hosts_directory.exists():
             return records
 
         # Find all files in the directory (skip hidden dotfiles for security)
         for file_path in self.hosts_directory.glob("*"):
-            if file_path.is_file() and not file_path.name.startswith('.'):
+            if file_path.is_file() and not file_path.name.startswith("."):
                 try:
                     file_records = self._parse_hosts_file(file_path)
                     records.update(file_records)
                     if file_records:
-                        logger.debug(f"Loaded {len(file_records)} records from {file_path.name}")
+                        logger.debug(
+                            f"Loaded {len(file_records)} records from {file_path.name}"
+                        )
                 except Exception as e:
                     logger.error(f"Error reading hosts file {file_path}: {e}")
 
@@ -118,51 +125,53 @@ class HostsFileMonitor:
 
     def _parse_hosts_file(self, file_path: Path) -> Dict[str, str]:
         """Parse a single hosts file and return DNS records.
-        
+
         Supports standard /etc/hosts format:
         # Comments start with #
         192.168.1.100  example.com www.example.com
         10.0.0.1       service.internal
         """
         records: Dict[str, str] = {}
-        
+
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 for line_num, line in enumerate(f, 1):
                     line = line.strip()
-                    
+
                     # Skip empty lines and comments
-                    if not line or line.startswith('#'):
+                    if not line or line.startswith("#"):
                         continue
-                    
+
                     # Split on whitespace
                     parts = line.split()
                     if len(parts) < 2:
                         continue
-                    
+
                     ip_address = parts[0]
                     hostnames = parts[1:]
-                    
+
                     # Validate IP address format (basic check)
                     if not self._is_valid_ip(ip_address):
-                        logger.warning(f"Invalid IP address '{ip_address}' in {file_path.name}:{line_num}")
+                        logger.warning(
+                            f"Invalid IP address '{ip_address}' in {file_path.name}:{line_num}"
+                        )
                         continue
-                    
+
                     # Add all hostnames for this IP
                     for hostname in hostnames:
                         hostname = hostname.strip()
                         if hostname:
                             records[hostname] = ip_address
-                            
+
         except Exception as e:
             logger.error(f"Error parsing hosts file {file_path}: {e}")
-            
+
         return records
 
     def _is_valid_ip(self, ip_address: str) -> bool:
         """Basic IP address validation."""
         try:
-            parts = ip_address.split('.')
+            parts = ip_address.split(".")
             if len(parts) != 4:
                 return False
             for part in parts:

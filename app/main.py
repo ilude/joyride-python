@@ -2,7 +2,6 @@ import atexit
 import logging
 import os
 import signal
-import socket
 from datetime import datetime
 from typing import Any, Dict, List
 
