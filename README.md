@@ -1,138 +1,111 @@
-# Jo## Features
-
-- 🐍 Python 3.12 with Flask web interface
-- 🌐 Dynamic DNS server with automatic record management  
-- 🐳 Docker event monitoring for container lifecycle
-- 🏷️ Label-based DNS registration (`joyride.host.name`)
-- 📁 Static DNS records from hosts files (optional)
-- 🌙 Dark/light mode theme toggle on web interface
-- 🔧 VS Code DevContainer with Docker-in-Docker support
-- ⚙️ Configuration via environment variables
-- 🏥 Health check endpoints for monitoring  
-- 📊 Status web page with DNS records display
-- 🔒 Non-root user for security
-- 🧪 Complete integration testing with Make commandsvice
+# Joyride DNS Service
 
 A Python Flask microservice that provides dynamic DNS services by monitoring Docker container events. It automatically creates DNS records for containers with the `joyride.host.name` label, routing all traffic to the configured host IP address.
 
 ## Features
 
-- 🐍 Python 3.12 with Flask web interface
+- 🐍 Python 3.12 with modern UV package management
 - 🌐 Dynamic DNS server with automatic record management
 - 🐳 Docker event monitoring for container lifecycle
 - 🏷️ Label-based DNS registration (`joyride.host.name`)
-- � Static DNS records from hosts files (optional)
-- �🔧 VS Code DevContainer with Docker-in-Docker support
-- ⚙️ Configuration via environment variables
+- 📁 Static DNS records from hosts files (optional)
+- 🌙 Dark/light mode theme toggle on web interface
+- 🔧 VS Code DevContainer with Docker-in-Docker support
+- ⚙️ Configuration via environment variables and pyproject.toml
 - 🏥 Health check endpoints for monitoring  
 - 📊 Status web page with DNS records display
 - 🔒 Non-root user for security
-- 🧪 Complete integration testing with Make commands
+- 🧪 Complete integration testing with pytest
+- 📦 Integrated swimmies utility library
 
 ## Project Structure
 
 ```
-.
-├── .devcontainer/
-│   ├── devcontainer.json    # VS Code dev container configuration
-│   ├── Dockerfile          # Development container image
-│   └── Makefile            # Development-specific make targets
-├── .github/
-│   ├── copilot-instructions.md  # AI assistant configuration
-│   └── instructions/       # Code generation guidelines
-├── app/                    # Application source code
-│   ├── __init__.py         # Package initialization
-│   ├── main.py             # Main Flask application
-│   ├── dns_server.py       # DNS server implementation
-│   ├── docker_monitor.py   # Docker event monitoring
-│   ├── hosts_monitor.py    # Hosts file monitoring
-│   ├── static/             # CSS and static assets
-│   └── templates/          # HTML templates
-├── tests/                  # Test files
-│   ├── conftest.py         # Test configuration
-│   ├── test_main.py        # Flask app tests
+joyride/
+├── pyproject.toml              # Project config and dependencies
+├── uv.lock                     # Locked dependencies
+├── run.py                      # Application entry point
+├── DEVELOPMENT.md              # Development guide
+├── app/                        # Main application code
+│   ├── main.py                 # Flask application
+│   ├── dns_server.py           # DNS server implementation
+│   ├── docker_monitor.py       # Docker event monitoring
+│   ├── hosts_monitor.py        # Hosts file monitoring
+│   ├── static/                 # CSS and static assets
+│   └── templates/              # HTML templates
+├── swimmies/                   # Git submodule - utility library
+│   ├── pyproject.toml          # Library configuration
+│   └── src/swimmies/           # Library source code
+├── tests/                      # Test suite
+│   ├── conftest.py             # Test configuration
+│   ├── test_main.py            # Flask app tests
 │   ├── test_docker_monitor.py  # Docker monitor tests
 │   └── test_hosts_monitor.py   # Hosts monitor tests
-├── hosts/                  # Example hosts files (optional)
-│   ├── example.hosts       # Example hosts file format
-│   └── production.hosts    # Production environment example
-├── run.py                  # Application entry point
-├── Dockerfile             # Production container image
-├── docker-compose.yml     # Docker Compose configuration
-├── Makefile              # Build and development commands
-├── requirements.txt       # Production Python dependencies
-├── requirements-dev.txt   # Development Python dependencies
-├── .env                   # Development environment variables
-├── .flake8               # Code linting configuration
-└── README.md              # This file
+├── hosts/                      # Example hosts files (optional)
+├── Dockerfile                  # Production container image
+├── docker-compose.yml          # Docker Compose configuration
+└── Makefile                    # Build and development commands
 ```
 
 ## Quick Start
 
-### Using VS Code DevContainer (Recommended for Development)
+### Using UV (Recommended for Development)
+
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/ilude/joyride-python.git
+cd joyride-python
+
+# Install dependencies
+uv sync --extra dev
+
+# Run the application
+uv run python run.py
+
+# Access web interface at http://localhost:5000
+# DNS server runs on port 5353 (UDP)
+```
+
+### Using VS Code DevContainer
 
 1. Open the project in VS Code
 2. Install the "Dev Containers" extension
 3. Press `Ctrl+Shift+P` and run "Dev Containers: Reopen in Container"
-4. VS Code will build and start the development container with Docker-in-Docker
-5. The Flask web interface will be available at http://localhost:5000
-6. DNS server will be running on port 5353 (configurable via `DNS_PORT`)
-7. Full Docker CLI access for integration testing
-
-**DevContainer Features:**
-- Docker-in-Docker for complete integration testing
-- Pre-configured Python development environment
-- Automatic dependency installation
-- Make commands for testing and development
-
+4. VS Code will build and start the development container
 ### Using Docker Compose
 
-#### Development Mode
 ```bash
-# Start development container with Docker socket access
+# Start development container
 docker-compose up --build
 
-# Access the web interface at http://localhost:5000
+# Access web interface at http://localhost:5000
 # DNS server runs on port 5353 (UDP)
 ```
 
-### Using Make Commands
+### Development Commands
 
-The project includes a comprehensive Makefile for development:
-
-```bash
-# Initialize development environment
-make initialize
-
-# Run locally (requires Python 3.12)
-make run
-
-# Docker operations
-make build          # Build Docker image
-make start          # Start in detached mode
-make up             # Start in foreground
-make down           # Stop containers
-make restart        # Restart containers
-
-# Development (in devcontainer)
-make test           # Run tests with coverage
-make lint           # Run code linting
-make format         # Format code with black/isort
-make clean          # Clean Python cache files
-make version        # Show version and environment info
-```
-
-### Manual Docker Build
+The project uses UV for modern Python package management:
 
 ```bash
-# Build production image
-docker build -t joyride-dns .
+# Install dependencies
+uv sync --extra dev
 
-# Run with Docker socket access (required for container monitoring)
-docker run -p 5000:5000 -p 5353:5353/udp \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  --env-file .env joyride-dns
+# Run application
+uv run python run.py
+
+# Run tests
+uv run pytest tests/ -v
+
+# Code quality
+uv run black app/ tests/ run.py
+uv run isort app/ tests/ run.py  
+uv run flake8 app/ tests/ run.py
+
+# Update dependencies
+uv lock --upgrade
 ```
+
+See `DEVELOPMENT.md` for comprehensive development guide.
 
 ## How It Works
 
@@ -198,7 +171,7 @@ services:
 
 ## Configuration
 
-Configure the service using environment variables in `.env`:
+Configure the service using environment variables in `.env` or through `pyproject.toml`:
 
 ```bash
 # Flask Web Interface
@@ -220,6 +193,16 @@ HOSTIP=192.168.1.100
 # Hosts File Monitoring (optional)
 HOSTS_DIRECTORY=/path/to/hosts
 ```
+
+### Project Metadata
+
+The project uses modern Python packaging with `pyproject.toml`:
+
+- **License**: MIT
+- **Python**: >=3.12
+- **Dependencies**: Managed through UV with optional groups
+- **Repository**: https://github.com/ilude/joyride-python
+- **Library**: Includes swimmies utility library as Git submodule
 
 ## API Endpoints
 
