@@ -76,7 +76,8 @@ run:
 # Start example Docker Compose setup for testing
 test-example-up:
 	@echo "Starting example Docker Compose setup..."
-	docker compose -f docker-compose.example.yml up -d
+	docker compose -f docker-compose.example.yml pull 
+	docker compose -f docker-compose.example.yml up --force-recreate --remove-orphans -d
 	@sleep 3
 	@echo "✅ Example setup started!"
 	@echo "Access web interface: http://localhost:5000"
