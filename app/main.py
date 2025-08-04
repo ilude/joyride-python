@@ -9,6 +9,9 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template
 from pydantic import BaseModel
 
+import swimmies
+from swimmies import GossipNode
+
 from .dns_server import DNSServerManager
 from .docker_monitor import DockerEventMonitor
 from .hosts_monitor import HostsFileMonitor
@@ -277,6 +280,11 @@ if __name__ == "__main__":
     # Setup signal handlers
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
+    
+    # Initialize swimmies library components
+    logger.info(f"Starting Joyride with swimmies library v{swimmies.__version__}")
+    gossip_node = GossipNode("joyride-main")
+    logger.info(f"Created gossip node: {gossip_node.node_id}")
     
     # Initialize services only when running as main and not in testing mode
     testing_mode = (

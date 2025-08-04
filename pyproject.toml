@@ -1,0 +1,23 @@
+[project]
+name = "joyride"
+version = "0.0.1"
+description = "docker dynamic dns server that uses labels"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "swimmies",
+  "dnslib==0.9.24",
+  "docker==7.1.0",
+  "flask==3.0.0",
+  "gunicorn==21.2.0",
+  "pydantic==2.8.2",
+  "python-dotenv==1.0.0",
+]
+
+[tool.uv.sources]
+swimmies = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "swimmies",
+]
