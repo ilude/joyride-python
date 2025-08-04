@@ -12,6 +12,7 @@ on:
       - 'pyproject.toml'
       - 'uv.lock'
       - '.github/workflows/docker-publish.yml'
+      - 'docker-entrypoint.sh'
   pull_request:
     branches: [ "main" ]
     types: [ closed ]
@@ -22,6 +23,7 @@ on:
       - 'pyproject.toml'
       - 'uv.lock'
       - '.github/workflows/docker-publish.yml'
+      - 'docker-entrypoint.sh'
 
 # Ensure only one build runs at a time, cancelling any in-progress builds
 concurrency:
