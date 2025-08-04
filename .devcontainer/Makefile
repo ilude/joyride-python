@@ -27,7 +27,7 @@ uv.lock:
 # Run just unit tests (fast)
 test-unit: uv.lock
 	@echo "Running unit tests only..."
-	uv run pytest tests/test_container_config.py tests/test_container_providers.py tests/test_container_lifecycle.py -v
+	uv run pytest tests/test_injection_config.py tests/test_injection_providers.py tests/test_injection_lifecycle.py -v
 
 # Run integration tests
 test-integration: uv.lock
@@ -37,12 +37,12 @@ test-integration: uv.lock
 # Run tests with maximum verbosity for debugging
 test-verbose: uv.lock
 	@echo "Running tests with maximum verbosity..."
-	uv run python -W all -m pytest tests/test_container_config.py tests/test_container_providers.py tests/test_container_lifecycle.py tests/test_step_1_2_2_integration.py --tb=long --capture=no -vvv
+	uv run python -W all -m pytest tests/test_injection_config.py tests/test_injection_providers.py tests/test_injection_lifecycle.py tests/test_step_1_2_2_integration.py --tb=long --capture=no -vvv
 
 # Run ALL tests (including broken ones for debugging)
 test: uv.lock
 	@echo "Running ALL tests (excluding disabled tests)..."
-	uv run python -W all -m pytest tests/ --ignore=tests/disabled --cov=app --cov-report=term-missing --cov-report=html:.htmlcov -v
+	uv run python -W all -m pytest tests/ --ignore=tests/disabled --ignore=tests/support --cov=app --cov-report=term-missing --cov-report=html:.htmlcov -v
 
 # Run linting
 # E203: whitespace before ':' (conflicts with black formatting)

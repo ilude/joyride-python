@@ -5,11 +5,11 @@ It replaces the inline Python scripts with proper test cases.
 """
 import pytest
 
-from app.container import JoyrideConfig as ContainerJoyrideConfig
-from app.container import (
-    JoyrideProvider as ContainerJoyrideProvider,  # Test that container module exports work
+from app.injection import JoyrideConfig as InjectionJoyrideConfig
+from app.injection import (
+    JoyrideProvider as InjectionJoyrideProvider,  # Test that injection module exports work
 )
-from app.container.config import (
+from app.injection.config import (
     JoyrideConfig,
     JoyrideConfigLoader,
     JoyrideConfigSchema,
@@ -17,7 +17,7 @@ from app.container.config import (
     JoyrideConfigValidator,
     create_config,
 )
-from app.container.providers import (
+from app.injection.providers import (
     JoyrideCircularDependencyError,
     JoyrideClassProvider,
     JoyrideDependency,
@@ -65,15 +65,15 @@ class TestStep122ModularImports:
         assert JoyrideConfig is not None
         assert create_config is not None
     
-    def test_container_module_exports(self):
-        """Test that container module properly exports both config and provider systems."""
-        # Should be able to import from container module
-        assert ContainerJoyrideProvider is not None
-        assert ContainerJoyrideConfig is not None
+    def test_injection_module_exports(self):
+        """Test that injection module properly exports both config and provider systems."""
+        # Should be able to import from injection module
+        assert InjectionJoyrideProvider is not None
+        assert InjectionJoyrideConfig is not None
         
         # Should be the same classes
-        assert ContainerJoyrideProvider is JoyrideProvider
-        assert ContainerJoyrideConfig is JoyrideConfig
+        assert InjectionJoyrideProvider is JoyrideProvider
+        assert InjectionJoyrideConfig is JoyrideConfig
 
 
 class TestStep122ProviderFunctionality:
@@ -254,12 +254,12 @@ class TestStep122FullIntegration:
         import os
 
         # Check that we don't have the old monolithic providers.py
-        providers_py = '/workspaces/joyride/app/container/providers.py'
+        providers_py = '/workspaces/joyride/app/injection/providers.py'
         assert not os.path.exists(providers_py), \
             "Found legacy providers.py file - should be removed for greenfield app"
         
         # Check that we have the modular structure
-        providers_dir = '/workspaces/joyride/app/container/providers'
+        providers_dir = '/workspaces/joyride/app/injection/providers'
         assert os.path.isdir(providers_dir), \
             "Missing modular providers package directory"
         

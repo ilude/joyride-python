@@ -54,7 +54,7 @@ EventCoordinator (Central Hub)
 │   ├── DNSRecordHandler        # DNS record management
 │   ├── SyncHandler             # DNS sync operations
 │   └── LoggingHandler          # Event logging
-└── Dependency Injection Container
+└── Dependency Injection System
     ├── Configuration           # Environment-based config
     ├── Component Factory       # Service creation
     └── Lifecycle Management    # Start/stop coordination
@@ -114,45 +114,45 @@ app/events/
   - [x] Test error scenarios and recovery
   - [x] Systematic refactoring to avoid naming conflicts with stdlib/third-party libraries
 
-#### 1.2 Dependency Injection Container
+#### 1.2 Dependency Injection System
 **File Structure:**
 ```
-app/container/
+app/injection/
 ├── __init__.py
-├── container.py     # Main DI container
+├── injector.py      # Main DI injector (JoyrideInjector)
 ├── providers.py     # Component providers/factories
 ├── config.py        # Configuration management
 └── lifecycle.py     # Component lifecycle management
 ```
 
 **Implementation Steps:**
-- [x] **Step 1.2.1**: Create `app/container/config.py`
+- [x] **Step 1.2.1**: Create `app/injection/config.py`
   - [x] Implement hierarchical configuration system
   - [x] Support environment variables, YAML/JSON files, defaults
   - [x] Add configuration validation with schema
   - [x] Support dynamic configuration updates
-  - [x] **Test**: Create `tests/test_container_config.py` with various config sources
+  - [x] **Test**: Create `tests/test_injection_config.py` with various config sources
 
-- [x] **Step 1.2.2**: Create `app/container/providers.py`
+- [x] **Step 1.2.2**: Create `app/injection/providers.py`
   - [x] Implement provider pattern for component factories
   - [x] Support singleton, factory, and prototype lifecycles
   - [x] Add dependency resolution and circular dependency detection
-  - [x] **Test**: Create `tests/test_container_providers.py` with dependency scenarios
+  - [x] **Test**: Create `tests/test_injection_providers.py` with dependency scenarios
 
-- [x] **Step 1.2.3**: Create `app/container/lifecycle.py`
+- [x] **Step 1.2.3**: Create `app/injection/lifecycle.py`
   - [x] Implement component lifecycle management (start/stop ordering)
   - [x] Add graceful shutdown handling
   - [x] Support health checks for components
-  - [x] **Test**: Create `tests/test_container_lifecycle.py` with startup/shutdown tests
+  - [x] **Test**: Create `tests/test_injection_lifecycle.py` with startup/shutdown tests
 
-- [ ] **Step 1.2.4**: Create `app/container/container.py`
-  - [ ] Main DI container combining all features
+- [ ] **Step 1.2.4**: Create `app/injection/injector.py`
+  - [ ] Main DI injector combining all features (JoyrideInjector class)
   - [ ] Component registration and resolution
   - [ ] Configuration-driven component creation
-  - [ ] **Test**: Create `tests/test_container_integration.py` with full container tests
+  - [ ] **Test**: Create `tests/test_injection_integration.py` with full injector tests
 
-- [ ] **Step 1.2.5**: Container integration testing
-  - [ ] **Test**: Create `tests/test_container_full.py`
+- [ ] **Step 1.2.5**: Injection system integration testing
+  - [ ] **Test**: Create `tests/test_injection_full.py`
   - [ ] Test complex dependency graphs
   - [ ] Test configuration changes and component reloading
   - [ ] Performance tests with many components
@@ -290,7 +290,7 @@ app/producers/
 
 - [ ] **Step 2.4.2**: Create `app/producers/system.py`
   - [ ] Implement `SystemEventProducer` class
-  - [ ] Integration with DI container lifecycle
+  - [ ] Integration with DI injection system lifecycle
   - [ ] Health check monitoring and reporting
   - [ ] Configuration change detection
   - [ ] **Test**: Create `tests/test_system_producer.py` with lifecycle simulation
@@ -513,7 +513,7 @@ app/bootstrap/
 
 **Implementation Steps:**
 - [ ] **Step 4.2.1**: Create `app/bootstrap/factory.py`
-  - [ ] Component factory using DI container
+  - [ ] Component factory using DI injection system
   - [ ] Configuration-driven component creation
   - [ ] Dependency graph resolution
   - [ ] **Test**: Create `tests/test_bootstrap_factory.py` with component creation
@@ -576,7 +576,7 @@ app/bootstrap/
 **Implementation Steps:**
 - [ ] **Step 5.2.1**: Component integration tests
   - [ ] **Test**: Event flow from producers through bus to handlers
-  - [ ] **Test**: DI container with real component dependencies
+  - [ ] **Test**: DI injection system with real component dependencies
   - [ ] **Test**: Configuration system with dynamic updates
   - [ ] Create `tests/integration/test_component_integration.py`
 
@@ -757,13 +757,13 @@ Each module follows this development pattern:
 ```
 Phase 1: Foundation (No dependencies)
 ├── events/ (base classes and interfaces)
-└── container/ (DI system)
+└── injection/ (DI system)
 
 Phase 2: Producers (Depends on Phase 1)
 ├── producers/docker.py (depends on events/)
 ├── producers/swim.py (depends on events/, swimmies/)
 ├── producers/hosts.py (depends on events/)
-└── producers/system.py (depends on events/, container/)
+└── producers/system.py (depends on events/, injection/)
 
 Phase 3: Handlers (Depends on Phases 1-2)
 ├── handlers/dns_record.py (depends on events/, producers/)
@@ -773,7 +773,7 @@ Phase 3: Handlers (Depends on Phases 1-2)
 └── handlers/validation.py (depends on events/)
 
 Phase 4: Configuration (Depends on Phases 1-3)
-├── config/ (depends on container/)
+├── config/ (depends on injection/)
 └── bootstrap/ (depends on all previous phases)
 
 Phase 5: Testing (Tests all phases)

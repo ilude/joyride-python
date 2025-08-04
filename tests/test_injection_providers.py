@@ -5,14 +5,18 @@ This module tests component factories, dependency resolution, and lifecycle mana
 for the Joyride DNS Service dependency injection container.
 """
 
+import sys
 import threading
-import time
-from typing import Optional
-from unittest.mock import Mock, patch
+from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
-from app.container.providers import (
+# Add tests/support to path for imports
+sys.path.append(str(Path(__file__).parent / "support"))
+
+from injection_helpers import SimpleService, DependentService, ComplexService, PrototypeService
+from app.injection.providers import (
     JoyrideCircularDependencyError,
     JoyrideClassProvider,
     JoyrideDependency,
@@ -27,48 +31,11 @@ from app.container.providers import (
 )
 
 
-# Helper classes for dependency injection testing
-class MockService:
-    """Simple test service."""
-    
-    def __init__(self, name: str = "test"):
-        self.name = name
-        self.created_at = time.time()
-    
-    def get_name(self) -> str:
-        return self.name
-
-
-class MockDependentService:
-    """Service with dependencies."""
-    
-    def __init__(self, service: MockService, config: Optional[str] = None):
-        self.service = service
-        self.config = config
-    
-    def get_service_name(self) -> str:
-        return self.service.get_name()
-
-
-class MockPrototypeService:
-    """Service that supports copying."""
-    
-    def __init__(self, value: int = 0):
-        self.value = value
-        self.created_at = time.time()
-    
-    def copy(self):
-        """Create a copy of this service."""
-        return MockPrototypeService(self.value)
-
-
-class MockComplexService:
-    """Service with multiple dependencies."""
-    
-    def __init__(self, service1: MockService, service2: MockDependentService, optional_param: str = "default"):
-        self.service1 = service1
-        self.service2 = service2
-        self.optional_param = optional_param
+# Aliases for backward compatibility with existing tests
+TestService = SimpleService
+TestDependentService = DependentService
+TestComplexService = ComplexService
+TestPrototypeService = PrototypeService
 
 
 class TestJoyrideDependency:
@@ -78,13 +45,13 @@ class TestJoyrideDependency:
         """Test creating a dependency."""
         dep = JoyrideDependency(
             name="test_service",
-            type_hint=MockService,
+            type_hint=TestService,
             required=True
         )
         
         assert dep.name == "test_service"
-        assert dep.type_hint == MockService
-        assert dep.required == True
+        assert dep.type_hint == TestService
+        assert dep.required is True
         assert dep.default_value is None
     
     def test_dependency_with_default(self):
@@ -98,14 +65,14 @@ class TestJoyrideDependency:
         
         assert dep.name == "config"
         assert dep.type_hint == str
-        assert dep.required == False
+        assert dep.required is False
         assert dep.default_value == "default_config"
     
     def test_dependency_validation(self):
         """Test dependency validation."""
         # Invalid name
         with pytest.raises(ValueError, match="Dependency name must be a non-empty string"):
-            JoyrideDependency("", MockService)
+            JoyrideDependency("", TestService)
         
         # Invalid type hint
         with pytest.raises(ValueError, match="Type hint must be a type"):
@@ -156,7 +123,7 @@ class TestJoyrideSingletonProvider:
     def test_singleton_creation(self):
         """Test creating a singleton provider."""
         def factory():
-            return MockService("singleton")
+            return TestService("singleton")
         
         provider = JoyrideSingletonProvider("test_singleton", factory)
         
@@ -171,7 +138,7 @@ class TestJoyrideSingletonProvider:
         deps = [JoyrideDependency("config", str, required=True)]
         
         def factory(config: str):
-            return MockService(config)
+            return TestService(config)
         
         provider = JoyrideSingletonProvider("test_singleton", factory, deps)
         
@@ -184,7 +151,7 @@ class TestJoyrideSingletonProvider:
         def factory():
             nonlocal call_count
             call_count += 1
-            return MockService("singleton")
+            return TestService("singleton")
         
         provider = JoyrideSingletonProvider("test_singleton", factory)
         registry = Mock()
@@ -192,7 +159,7 @@ class TestJoyrideSingletonProvider:
         # First call should create instance
         instance1 = provider.create(registry)
         assert call_count == 1
-        assert isinstance(instance1, MockService)
+        assert isinstance(instance1, TestService)
         assert instance1.name == "singleton"
         
         # Second call should return same instance
@@ -203,7 +170,7 @@ class TestJoyrideSingletonProvider:
     def test_singleton_can_create(self):
         """Test singleton can_create method."""
         def factory():
-            return MockService()
+            return TestService()
         
         provider = JoyrideSingletonProvider("test_singleton", factory)
         registry = Mock()
@@ -213,10 +180,10 @@ class TestJoyrideSingletonProvider:
     
     def test_singleton_with_missing_dependency(self):
         """Test singleton with missing dependency."""
-        deps = [JoyrideDependency("missing_service", MockService, required=True)]
+        deps = [JoyrideDependency("missing_service", TestService, required=True)]
         
-        def factory(missing_service: MockService):
-            return MockDependentService(missing_service)
+        def factory(missing_service: TestService):
+            return TestDependentService(missing_service)
         
         provider = JoyrideSingletonProvider("test_singleton", factory, deps)
         registry = Mock()
@@ -227,7 +194,7 @@ class TestJoyrideSingletonProvider:
     def test_singleton_reset(self):
         """Test singleton reset functionality."""
         def factory():
-            return MockService("singleton")
+            return TestService("singleton")
         
         provider = JoyrideSingletonProvider("test_singleton", factory)
         registry = Mock()
@@ -255,7 +222,7 @@ class TestJoyrideFactoryProvider:
     def test_factory_creation(self):
         """Test creating a factory provider."""
         def factory():
-            return MockService("factory")
+            return TestService("factory")
         
         provider = JoyrideFactoryProvider("test_factory", factory)
         
@@ -270,7 +237,7 @@ class TestJoyrideFactoryProvider:
         def factory():
             nonlocal call_count
             call_count += 1
-            return MockService(f"factory_{call_count}")
+            return TestService(f"factory_{call_count}")
         
         provider = JoyrideFactoryProvider("test_factory", factory)
         registry = Mock()
@@ -290,27 +257,27 @@ class TestJoyrideFactoryProvider:
     def test_factory_with_dependencies(self):
         """Test factory with dependencies."""
         deps = [
-            JoyrideDependency("service", MockService, required=True),
+            JoyrideDependency("service", TestService, required=True),
             JoyrideDependency("config", str, required=False, default_value="default")
         ]
         
-        def factory(service: MockService, config: str = "default"):
-            return MockDependentService(service, config)
+        def factory(service: TestService, config: str = "default"):
+            return TestDependentService(service, config)
         
         provider = JoyrideFactoryProvider("test_factory", factory, deps)
         registry = Mock()
         
-        # Mock registry to return MockService for "service" and raise error for "config"
+        # Mock registry to return TestService for "service" and raise error for "config"
         def mock_get(name):
             if name == "service":
-                return MockService(name)
+                return TestService(name)
             else:
                 raise JoyrideDependencyResolutionError(f"Provider '{name}' not found")
         
         registry.get.side_effect = mock_get
         
         instance = provider.create(registry)
-        assert isinstance(instance, MockDependentService)
+        assert isinstance(instance, TestDependentService)
         assert instance.config == "default"
     
     def test_factory_validation(self):
@@ -325,7 +292,7 @@ class TestJoyridePrototypeProvider:
     
     def test_prototype_creation(self):
         """Test creating a prototype provider."""
-        prototype = MockPrototypeService(42)
+        prototype = TestPrototypeService(42)
         provider = JoyridePrototypeProvider("test_prototype", prototype)
         
         assert provider.name == "test_prototype"
@@ -334,7 +301,7 @@ class TestJoyridePrototypeProvider:
     
     def test_prototype_instance_creation(self):
         """Test prototype instance creation."""
-        prototype = MockPrototypeService(42)
+        prototype = TestPrototypeService(42)
         provider = JoyridePrototypeProvider("test_prototype", prototype)
         registry = Mock()
         
@@ -342,8 +309,8 @@ class TestJoyridePrototypeProvider:
         instance1 = provider.create(registry)
         instance2 = provider.create(registry)
         
-        assert isinstance(instance1, MockPrototypeService)
-        assert isinstance(instance2, MockPrototypeService)
+        assert isinstance(instance1, TestPrototypeService)
+        assert isinstance(instance2, TestPrototypeService)
         assert instance1.value == 42
         assert instance2.value == 42
         assert instance1 is not instance2
@@ -367,7 +334,7 @@ class TestJoyridePrototypeProvider:
     
     def test_prototype_can_create(self):
         """Test prototype can_create method."""
-        prototype = MockPrototypeService(42)
+        prototype = TestPrototypeService(42)
         provider = JoyridePrototypeProvider("test_prototype", prototype)
         registry = Mock()
         
@@ -376,7 +343,7 @@ class TestJoyridePrototypeProvider:
     
     def test_prototype_no_dependencies(self):
         """Test prototype has no dependencies."""
-        prototype = MockPrototypeService(42)
+        prototype = TestPrototypeService(42)
         provider = JoyridePrototypeProvider("test_prototype", prototype)
         
         assert provider.get_dependencies() == []
@@ -396,22 +363,22 @@ class TestJoyrideClassProvider:
     
     def test_class_provider_creation(self):
         """Test creating a class provider."""
-        provider = JoyrideClassProvider("test_class", MockService)
+        provider = JoyrideClassProvider("test_class", TestService)
         
         assert provider.name == "test_class"
-        assert provider._cls == MockService
+        assert provider._cls == TestService
         assert provider._lifecycle == JoyrideLifecycleType.FACTORY
     
     def test_class_provider_dependency_analysis(self):
         """Test automatic dependency analysis."""
-        provider = JoyrideClassProvider("test_class", MockDependentService)
+        provider = JoyrideClassProvider("test_class", TestDependentService)
         dependencies = provider.get_dependencies()
         
         assert len(dependencies) == 2
         
         # Check service dependency
         service_dep = next(dep for dep in dependencies if dep.name == "service")
-        assert service_dep.type_hint == MockService
+        assert service_dep.type_hint == TestService
         assert service_dep.required == True
         
         # Check config dependency
@@ -421,7 +388,7 @@ class TestJoyrideClassProvider:
     
     def test_class_provider_instance_creation(self):
         """Test class provider instance creation."""
-        provider = JoyrideClassProvider("test_class", MockService)
+        provider = JoyrideClassProvider("test_class", TestService)
         registry = Mock()
         # Make registry.get raise exception to force using defaults
         registry.get.side_effect = lambda name: (_ for _ in ()).throw(
@@ -429,31 +396,31 @@ class TestJoyrideClassProvider:
         )
         
         instance = provider.create(registry)
-        assert isinstance(instance, MockService)
+        assert isinstance(instance, TestService)
         assert instance.name == "test"  # Default value
     
     def test_class_provider_with_dependencies(self):
         """Test class provider with dependencies."""
-        provider = JoyrideClassProvider("test_class", MockDependentService)
+        provider = JoyrideClassProvider("test_class", TestDependentService)
         registry = Mock()
         
         # Mock dependency resolution
-        test_service = MockService("dependency")
+        test_service = TestService("dependency")
         registry.get.return_value = test_service
         
         instance = provider.create(registry, config="injected_config")
-        assert isinstance(instance, MockDependentService)
+        assert isinstance(instance, TestDependentService)
         assert instance.service == test_service
         assert instance.config == "injected_config"
     
     def test_class_provider_singleton_lifecycle(self):
         """Test class provider with singleton lifecycle."""
-        provider = JoyrideClassProvider("test_class", MockService, JoyrideLifecycleType.SINGLETON)
+        provider = JoyrideClassProvider("test_class", TestService, JoyrideLifecycleType.SINGLETON)
         registry = Mock()
         
         # First call creates instance
         instance1 = provider.create(registry)
-        assert isinstance(instance1, MockService)
+        assert isinstance(instance1, TestService)
         
         # Second call returns same instance
         instance2 = provider.create(registry)
@@ -479,7 +446,7 @@ class TestJoyrideProviderRegistry:
     def test_register_provider(self):
         """Test registering a provider."""
         registry = JoyrideProviderRegistry()
-        provider = JoyrideSingletonProvider("test", lambda: MockService())
+        provider = JoyrideSingletonProvider("test", lambda: TestService())
         
         registry.register_provider(provider, JoyrideLifecycleType.SINGLETON)
         
@@ -490,7 +457,7 @@ class TestJoyrideProviderRegistry:
     def test_register_duplicate_provider(self):
         """Test registering duplicate provider."""
         registry = JoyrideProviderRegistry()
-        provider = JoyrideSingletonProvider("test", lambda: MockService())
+        provider = JoyrideSingletonProvider("test", lambda: TestService())
         
         registry.register_provider(provider, JoyrideLifecycleType.SINGLETON)
         
@@ -502,7 +469,7 @@ class TestJoyrideProviderRegistry:
         """Test register_singleton helper method."""
         registry = JoyrideProviderRegistry()
         
-        provider = registry.register_singleton("test", lambda: MockService())
+        provider = registry.register_singleton("test", lambda: TestService())
         
         assert isinstance(provider, JoyrideSingletonProvider)
         assert registry.has_provider("test")
@@ -511,7 +478,7 @@ class TestJoyrideProviderRegistry:
         """Test register_factory helper method."""
         registry = JoyrideProviderRegistry()
         
-        provider = registry.register_factory("test", lambda: MockService())
+        provider = registry.register_factory("test", lambda: TestService())
         
         assert isinstance(provider, JoyrideFactoryProvider)
         assert registry.has_provider("test")
@@ -519,7 +486,7 @@ class TestJoyrideProviderRegistry:
     def test_register_prototype_helper(self):
         """Test register_prototype helper method."""
         registry = JoyrideProviderRegistry()
-        prototype = MockPrototypeService(42)
+        prototype = TestPrototypeService(42)
         
         provider = registry.register_prototype("test", prototype)
         
@@ -530,7 +497,7 @@ class TestJoyrideProviderRegistry:
         """Test register_class helper method."""
         registry = JoyrideProviderRegistry()
         
-        provider = registry.register_class("test", MockService)
+        provider = registry.register_class("test", TestService)
         
         assert isinstance(provider, JoyrideClassProvider)
         assert registry.has_provider("test")
@@ -538,7 +505,7 @@ class TestJoyrideProviderRegistry:
     def test_unregister_provider(self):
         """Test unregistering a provider."""
         registry = JoyrideProviderRegistry()
-        registry.register_singleton("test", lambda: MockService())
+        registry.register_singleton("test", lambda: TestService())
         
         assert registry.has_provider("test")
         
@@ -557,10 +524,10 @@ class TestJoyrideProviderRegistry:
     def test_get_instance(self):
         """Test getting instances from registry."""
         registry = JoyrideProviderRegistry()
-        registry.register_singleton("test", lambda: MockService("registry_test"))
+        registry.register_singleton("test", lambda: TestService("registry_test"))
         
         instance = registry.get("test")
-        assert isinstance(instance, MockService)
+        assert isinstance(instance, TestService)
         assert instance.name == "registry_test"
     
     def test_get_nonexistent_provider(self):
@@ -575,12 +542,12 @@ class TestJoyrideProviderRegistry:
         registry = JoyrideProviderRegistry()
         
         # Register dependencies in reverse order
-        registry.register_class("dependent", MockDependentService)
-        registry.register_singleton("service", lambda: MockService("dependency"))
+        registry.register_class("dependent", TestDependentService)
+        registry.register_singleton("service", lambda: TestService("dependency"))
         
         # Get dependent service - should auto-resolve dependencies
         instance = registry.get("dependent")
-        assert isinstance(instance, MockDependentService)
+        assert isinstance(instance, TestDependentService)
         assert instance.service.name == "dependency"
     
     def test_circular_dependency_detection(self):
@@ -605,32 +572,29 @@ class TestJoyrideProviderRegistry:
         registry = JoyrideProviderRegistry()
         
         # Register services with dependencies
-        registry.register_class("complex", MockComplexService)
-        registry.register_class("dependent", MockDependentService)
-        registry.register_singleton("service", lambda: MockService())
-        registry.register_singleton("service1", lambda: MockService("service1"))
-        registry.register_singleton("service2", lambda: MockService("service2"))
+        registry.register_class("complex", TestComplexService)
+        registry.register_class("dependent", TestDependentService)
+        registry.register_singleton("service", lambda: TestService())
         
         graph = registry.get_dependency_graph()
         
         assert "service" in graph
         assert "dependent" in graph
         assert "complex" in graph
-        assert "service1" in graph
-        assert "service2" in graph
         
-        # Check dependencies
+        # Check dependencies - complex depends on service and dependent
+        assert "service" in graph["complex"]
+        assert "dependent" in graph["complex"]
+        # dependent depends on service
         assert "service" in graph["dependent"]
-        assert "service1" in graph["complex"]
-        assert "service2" in graph["complex"]
     
     def test_validate_dependencies(self):
         """Test dependency validation."""
         registry = JoyrideProviderRegistry()
         
         # Register service with missing dependency
-        deps = [JoyrideDependency("missing_service", MockService, required=True)]
-        registry.register_factory("broken", lambda missing_service: MockService(), deps)
+        deps = [JoyrideDependency("missing_service", TestService, required=True)]
+        registry.register_factory("broken", lambda missing_service: TestService(), deps)
         
         errors = registry.validate_dependencies()
         assert len(errors) > 0
@@ -640,8 +604,8 @@ class TestJoyrideProviderRegistry:
         """Test clearing the registry."""
         registry = JoyrideProviderRegistry()
         
-        registry.register_singleton("test1", lambda: MockService())
-        registry.register_factory("test2", lambda: MockService())
+        registry.register_singleton("test1", lambda: TestService())
+        registry.register_factory("test2", lambda: TestService())
         
         assert registry.get_provider_count() == 2
         
@@ -653,7 +617,7 @@ class TestJoyrideProviderRegistry:
     def test_thread_safety(self):
         """Test thread safety of provider registry."""
         registry = JoyrideProviderRegistry()
-        registry.register_singleton("test", lambda: MockService("thread_test"))
+        registry.register_singleton("test", lambda: TestService("thread_test"))
         
         instances = []
         errors = []
@@ -693,37 +657,36 @@ class TestProviderIntegration:
         """Test complex dependency resolution scenario."""
         registry = JoyrideProviderRegistry()
         
-        # Register services to match parameter names
-        registry.register_class("complex", MockComplexService)
-        registry.register_singleton("service1", lambda: MockService("service1"))
-        registry.register_singleton("service", lambda: MockService("for_service2"))  # For MockDependentService
-        registry.register_class("service2", MockDependentService)
+        # Register services to match parameter names of TestComplexService (service, dependent, config)
+        registry.register_class("complex", TestComplexService)
+        registry.register_singleton("service", lambda: TestService("main_service"))
+        registry.register_class("dependent", TestDependentService)
         
         # Get complex service - should resolve all dependencies
-        instance = registry.get("complex", optional_param="custom")
+        instance = registry.get("complex", config="custom")
         
-        assert isinstance(instance, MockComplexService)
-        assert isinstance(instance.service1, MockService)
-        assert isinstance(instance.service2, MockDependentService)
-        assert instance.service1.name == "service1"
-        assert instance.service2.service.name == "for_service2"
-        assert instance.optional_param == "custom"
+        assert isinstance(instance, TestComplexService)
+        assert isinstance(instance.service, TestService)
+        assert isinstance(instance.dependent, TestDependentService)
+        assert instance.config == "custom"
+        assert instance.service.name == "main_service"
+        assert instance.dependent.service.name == "main_service"  # dependent also gets the same service
     
     def test_mixed_lifecycle_scenario(self):
         """Test scenario with mixed lifecycle types."""
         registry = JoyrideProviderRegistry()
         
         # Singleton base service
-        registry.register_singleton("base", lambda: MockService("base"))
+        registry.register_singleton("base", lambda: TestService("base"))
         
-        # Register provider that matches parameter name 'service' for MockDependentService
-        registry.register_singleton("service", lambda: MockService("shared"))
+        # Register provider that matches parameter name 'service' for TestDependentService
+        registry.register_singleton("service", lambda: TestService("shared"))
         
         # Factory service that depends on singleton
-        registry.register_class("factory_service", MockDependentService)
+        registry.register_class("factory_service", TestDependentService)
         
         # Prototype service
-        prototype = MockPrototypeService(100)
+        prototype = TestPrototypeService(100)
         registry.register_prototype("prototype", prototype)
         
         # Get multiple instances
@@ -751,14 +714,14 @@ class TestProviderIntegration:
         registry = JoyrideProviderRegistry()
         
         # Register initial provider
-        registry.register_singleton("service", lambda: MockService("original"))
+        registry.register_singleton("service", lambda: TestService("original"))
         
         original_instance = registry.get("service")
         assert original_instance.name == "original"
         
         # Replace provider
         registry.unregister_provider("service")
-        registry.register_singleton("service", lambda: MockService("replacement"))
+        registry.register_singleton("service", lambda: TestService("replacement"))
         
         new_instance = registry.get("service")
         assert new_instance.name == "replacement"
