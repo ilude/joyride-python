@@ -1,0 +1,3 @@
+[submodule "swimmies"]
+	path = swimmies
+	url = https://github.com/ilude/swimmies.git
