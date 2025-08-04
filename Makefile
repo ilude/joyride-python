@@ -57,11 +57,11 @@ export SEMANTIC_VERSION
 # Installation targets
 install:
 	@echo "Installing development dependencies..."
-	uv pip install --system -r requirements-dev.txt
+	uv sync --extra dev --link-mode=copy
 
 install-prod:
 	@echo "Installing production dependencies..."
-	uv pip install --system -r requirements.txt
+	uv sync --link-mode=copy
 
 # help target
 help:
@@ -69,8 +69,8 @@ help:
 	@echo "Detected OS: $(DETECTED_OS), Container Runtime: $(CONTAINER_RUNTIME), Host IP: $(HOSTIP)"
 	@echo ""
 	@echo "Dependencies:"
-	@echo "  install      - Install development dependencies with uv"
-	@echo "  install-prod - Install production dependencies with uv"
+	@echo "  install      - Install development dependencies with UV"
+	@echo "  install-prod - Install production dependencies with UV"
 	@echo ""
 	@echo "Application:"
 	@echo "  run          - Run the Flask application locally"

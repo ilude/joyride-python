@@ -276,7 +276,8 @@ def cleanup_services():
 atexit.register(cleanup_services)
 
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for Joyride DNS service."""
     # Setup signal handlers
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
@@ -301,4 +302,10 @@ if __name__ == "__main__":
             create_pid_file()
         initialize_services()
 
+    # Start the Flask application
+    logger.info(f"Starting Joyride DNS service on {app.config['HOST']}:{app.config['PORT']}")
     app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
+
+
+if __name__ == "__main__":
+    main()

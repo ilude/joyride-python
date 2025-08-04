@@ -7,33 +7,12 @@
 - **One sentence summary maximum** unless explicitly requested otherwise
 - **Let code and file changes speak for themselves** - no need to describe what was done
 - **Only explain when user asks "explain", "why", or "how"**
+- **Respect file deletions** - If a previously created file is deleted, assume it was intentional and do NOT recreate it
 
-### Instruction Files Guidelines
-- **Keep *.instructions.md files concise** - Essential rules only, no user context
-- **Avoid VS Code integration explanations** - Users don't need tool usage details
-- **Focus on actionable rules** - What to do, not how to use the file
-- **Remove verbose examples** - Keep only necessary code patterns
-
-### Creating .github/instructions/*.instructions.md Files
-- **Use specific applyTo patterns** when possible to target exact file types
-- **Combine related rules** when applyTo patterns cannot differentiate (e.g., Flask + Python)
-- **Create new files only when** applyTo patterns can uniquely target the files
-- **Example patterns**: `"**/Dockerfile*"`, `"**/.{gitignore,dockerignore}"`, `"**/*.py"`, `"**/tests/**/*.py"`, `"**/Makefile"`, `"**/.devcontainer/**"`
-- **Avoid overly broad patterns** that would apply to unintended files
-
-### Current Instruction Files
-- `dockerfile.instructions.md` - Docker containerization best practices
-- `ignore-files.instructions.md` - .gitignore and .dockerignore management  
-- `python.instructions.md` - Python coding standards including network services
-- `testing.instructions.md` - Testing standards with Docker integration
-- `makefile.instructions.md` - Build system and process management
-- `devcontainer.instructions.md` - Development environment configuration
-
-### When to Provide Details
-- User explicitly asks "explain", "why", or "how"  
-- Complex architectural decisions affecting future development
-- Breaking changes impacting existing functionality
-- Security implications requiring highlighting
+### File Management Policy
+- **Never recreate deleted files** - If a file was previously created by Copilot and later deleted by the user, assume the deletion was intentional
+- **Only create new files** when explicitly requested or necessary for a specific user-requested task
+- **Respect project structure decisions** - User controls what files should exist in the codebase
 
 ### Terminology & Acronyms
 - **DRY**: When the user says "DRY", they mean "Don't Repeat Yourself" - the coding best practice of avoiding code duplication by extracting common functionality into reusable components, functions, or modules
@@ -42,7 +21,7 @@
 
 ### 12-Factor App Compliance
 - **Configuration**: All config via environment variables, never hardcoded values
-- **Dependencies**: Explicitly declared in requirements files, isolated in containers
+- **Dependencies**: Explicitly declared in pyproject.toml with UV lockfile, isolated in containers
 - **Stateless**: No local state, horizontally scalable
 - **Port Binding**: Self-contained service exports HTTP via port binding
 - **Disposability**: Fast startup/shutdown, graceful process termination
@@ -63,11 +42,13 @@
 - **Semantic Versioning**: Follow semver for releases
 
 ### Development Environment
+- **UV Package Manager**: Use UV for modern Python dependency management and workspace setup
 - **DevContainers**: Use VS Code devcontainers for consistent development
 - **Docker Compose**: Profiles for different environments (dev/prod)
 - **Hot Reload**: Enable in development for faster iteration
 - **Debugging**: Configure proper debugging in devcontainer
 - **Shell**: Use zsh with autosuggestions and syntax highlighting; add additional zsh completion libraries as project needs grow
+- **Git Submodules**: swimmies library as independent Git submodule for clean separation
 - **ALWAYS use `.internal`** for container-generated DNS records
 - **NEVER use `.local`** as it conflicts with mDNS/Bonjour services
 
@@ -80,6 +61,7 @@
 - **Network Communication**: Plan for peer-to-peer communication alongside current Docker event monitoring
 - **Conflict Resolution**: Design DNS record management to handle eventual consistency scenarios and record conflicts
 - **Service Discovery**: Current single-node Docker monitoring will expand to multi-node gossip-based discovery
+- **Library Integration**: swimmies library provides gossip protocol framework for future distributed features
 
 When implementing current features, maintain loose coupling and avoid hard dependencies that would complicate future gossip protocol integration. Keep DNS record storage abstracted and network communication patterns flexible.
 
@@ -93,16 +75,20 @@ When implementing current features, maintain loose coupling and avoid hard depen
 
 ### File Organization
 ```
-.
-├── .devcontainer/          # Development container config
-├── .github/               # GitHub workflows and instructions
-├── app/                   # Application source code
-├── tests/                 # Test files
-├── run.py                 # Application entry point
-├── requirements*.txt      # Python dependencies
-├── .env*                  # Environment configurations
-├── docker-compose.yml     # Multi-environment orchestration
-└── Dockerfile            # Production container
+joyride/
+├── pyproject.toml              # All dependencies and project config
+├── uv.lock                     # Locked dependencies
+├── run.py                      # Application entry point
+├── DEVELOPMENT.md              # Development guide
+├── .devcontainer/              # Development container config
+├── .github/                    # GitHub workflows and instructions  
+├── app/                        # Application source code
+├── swimmies/                   # Git submodule - utility library
+├── tests/                      # Test files
+├── hosts/                      # Host file configurations
+├── .env*                       # Environment configurations
+├── docker-compose.yml          # Multi-environment orchestration
+└── Dockerfile                  # Production container
 ```
 
 ### Naming Conventions
@@ -112,46 +98,43 @@ When implementing current features, maintain loose coupling and avoid hard depen
 - **Constants**: UPPER_SNAKE_CASE for constants
 - **Environment Variables**: UPPER_SNAKE_CASE with service prefix
 
-## Error Handling & Logging
+## Modern Python Development
 
-### Error Response Patterns
-- Consistent JSON error format with appropriate HTTP status codes
-- Include machine-readable error codes and helpful messages
+### Package Management
+- **UV Package Manager**: Use UV exclusively for dependency management
+- **pyproject.toml**: All project configuration and dependencies in single file
+- **Dependency Groups**: Organize dependencies by purpose (dev, test, lint)
+- **Lockfile**: uv.lock ensures reproducible builds across environments
+- **No Virtual Environments**: UV handles isolation automatically in containers
 
-### Logging Standards
-- Use JSON format for production logs with appropriate levels
-- Include request context, never log sensitive data
+### Code Quality Standards
+- **Black**: Automatic code formatting (`uv run black app/ tests/ run.py`)
+- **isort**: Import sorting (`uv run isort app/ tests/ run.py`)
+- **flake8**: Linting (`uv run flake8 app/ tests/ run.py`)
+- **Type Hints**: Encouraged for better code documentation
+- **Test Coverage**: Maintain >80% coverage with pytest
 
-## Performance & Monitoring
+### Development Commands
+```bash
+# Install dependencies
+uv sync --extra dev
 
-### Health Check Implementation
-- Multiple endpoints: /health (simple), /status (detailed), /ready (readiness)
-- Check external dependencies, respond quickly (<1s)
-- Support graceful degradation for partial failures
+# Run application
+uv run python run.py
 
-### Metrics & Observability
-- Track application metrics (response times, error rates, request counts)
-- Include business metrics and distributed tracing with trace IDs
+# Run tests
+uv run pytest tests/ -v
 
-## Security Considerations
+# Code quality checks
+uv run black app/ tests/ run.py && uv run isort app/ tests/ run.py && uv run flake8 app/ tests/ run.py
+```
 
-### Input Validation
-- Validate all inputs at entry points, sanitize for output contexts
-- Implement rate limiting and configure CORS appropriately
-
-### Container Security
-- Always run as non-root in containers, use minimal Alpine images
-- Use Docker secrets or external secret management, minimize exposed ports
-
-## Deployment & Operations
-
-### Production Readiness
-- Handle SIGTERM signals properly, set appropriate resource limits
-- Support zero-downtime deployments, externalize all configuration
-
-### Monitoring Integration
-- Implement comprehensive health checking and metrics export
-- Structure logs for centralized systems, define clear alerting rules
+### Library Integration
+- **swimmies Library**: Independent Git submodule at https://github.com/ilude/swimmies
+- **Workspace Member**: Configured in pyproject.toml workspace
+- **Independent Versioning**: swimmies can evolve separately with own release cycle
+- **Core Utilities**: DNS utilities, gossip protocol framework
+- **Comprehensive Testing**: Both joyride and swimmies have full test suites
 
 ## When Making Changes
 
@@ -160,12 +143,43 @@ When implementing current features, maintain loose coupling and avoid hard depen
 2. Add appropriate tests (unit + integration)  
 3. Update health check if new dependencies added
 4. Consider security implications
-5. Update README and API documentation
+5. Update README and DEVELOPMENT.md documentation
+6. Run code quality checks (`uv run black`, `uv run isort`, `uv run flake8`)
+
+### Adding Dependencies
+```bash
+# Production dependency
+uv add package-name
+
+# Development dependency (add to pyproject.toml dev group)
+# Edit pyproject.toml [project.optional-dependencies] section
+uv sync --extra dev
+
+# Update lockfile
+uv lock --upgrade
+```
+
+### Swimmies Library Development
+```bash
+# Work on swimmies
+cd swimmies
+# Make changes, test, commit
+git add . && git commit -m "feat: add new utility"
+git push origin main
+
+# Update joyride to use latest swimmies
+cd ..
+git submodule update --remote swimmies
+uv sync
+git add swimmies && git commit -m "chore: update swimmies to latest"
+```
 
 ### Refactoring Guidelines
 - Maintain backward compatibility for APIs
 - Update tests to match new structure
 - Preserve existing environment variable contracts
 - Consider migration strategies for breaking changes
+- Use UV commands instead of pip/venv for all Python operations
+- Keep swimmies library changes independent from joyride changes
 
 This document should evolve with the project. Update it when architectural decisions change or new patterns emerge.

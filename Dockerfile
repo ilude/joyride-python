@@ -21,6 +21,7 @@ ENV PUID=$PUID
 ENV PGID=$PGID
 ENV USER=$USER
 ENV WORKDIR=$WORKDIR
+ENV UV_LINK_MODE=copy
 
 # Create a non-root user
 RUN addgroup -g $PGID $USER && \
@@ -77,11 +78,12 @@ RUN --mount=type=cache,target=/var/cache/apk \
 RUN usermod -s /bin/zsh $USER
 
 # Copy requirements files first (for better caching)
-COPY requirements*.txt ./
+COPY pyproject.toml uv.lock ./
+COPY swimmies/ ./swimmies/
 
 # Install Python dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --no-cache -r requirements-dev.txt
+    UV_SYSTEM_PYTHON=1 uv sync --extra dev
 
 # Switch to non-root user
 USER $USER
@@ -96,14 +98,16 @@ CMD [ "sleep", "infinity" ]
 FROM base AS production
 
 # Copy requirements file first (for better caching)
-COPY requirements.txt .
+COPY pyproject.toml uv.lock ./
+COPY swimmies/ ./swimmies/
 
 # Install Python dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --no-cache -r requirements.txt
+    UV_SYSTEM_PYTHON=1 uv sync
 
 # Copy application code
 COPY app/ ./app/
+COPY run.py ./
 
 # Change ownership to user
 RUN chown -R $USER:$USER $WORKDIR
@@ -111,5 +115,5 @@ RUN chown -R $USER:$USER $WORKDIR
 # Switch to non-root user
 USER $USER
 
-# Run the application
-CMD ["python", "-m", "app.main"]
+# Run the application using UV script entry point
+CMD ["uv", "run", "joyride"]

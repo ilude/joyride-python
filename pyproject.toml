@@ -6,14 +6,13 @@ readme = "README.md"
 authors = [
     { name = "mike", email = "219478+ilude@users.noreply.github.com" }
 ]
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.12"
 keywords = ["dns", "docker", "networking", "devops"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators", 
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Topic :: Internet :: Name Service (DNS)",
@@ -55,8 +54,25 @@ Homepage = "https://github.com/ilude/joyride-python"
 Repository = "https://github.com/ilude/joyride-python"
 Issues = "https://github.com/ilude/joyride-python/issues"
 
+[project.scripts]
+joyride = "app.main:main"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["hosts*", "tests*"]
+
+[tool.setuptools]
+py-modules = ["run"]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.uv.sources]
 swimmies = { workspace = true }
+
+[tool.uv]
+package = true
 
 [tool.uv.workspace]
 members = [
