@@ -1,23 +1,19 @@
 services:
   joyride:
     image: ghcr.io/ilude/joyride-python:latest
+    restart: unless-stopped
     network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # Mount hosts directory for static DNS records
       - ./hosts:/app/hosts:ro
-    env_file:
-      - .env
-    environment:
-      # Application version from Makefile/git tags
-      - SEMANTIC_VERSION=${SEMANTIC_VERSION:-dev}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      start_period: 5s
-      retries: 3
+    
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   start_period: 5s
+    #   retries: 3
 
   # Example application that will be registered via label
   example-app:

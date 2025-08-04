@@ -73,6 +73,43 @@ stop-app:
 run:
 	@FLASK_DEBUG=true uv run joyride
 
+# Start example Docker Compose setup for testing
+test-example-up:
+	@echo "Starting example Docker Compose setup..."
+	docker compose -f docker-compose.example.yml up -d
+	@sleep 3
+	@echo "✅ Example setup started!"
+	@echo "Access web interface: http://localhost:5000"
+	@echo "Example apps:"
+	@echo "  - app.example.com (nginx)"
+	@echo "  - api.example.com (nginx)"
+	@echo "  - api-v1.example.com (nginx)"
+	@echo ""
+	@echo "Test DNS resolution:"
+	@echo "  dig @localhost -p 5353 app.example.com"
+	@echo "  dig @localhost -p 5353 api.example.com"
+
+# Stop example Docker Compose setup
+test-example-down:
+	@echo "Stopping example Docker Compose setup..."
+	docker compose -f docker-compose.example.yml down
+	@echo "✅ Example setup stopped!"
+
+# Show logs from example setup
+test-example-logs:
+	docker compose -f docker-compose.example.yml logs -f
+
+test-dump-logs:
+	docker compose -f docker-compose.example.yml logs
+
+# Show status of example setup
+test-example-status:
+	@echo "Example Docker Compose Status:"
+	@echo "=============================="
+	docker compose -f docker-compose.example.yml ps
+	@echo ""
+	@echo "DNS Records:"
+	@curl -s http://localhost:5000/dns/records | python -m json.tool 2>/dev/null || echo "❌ Could not fetch DNS records"
 
 # Docker testing commands (requires Docker-in-Docker)
 test-docker: uv.lock /tmp/joyride-dns.pid
