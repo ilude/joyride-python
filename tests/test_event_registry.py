@@ -64,19 +64,23 @@ class TestJoyrideEventFilter:
         """Test exact source matching."""
         filter_obj = JoyrideEventFilter(source="docker_monitor")
         
-        event = DNSEvent(
+        event = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="docker_monitor",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         
         assert filter_obj.matches(event) is True
         
         # Different source should not match
-        event2 = DNSEvent(
+        event2 = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="hosts_monitor",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         
         assert filter_obj.matches(event2) is False
@@ -86,23 +90,27 @@ class TestJoyrideEventFilter:
         filter_obj = JoyrideEventFilter(pattern="dns.*")
         
         # Should match dns.record.created
-        event1 = DNSEvent(
+        event1 = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert filter_obj.matches(event1) is True
         
         # Should match dns.record.deleted
-        event2 = DNSEvent(
+        event2 = JoyrideDNSEvent(
             event_type="dns.record.deleted",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert filter_obj.matches(event2) is True
         
         # Should not match container.started
-        event3 = ContainerEvent(
+        event3 = JoyrideContainerEvent(
             event_type="container.started",
             source="test",
             container_id="123",
@@ -116,7 +124,7 @@ class TestJoyrideEventFilter:
         # Test specific pattern
         filter_obj = JoyrideEventFilter(pattern="container.start*")
         
-        event1 = ContainerEvent(
+        event1 = JoyrideContainerEvent(
             event_type="container.started",
             source="test",
             container_id="123",
@@ -125,7 +133,7 @@ class TestJoyrideEventFilter:
         )
         assert filter_obj.matches(event1) is True
         
-        event2 = ContainerEvent(
+        event2 = JoyrideContainerEvent(
             event_type="container.starting",
             source="test",
             container_id="123",
@@ -134,7 +142,7 @@ class TestJoyrideEventFilter:
         )
         assert filter_obj.matches(event2) is True
         
-        event3 = ContainerEvent(
+        event3 = JoyrideContainerEvent(
             event_type="container.stopped",
             source="test",
             container_id="123",
@@ -151,18 +159,22 @@ class TestJoyrideEventFilter:
         filter_obj = JoyrideEventFilter(custom_filter=custom_func)
         
         # Should match .com domain
-        event1 = DNSEvent(
+        event1 = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert filter_obj.matches(event1) is True
         
         # Should not match .org domain
-        event2 = DNSEvent(
+        event2 = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="test",
-            record_name="example.org"
+            record_name="example.org",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert filter_obj.matches(event2) is False
     
@@ -174,23 +186,27 @@ class TestJoyrideEventFilter:
         )
         
         # Should match both pattern and source
-        event1 = DNSEvent(
+        event1 = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="docker_monitor",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert filter_obj.matches(event1) is True
         
         # Should not match (wrong source)
-        event2 = DNSEvent(
+        event2 = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="hosts_monitor",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert filter_obj.matches(event2) is False
         
         # Should not match (wrong pattern)
-        event3 = ContainerEvent(
+        event3 = JoyrideContainerEvent(
             event_type="container.started",
             source="docker_monitor",
             container_id="123",
@@ -235,45 +251,51 @@ class TestJoyrideEventSubscription:
     def test_subscription_matching(self):
         """Test subscription event matching."""
         handler = Mock()
-        filter_obj = EventFilter(event_type="dns.record.created")
+        filter_obj = JoyrideEventFilter(event_type="dns.record.created")
         
-        subscription = EventSubscription(
+        subscription = JoyrideEventSubscription(
             handler=handler,
             event_filter=filter_obj,
             subscription_id="test_sub_1"
         )
         
         # Matching event
-        event1 = DNSEvent(
+        event1 = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert subscription.matches(event1) is True
         
         # Non-matching event
-        event2 = DNSEvent(
+        event2 = JoyrideDNSEvent(
             event_type="dns.record.deleted",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         assert subscription.matches(event2) is False
     
     def test_subscription_handling(self):
         """Test subscription event handling."""
         handler = Mock()
-        filter_obj = EventFilter(event_type="dns.record.created")
+        filter_obj = JoyrideEventFilter(event_type="dns.record.created")
         
-        subscription = EventSubscription(
+        subscription = JoyrideEventSubscription(
             handler=handler,
             event_filter=filter_obj,
             subscription_id="test_sub_1"
         )
         
-        event = DNSEvent(
+        event = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         
         subscription.handle(event)
@@ -282,18 +304,20 @@ class TestJoyrideEventSubscription:
     def test_subscription_deactivation(self):
         """Test subscription deactivation."""
         handler = Mock()
-        filter_obj = EventFilter(event_type="dns.record.created")
+        filter_obj = JoyrideEventFilter(event_type="dns.record.created")
         
-        subscription = EventSubscription(
+        subscription = JoyrideEventSubscription(
             handler=handler,
             event_filter=filter_obj,
             subscription_id="test_sub_1"
         )
         
-        event = DNSEvent(
+        event = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         
         # Should match when active
@@ -311,7 +335,7 @@ class TestJoyrideEventSubscription:
 
 
 class TestJoyrideEventRegistry:
-    """Test EventRegistry functionality."""
+    """Test JoyrideEventRegistry functionality."""
     
     def setup_method(self):
         """Set up test registry."""
@@ -324,19 +348,19 @@ class TestJoyrideEventRegistry:
     
     def test_event_type_registration(self):
         """Test event type registration."""
-        self.registry.register_event_type(DNSEvent)
+        self.registry.register_event_type(JoyrideDNSEvent)
         
         event_types = self.registry.list_event_types()
-        assert "DNSEvent" in event_types
+        assert "JoyrideDNSEvent" in event_types
         
-        retrieved_type = self.registry.get_event_type("DNSEvent")
-        assert retrieved_type == DNSEvent
+        retrieved_type = self.registry.get_event_type("JoyrideDNSEvent")
+        assert retrieved_type == JoyrideDNSEvent
     
     def test_duplicate_event_type_registration(self):
         """Test registering the same event type twice."""
-        self.registry.register_event_type(DNSEvent)
+        self.registry.register_event_type(JoyrideDNSEvent)
         # Should not raise error
-        self.registry.register_event_type(DNSEvent)
+        self.registry.register_event_type(JoyrideDNSEvent)
         
         assert len(self.registry.list_event_types()) == 1
     
@@ -408,10 +432,12 @@ class TestJoyrideEventRegistry:
             event_type="dns.record.created"
         )
         
-        event = DNSEvent(
+        event = JoyrideDNSEvent(
             event_type="dns.record.created",
             source="test",
-            record_name="example.com"
+            record_name="example.com",
+            record_type="A",
+            record_value="192.168.1.1"
         )
         
         matching = self.registry.get_matching_subscriptions(event)

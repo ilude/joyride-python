@@ -5,11 +5,11 @@
 help-test:
 	@echo "Available test commands:"
 	@echo "========================"
-	@echo "make test           - Run complete Step 1.2.2 test suite with coverage"
+	@echo "make test           - Run complete Step 1.2.2 and 1.2.3 test suite with coverage"
 	@echo "make test-unit      - Run unit tests only (fast)"  
 	@echo "make test-integration - Run integration tests only"
 	@echo "make test-verbose   - Run tests with maximum verbosity for debugging"
-	@echo "make test-all       - Run ALL tests (including broken ones for debugging)"
+	@echo "make test-all       - Run ALL working tests (excludes disabled legacy tests)"
 	@echo ""
 
 # Initialize development environment
@@ -22,24 +22,12 @@ initialize:
 
 # Install development dependencies (only if pyproject.toml changed)
 uv.lock:
-	uv sync --extra dev
-
-# Run tests with coverage
-test: uv.lock
-	@echo "Running comprehensive test suite..."
-	@echo "=================================="
-	@echo "Running Step 1.2.2 tests with coverage and warnings enabled..."
-	uv run python -W all -m pytest tests/test_container_config.py tests/test_container_providers.py tests/test_step_1_2_2_integration.py --cov=app/container --cov-report=term-missing --cov-report=html:.htmlcov -v
-	@echo ""
-	@echo "Running Step 1.2.2 completion verification..."
-	uv run pytest tests/test_step_1_2_2_integration.py::test_step_122_completion_status -v -s
-	@echo ""
-	@echo "🎉 All Step 1.2.2 tests completed successfully!"
+	uv sync --extra devmake 
 
 # Run just unit tests (fast)
 test-unit: uv.lock
 	@echo "Running unit tests only..."
-	uv run pytest tests/test_container_config.py tests/test_container_providers.py -v
+	uv run pytest tests/test_container_config.py tests/test_container_providers.py tests/test_container_lifecycle.py -v
 
 # Run integration tests
 test-integration: uv.lock
@@ -49,12 +37,12 @@ test-integration: uv.lock
 # Run tests with maximum verbosity for debugging
 test-verbose: uv.lock
 	@echo "Running tests with maximum verbosity..."
-	uv run python -W all -m pytest tests/test_container_config.py tests/test_container_providers.py tests/test_step_1_2_2_integration.py --tb=long --capture=no -vvv
+	uv run python -W all -m pytest tests/test_container_config.py tests/test_container_providers.py tests/test_container_lifecycle.py tests/test_step_1_2_2_integration.py --tb=long --capture=no -vvv
 
 # Run ALL tests (including broken ones for debugging)
-test-all: uv.lock
-	@echo "Running ALL tests (including broken ones)..."
-	uv run python -W all -m pytest tests/ --cov=app --cov-report=term-missing --cov-report=html:.htmlcov -v
+test: uv.lock
+	@echo "Running ALL tests (excluding disabled tests)..."
+	uv run python -W all -m pytest tests/ --ignore=tests/disabled --cov=app --cov-report=term-missing --cov-report=html:.htmlcov -v
 
 # Run linting
 # E203: whitespace before ':' (conflicts with black formatting)

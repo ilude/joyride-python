@@ -1,8 +1,8 @@
 """
 Unit tests for event system base classes and interfaces.
 
-Tests the foundational abstractions of the event system including Event,
-EventProducer, and EventHandler abstract base classes.
+Tests the foundational abstractions of the event system including JoyrideEvent,
+JoyrideEventProducer, and JoyrideEventHandler abstract base classes.
 """
 
 from datetime import datetime
@@ -10,11 +10,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from app.events.base import Event, EventHandler, EventProducer
+from app.events.core import JoyrideEvent, JoyrideEventHandler, JoyrideEventProducer
 
 
-class ConcreteEvent(Event):
-    """Concrete implementation of Event for testing."""
+class ConcreteEvent(JoyrideEvent):
+    """Concrete implementation of JoyrideEvent for testing."""
     
     def _validate(self) -> None:
         """Test validation implementation."""
@@ -24,8 +24,8 @@ class ConcreteEvent(Event):
             raise ValueError("Invalid event type for testing")
 
 
-class ConcreteEventProducer(EventProducer):
-    """Concrete implementation of EventProducer for testing."""
+class ConcreteEventProducer(JoyrideEventProducer):
+    """Concrete implementation of JoyrideEventProducer for testing."""
     
     def __init__(self, name: str):
         super().__init__(name)
@@ -43,25 +43,25 @@ class ConcreteEventProducer(EventProducer):
         self._running = False
 
 
-class ConcreteEventHandler(EventHandler):
-    """Concrete implementation of EventHandler for testing."""
+class ConcreteEventHandler(JoyrideEventHandler):
+    """Concrete implementation of JoyrideEventHandler for testing."""
     
     def __init__(self, name: str, handles_types: list = None):
         super().__init__(name)
         self.handles_types = handles_types or ["test"]
         self.handled_events = []
     
-    def can_handle(self, event: Event) -> bool:
+    def can_handle(self, event: JoyrideEvent) -> bool:
         """Test can_handle implementation."""
         return event.event_type in self.handles_types
     
-    async def handle(self, event: Event) -> None:
+    async def handle(self, event: JoyrideEvent) -> None:
         """Test handle implementation."""
         self.handled_events.append(event)
 
 
 class TestEvent:
-    """Test cases for Event abstract base class."""
+    """Test cases for JoyrideEvent abstract base class."""
     
     def test_event_creation_with_defaults(self):
         """Test creating event with default values."""
@@ -202,7 +202,7 @@ class TestEvent:
 
 
 class TestEventProducer:
-    """Test cases for EventProducer abstract base class."""
+    """Test cases for JoyrideEventProducer abstract base class."""
     
     def test_producer_creation(self):
         """Test creating event producer."""
@@ -261,7 +261,7 @@ class TestEventProducer:
         mock_bus = MagicMock()
         producer.set_event_bus(mock_bus)
         
-        with pytest.raises(ValueError, match="event must be an instance of Event"):
+        with pytest.raises(ValueError, match="event must be an instance of JoyrideEvent"):
             producer.publish("not an event")
     
     def test_producer_string_representation(self):
@@ -275,7 +275,7 @@ class TestEventProducer:
 
 
 class TestEventHandler:
-    """Test cases for EventHandler abstract base class."""
+    """Test cases for JoyrideEventHandler abstract base class."""
     
     def test_handler_creation(self):
         """Test creating event handler."""

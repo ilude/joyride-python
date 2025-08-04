@@ -1,7 +1,7 @@
 """
 Unit tests for event type definitions.
 
-Tests all concrete event classes to ensure they properly inherit from Event
+Tests all concrete event classes to ensure they properly inherit from JoyrideEvent
 and provide the expected properties and functionality.
 """
 
@@ -10,23 +10,15 @@ from typing import Any, Dict
 
 import pytest
 
-from app.events.types import (
-    ContainerEvent,
-    DNSEvent,
-    ErrorEvent,
-    FileEvent,
-    HealthEvent,
-    NodeEvent,
-    SystemEvent,
-)
+from app.events.types import (JoyrideJoyrideContainerEvent, JoyrideJoyrideDNSEvent, JoyrideJoyrideErrorEvent, JoyrideJoyrideFileEvent, JoyrideJoyrideHealthEvent, JoyrideJoyrideNodeEvent, JoyrideJoyrideSystemEvent, Joyride)
 
 
 class TestDNSEvent:
-    """Test DNSEvent class."""
+    """Test JoyrideDNSEvent class."""
 
     def test_dns_event_creation_minimal(self):
         """Test creating DNS event with minimal parameters."""
-        event = DNSEvent(
+        event = JoyrideDNSEvent(
             event_type="dns.record.added",
             source="test.source",
             record_name="test.example.com"
@@ -44,7 +36,7 @@ class TestDNSEvent:
         timestamp = datetime.now(timezone.utc)
         metadata = {"priority": "high"}
         
-        event = DNSEvent(
+        event = JoyrideDNSEvent(
             event_type="dns.record.updated",
             source="dns.handler",
             record_name="api.example.com",
@@ -68,7 +60,7 @@ class TestDNSEvent:
 
     def test_dns_event_properties(self):
         """Test DNS event property access."""
-        event = DNSEvent(
+        event = JoyrideDNSEvent(
             event_type="dns.record.removed",
             source="cleanup.service",
             record_name="old.example.com",
@@ -92,7 +84,7 @@ class TestDNSEvent:
     def test_dns_event_validation_empty_record_name(self):
         """Test DNS event validation with empty record name."""
         with pytest.raises(ValueError, match="DNS record name cannot be empty"):
-            DNSEvent(
+            JoyrideDNSEvent(
                 event_type="dns.record.added",
                 source="test.source",
                 record_name=""
@@ -101,7 +93,7 @@ class TestDNSEvent:
     def test_dns_event_validation_empty_record_type(self):
         """Test DNS event validation with empty record type."""
         with pytest.raises(ValueError, match="DNS record type cannot be empty"):
-            DNSEvent(
+            JoyrideDNSEvent(
                 event_type="dns.record.added",
                 source="test.source",
                 record_name="test.com",
@@ -111,7 +103,7 @@ class TestDNSEvent:
     def test_dns_event_validation_negative_ttl(self):
         """Test DNS event validation with negative TTL."""
         with pytest.raises(ValueError, match="DNS record TTL must be non-negative"):
-            DNSEvent(
+            JoyrideDNSEvent(
                 event_type="dns.record.added",
                 source="test.source",
                 record_name="test.com",
@@ -120,11 +112,11 @@ class TestDNSEvent:
 
 
 class TestContainerEvent:
-    """Test ContainerEvent class."""
+    """Test JoyrideContainerEvent class."""
 
     def test_container_event_creation_minimal(self):
         """Test creating container event with minimal parameters."""
-        event = ContainerEvent(
+        event = JoyrideContainerEvent(
             event_type="container.started",
             source="docker.monitor",
             container_id="abc123",
@@ -148,7 +140,7 @@ class TestContainerEvent:
         networks = {"bridge": {"ip": "172.17.0.2"}}
         ports = {"80/tcp": [{"HostPort": "8080"}]}
         
-        event = ContainerEvent(
+        event = JoyrideContainerEvent(
             event_type="container.discovered",
             source="docker.scanner",
             container_id="def456",
@@ -172,7 +164,7 @@ class TestContainerEvent:
 
     def test_container_event_properties(self):
         """Test container event property access."""
-        event = ContainerEvent(
+        event = JoyrideContainerEvent(
             event_type="container.stopped",
             source="docker.monitor",
             container_id="ghi789",
@@ -196,7 +188,7 @@ class TestContainerEvent:
     def test_container_event_validation_empty_container_id(self):
         """Test container event validation with empty container ID."""
         with pytest.raises(ValueError, match="Container ID cannot be empty"):
-            ContainerEvent(
+            JoyrideContainerEvent(
                 event_type="container.started",
                 source="docker.monitor",
                 container_id="",
@@ -207,7 +199,7 @@ class TestContainerEvent:
     def test_container_event_validation_empty_container_name(self):
         """Test container event validation with empty container name."""
         with pytest.raises(ValueError, match="Container name cannot be empty"):
-            ContainerEvent(
+            JoyrideContainerEvent(
                 event_type="container.started",
                 source="docker.monitor",
                 container_id="abc123",
@@ -218,7 +210,7 @@ class TestContainerEvent:
     def test_container_event_validation_empty_image(self):
         """Test container event validation with empty image."""
         with pytest.raises(ValueError, match="Container image cannot be empty"):
-            ContainerEvent(
+            JoyrideContainerEvent(
                 event_type="container.started",
                 source="docker.monitor",
                 container_id="abc123",
@@ -228,11 +220,11 @@ class TestContainerEvent:
 
 
 class TestNodeEvent:
-    """Test NodeEvent class."""
+    """Test JoyrideNodeEvent class."""
 
     def test_node_event_creation_minimal(self):
         """Test creating node event with minimal parameters."""
-        event = NodeEvent(
+        event = JoyrideNodeEvent(
             event_type="node.joined",
             source="swim.protocol",
             node_id="node-001",
@@ -254,7 +246,7 @@ class TestNodeEvent:
         """Test creating node event with all parameters."""
         node_metadata = {"version": "1.0.0", "region": "us-west-2"}
         
-        event = NodeEvent(
+        event = JoyrideNodeEvent(
             event_type="node.suspected",
             source="swim.failure.detector",
             node_id="node-002",
@@ -276,7 +268,7 @@ class TestNodeEvent:
 
     def test_node_event_properties(self):
         """Test node event property access."""
-        event = NodeEvent(
+        event = JoyrideNodeEvent(
             event_type="node.failed",
             source="swim.protocol",
             node_id="node-003",
@@ -302,11 +294,11 @@ class TestNodeEvent:
 
 
 class TestFileEvent:
-    """Test FileEvent class."""
+    """Test JoyrideFileEvent class."""
 
     def test_file_event_creation_minimal(self):
         """Test creating file event with minimal parameters."""
-        event = FileEvent(
+        event = JoyrideFileEvent(
             event_type="file.changed",
             source="hosts.monitor",
             file_path="/etc/hosts",
@@ -329,7 +321,7 @@ class TestFileEvent:
         ]
         file_mtime = datetime.now(timezone.utc)
         
-        event = FileEvent(
+        event = JoyrideFileEvent(
             event_type="file.scanned",
             source="hosts.scanner",
             file_path="/opt/hosts/services.txt",
@@ -351,7 +343,7 @@ class TestFileEvent:
         """Test file event property access."""
         records = [{"hostname": "test.local", "ip": "127.0.0.1"}]
         
-        event = FileEvent(
+        event = JoyrideFileEvent(
             event_type="file.created",
             source="hosts.watcher",
             file_path="/tmp/test_hosts",
@@ -374,11 +366,11 @@ class TestFileEvent:
 
 
 class TestSystemEvent:
-    """Test SystemEvent class."""
+    """Test JoyrideSystemEvent class."""
 
     def test_system_event_creation_minimal(self):
         """Test creating system event with minimal parameters."""
-        event = SystemEvent(
+        event = JoyrideSystemEvent(
             event_type="system.component.started",
             source="bootstrap.runner",
             component="dns.server",
@@ -398,7 +390,7 @@ class TestSystemEvent:
         """Test creating system event with all parameters."""
         configuration = {"port": 53, "bind_address": "0.0.0.0"}
         
-        event = SystemEvent(
+        event = JoyrideSystemEvent(
             event_type="system.component.failed",
             source="health.monitor",
             component="docker.monitor",
@@ -418,7 +410,7 @@ class TestSystemEvent:
 
     def test_system_event_properties(self):
         """Test system event property access."""
-        event = SystemEvent(
+        event = JoyrideSystemEvent(
             event_type="system.config.reloaded",
             source="config.watcher",
             component="event.bus",
@@ -438,11 +430,11 @@ class TestSystemEvent:
 
 
 class TestErrorEvent:
-    """Test ErrorEvent class."""
+    """Test JoyrideErrorEvent class."""
 
     def test_error_event_creation_minimal(self):
         """Test creating error event with minimal parameters."""
-        event = ErrorEvent(
+        event = JoyrideErrorEvent(
             event_type="error.network.timeout",
             source="docker.client",
             error_type="NetworkTimeout",
@@ -463,7 +455,7 @@ class TestErrorEvent:
         context = {"host": "localhost", "port": 2376}
         stack_trace = "Traceback (most recent call last):\n  File..."
         
-        event = ErrorEvent(
+        event = JoyrideErrorEvent(
             event_type="error.api.connection",
             source="swim.client",
             error_type="ConnectionError",
@@ -485,7 +477,7 @@ class TestErrorEvent:
 
     def test_error_event_properties(self):
         """Test error event property access."""
-        event = ErrorEvent(
+        event = JoyrideErrorEvent(
             event_type="error.validation.failed",
             source="dns.validator",
             error_type="ValidationError",
@@ -506,7 +498,7 @@ class TestErrorEvent:
     def test_error_event_validation_empty_error_type(self):
         """Test error event validation with empty error type."""
         with pytest.raises(ValueError, match="Error type cannot be empty"):
-            ErrorEvent(
+            JoyrideErrorEvent(
                 event_type="error.test",
                 source="test.source",
                 error_type="",
@@ -516,7 +508,7 @@ class TestErrorEvent:
     def test_error_event_validation_empty_error_message(self):
         """Test error event validation with empty error message."""
         with pytest.raises(ValueError, match="Error message cannot be empty"):
-            ErrorEvent(
+            JoyrideErrorEvent(
                 event_type="error.test",
                 source="test.source",
                 error_type="TestError",
@@ -526,7 +518,7 @@ class TestErrorEvent:
     def test_error_event_validation_invalid_severity(self):
         """Test error event validation with invalid severity."""
         with pytest.raises(ValueError, match="Severity must be one of"):
-            ErrorEvent(
+            JoyrideErrorEvent(
                 event_type="error.test",
                 source="test.source",
                 error_type="TestError",
@@ -536,11 +528,11 @@ class TestErrorEvent:
 
 
 class TestHealthEvent:
-    """Test HealthEvent class."""
+    """Test JoyrideHealthEvent class."""
 
     def test_health_event_creation_minimal(self):
         """Test creating health event with minimal parameters."""
-        event = HealthEvent(
+        event = JoyrideHealthEvent(
             event_type="health.check.passed",
             source="health.monitor",
             component="dns.server",
@@ -563,7 +555,7 @@ class TestHealthEvent:
         """Test creating health event with all parameters."""
         metrics = {"response_time": 0.05, "queries_per_second": 150}
         
-        event = HealthEvent(
+        event = JoyrideHealthEvent(
             event_type="health.check.failed",
             source="health.monitor",
             component="docker.monitor",
@@ -587,7 +579,7 @@ class TestHealthEvent:
 
     def test_health_event_properties(self):
         """Test health event property access."""
-        event = HealthEvent(
+        event = JoyrideHealthEvent(
             event_type="health.status.degraded",
             source="health.aggregator",
             component="swim.cluster",
@@ -613,40 +605,40 @@ class TestHealthEvent:
 
 
 class TestEventTypeInheritance:
-    """Test that all event types properly inherit from Event base class."""
+    """Test that all event types properly inherit from JoyrideEvent base class."""
 
     def test_all_events_inherit_from_event(self):
-        """Test that all event types are instances of Event."""
-        from app.events.base import Event
+        """Test that all event types are instances of JoyrideEvent."""
+        from app.events.core import JoyrideEvent
 
         # Create instances of all event types
-        dns_event = DNSEvent("test", "test", "test.com")
-        container_event = ContainerEvent("test", "test", "123", "test", "nginx")
-        node_event = NodeEvent("test", "test", "node1", "1.1.1.1", 7946, "alive")
-        file_event = FileEvent("test", "test", "/test", "modified")
-        system_event = SystemEvent("test", "test", "comp", "start", "success")
-        error_event = ErrorEvent("test", "test", "Error", "Test error")
-        health_event = HealthEvent("test", "test", "comp", "healthy", "test", True)
+        dns_event = JoyrideDNSEvent("test", "test", "test.com")
+        container_event = JoyrideContainerEvent("test", "test", "123", "test", "nginx")
+        node_event = JoyrideNodeEvent("test", "test", "node1", "1.1.1.1", 7946, "alive")
+        file_event = JoyrideFileEvent("test", "test", "/test", "modified")
+        system_event = JoyrideSystemEvent("test", "test", "comp", "start", "success")
+        error_event = JoyrideErrorEvent("test", "test", "Error", "Test error")
+        health_event = JoyrideHealthEvent("test", "test", "comp", "healthy", "test", True)
         
         # Verify inheritance
-        assert isinstance(dns_event, Event)
-        assert isinstance(container_event, Event)
-        assert isinstance(node_event, Event)
-        assert isinstance(file_event, Event)
-        assert isinstance(system_event, Event)
-        assert isinstance(error_event, Event)
-        assert isinstance(health_event, Event)
+        assert isinstance(dns_event, JoyrideEvent)
+        assert isinstance(container_event, JoyrideEvent)
+        assert isinstance(node_event, JoyrideEvent)
+        assert isinstance(file_event, JoyrideEvent)
+        assert isinstance(system_event, JoyrideEvent)
+        assert isinstance(error_event, JoyrideEvent)
+        assert isinstance(health_event, JoyrideEvent)
 
     def test_all_events_have_base_properties(self):
-        """Test that all event types have base Event properties."""
+        """Test that all event types have base JoyrideEvent properties."""
         events = [
-            DNSEvent("dns.test", "test", "test.com"),
-            ContainerEvent("container.test", "test", "123", "test", "nginx"),
-            NodeEvent("node.test", "test", "node1", "1.1.1.1", 7946, "alive"),
-            FileEvent("file.test", "test", "/test", "modified"),
-            SystemEvent("system.test", "test", "comp", "start", "success"),
-            ErrorEvent("error.test", "test", "Error", "Test error"),
-            HealthEvent("health.test", "test", "comp", "healthy", "test", True),
+            JoyrideDNSEvent("dns.test", "test", "test.com"),
+            JoyrideContainerEvent("container.test", "test", "123", "test", "nginx"),
+            JoyrideNodeEvent("node.test", "test", "node1", "1.1.1.1", 7946, "alive"),
+            JoyrideFileEvent("file.test", "test", "/test", "modified"),
+            JoyrideSystemEvent("system.test", "test", "comp", "start", "success"),
+            JoyrideErrorEvent("error.test", "test", "Error", "Test error"),
+            JoyrideHealthEvent("health.test", "test", "comp", "healthy", "test", True),
         ]
         
         for event in events:
@@ -669,13 +661,13 @@ class TestEventTypeInheritance:
     def test_all_events_have_to_dict_method(self):
         """Test that all event types have to_dict method."""
         events = [
-            DNSEvent("dns.test", "test", "test.com"),
-            ContainerEvent("container.test", "test", "123", "test", "nginx"),
-            NodeEvent("node.test", "test", "node1", "1.1.1.1", 7946, "alive"),
-            FileEvent("file.test", "test", "/test", "modified"),
-            SystemEvent("system.test", "test", "comp", "start", "success"),
-            ErrorEvent("error.test", "test", "Error", "Test error"),
-            HealthEvent("health.test", "test", "comp", "healthy", "test", True),
+            JoyrideDNSEvent("dns.test", "test", "test.com"),
+            JoyrideContainerEvent("container.test", "test", "123", "test", "nginx"),
+            JoyrideNodeEvent("node.test", "test", "node1", "1.1.1.1", 7946, "alive"),
+            JoyrideFileEvent("file.test", "test", "/test", "modified"),
+            JoyrideSystemEvent("system.test", "test", "comp", "start", "success"),
+            JoyrideErrorEvent("error.test", "test", "Error", "Test error"),
+            JoyrideHealthEvent("health.test", "test", "comp", "healthy", "test", True),
         ]
         
         for event in events:

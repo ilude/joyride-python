@@ -139,11 +139,11 @@ app/container/
   - [x] Add dependency resolution and circular dependency detection
   - [x] **Test**: Create `tests/test_container_providers.py` with dependency scenarios
 
-- [ ] **Step 1.2.3**: Create `app/container/lifecycle.py`
-  - [ ] Implement component lifecycle management (start/stop ordering)
-  - [ ] Add graceful shutdown handling
-  - [ ] Support health checks for components
-  - [ ] **Test**: Create `tests/test_container_lifecycle.py` with startup/shutdown tests
+- [x] **Step 1.2.3**: Create `app/container/lifecycle.py`
+  - [x] Implement component lifecycle management (start/stop ordering)
+  - [x] Add graceful shutdown handling
+  - [x] Support health checks for components
+  - [x] **Test**: Create `tests/test_container_lifecycle.py` with startup/shutdown tests
 
 - [ ] **Step 1.2.4**: Create `app/container/container.py`
   - [ ] Main DI container combining all features
