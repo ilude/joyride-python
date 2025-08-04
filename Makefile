@@ -137,12 +137,12 @@ VERSION := $(shell echo $(SEMANTIC_VERSION) | sed 's/^v//')
 export SEMANTIC_VERSION
 
 define bump_version
-  @echo "Latest version: $(SEMANTIC_VERSION)"
-  @NEW_VERSION=`echo $(VERSION) | awk -F. 'BEGIN {OFS="."} { \
-		if ("$(1)" == "patch") {$3+=1} \
-		else if ("$(1)" == "minor") {$2+=1; $3=0} \
-		else if ("$(1)" == "major") {$1+=1; $2=0; $3=0} \
-		print $1, $2, $3}'` && \
+	@echo "Latest version: $(SEMANTIC_VERSION)"
+	@NEW_VERSION=$$(echo $(VERSION) | awk -F. -v type="$(1)" 'BEGIN {OFS="."} { \
+		if (type == "patch") {$$3+=1} \
+		else if (type == "minor") {$$2+=1; $$3=0} \
+		else if (type == "major") {$$1+=1; $$2=0; $$3=0} \
+		print $$1, $$2, $$3}') && \
 	echo "New version: $$NEW_VERSION" && \
 	git tag -a "v$$NEW_VERSION" -m "Release v$$NEW_VERSION" && \
 	git push --tags && \
