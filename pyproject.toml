@@ -1,9 +1,25 @@
 [project]
 name = "joyride"
 version = "0.0.1"
-description = "docker dynamic dns server that uses labels"
+description = "Docker dynamic DNS server that uses labels"
 readme = "README.md"
+authors = [
+    { name = "mike", email = "219478+ilude@users.noreply.github.com" }
+]
+license = { text = "MIT" }
 requires-python = ">=3.12"
+keywords = ["dns", "docker", "networking", "devops"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators", 
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: Name Service (DNS)",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
+]
 dependencies = [
   "swimmies",
   "dnslib==0.9.24",
@@ -13,6 +29,31 @@ dependencies = [
   "pydantic==2.8.2",
   "python-dotenv==1.0.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "black==23.12.1",
+    "flake8==7.0.0", 
+    "isort==5.13.2",
+    "pytest==7.4.3",
+    "pytest-flask==1.3.0",
+    "pytest-cov==4.1.0",
+]
+test = [
+    "pytest==7.4.3",
+    "pytest-flask==1.3.0", 
+    "pytest-cov==4.1.0",
+]
+lint = [
+    "black==23.12.1",
+    "flake8==7.0.0",
+    "isort==5.13.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/ilude/joyride-python"
+Repository = "https://github.com/ilude/joyride-python"
+Issues = "https://github.com/ilude/joyride-python/issues"
 
 [tool.uv.sources]
 swimmies = { workspace = true }
