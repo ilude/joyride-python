@@ -32,6 +32,7 @@ else
   if [ -S /var/run/docker.sock ]; then
     echo "Docker socket found - attempting to fix ownership (may require sudo)"
     sudo chown $USER:$USER /var/run/docker.sock 2>/dev/null || true
+    ls -lha /var/run/docker.sock || true
   else
     echo "No Docker socket found at /var/run/docker.sock"
   fi
