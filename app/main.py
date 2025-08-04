@@ -96,7 +96,7 @@ def create_pid_file():
     """Create PID file with current process ID."""
     pid_file = get_pid_file_path()
     try:
-        with open(pid_file, 'w') as f:
+        with open(pid_file, "w") as f:
             f.write(str(os.getpid()))
         logger.debug(f"Created PID file: {pid_file}")
         return pid_file
@@ -139,7 +139,7 @@ if app.config["ENABLE_DNS_SYNC"]:
             discovery_port=app.config["DISCOVERY_PORT"],
             swim_port=app.config["SWIM_PORT"],
             dns_callback=None,  # Will be set after dns_record_callback is defined
-            host_ip=app.config["HOSTIP"]
+            host_ip=app.config["HOSTIP"],
         )
         logger.info("DNS sync manager initialized")
     except Exception as e:
@@ -172,9 +172,7 @@ docker_monitor = DockerEventMonitor(dns_record_callback, app.config["HOSTIP"])
 hosts_monitor = None
 if app.config["HOSTS_DIRECTORY"]:
     hosts_monitor = HostsFileMonitor(
-        app.config["HOSTS_DIRECTORY"],
-        dns_record_callback,
-        poll_interval=5.0
+        app.config["HOSTS_DIRECTORY"], dns_record_callback, poll_interval=5.0
     )
 
 
@@ -189,7 +187,7 @@ def status_page():
             "running": hosts_monitor.running,
             "records_count": len(hosts_monitor.get_current_records()),
         }
-    
+
     # Get DNS cluster information if available
     dns_cluster_info = None
     if dns_sync_manager:
@@ -213,6 +211,8 @@ def status_page():
         dns_cluster_info=dns_cluster_info,
         dns_sync_enabled=app.config["ENABLE_DNS_SYNC"],
     )
+
+
 @app.route("/health")
 def health_check():
     """Health check endpoint for monitoring"""
@@ -232,9 +232,11 @@ def detailed_status():
         "enabled": hosts_monitor is not None,
         "directory": app.config["HOSTS_DIRECTORY"] if hosts_monitor else None,
         "running": hosts_monitor.running if hosts_monitor else False,
-        "records_count": len(hosts_monitor.get_current_records()) if hosts_monitor else 0,
+        "records_count": len(hosts_monitor.get_current_records())
+        if hosts_monitor
+        else 0,
     }
-    
+
     # Add DNS sync cluster info if enabled
     dns_sync_info = {
         "enabled": dns_sync_manager is not None,
@@ -242,7 +244,7 @@ def detailed_status():
     }
     if dns_sync_manager:
         dns_sync_info.update(dns_sync_manager.get_cluster_status())
-    
+
     response = DetailedStatusResponse(
         status="running",
         timestamp=datetime.now().isoformat(),
@@ -258,11 +260,11 @@ def detailed_status():
         hosts_monitor=hosts_monitor_info,
         uptime="N/A",
     )
-    
+
     # Add DNS sync info to response
     response_dict = response.model_dump()
     response_dict["dns_sync_cluster"] = dns_sync_info
-    
+
     return jsonify(response_dict)
 
 
@@ -286,39 +288,41 @@ def dns_records():
 def dns_cluster_status():
     """Get DNS cluster status and node information"""
     if not dns_sync_manager:
-        return jsonify({
-            "status": "disabled",
-            "message": "DNS synchronization is not enabled"
-        }), 503
-    
+        return (
+            jsonify(
+                {"status": "disabled", "message": "DNS synchronization is not enabled"}
+            ),
+            503,
+        )
+
     cluster_status = dns_sync_manager.get_cluster_status()
-    return jsonify({
-        "status": "success",
-        "cluster": cluster_status
-    })
+    return jsonify({"status": "success", "cluster": cluster_status})
 
 
 @app.route("/dns/sync", methods=["POST"])
 def force_dns_sync():
     """Force immediate DNS record synchronization across the cluster"""
     if not dns_sync_manager:
-        return jsonify({
-            "status": "error",
-            "message": "DNS synchronization is not enabled"
-        }), 503
-    
+        return (
+            jsonify(
+                {"status": "error", "message": "DNS synchronization is not enabled"}
+            ),
+            503,
+        )
+
     try:
         dns_sync_manager.force_sync()
-        return jsonify({
-            "status": "success",
-            "message": "DNS synchronization initiated"
-        })
+        return jsonify(
+            {"status": "success", "message": "DNS synchronization initiated"}
+        )
     except Exception as e:
         logger.error(f"Error during forced DNS sync: {e}")
-        return jsonify({
-            "status": "error", 
-            "message": f"Failed to sync DNS records: {str(e)}"
-        }), 500
+        return (
+            jsonify(
+                {"status": "error", "message": f"Failed to sync DNS records: {str(e)}"}
+            ),
+            500,
+        )
 
 
 # Initialize services when app starts
@@ -337,15 +341,15 @@ def initialize_services() -> None:
     try:
         dns_server.start()
         docker_monitor.start()
-        
+
         # Start DNS sync manager if enabled
         if dns_sync_manager:
             dns_sync_manager.start()
-        
+
         # Start hosts monitor if configured
         if hosts_monitor:
             hosts_monitor.start()
-            
+
         _services_initialized = True
         logger.info("Services initialized successfully")
     except Exception as e:
@@ -363,15 +367,15 @@ def cleanup_services():
     logger.debug("Shutting down services...")
     docker_monitor.stop()
     dns_server.stop()
-    
+
     # Stop DNS sync manager if it exists
     if dns_sync_manager:
         dns_sync_manager.stop()
-    
+
     # Stop hosts monitor if it exists
     if hosts_monitor:
         hosts_monitor.stop()
-        
+
     remove_pid_file()
 
 
@@ -383,12 +387,12 @@ def main():
     # Setup signal handlers
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
-    
+
     # Initialize swimmies library components
     logger.info(f"Starting Joyride with swimmies library v{swimmies.__version__}")
     gossip_node = GossipNode("joyride-main")
     logger.info(f"Created gossip node: {gossip_node.node_id}")
-    
+
     # Initialize services only when running as main and not in testing mode
     testing_mode = (
         app.config.get("TESTING", False) or os.getenv("TESTING", "").lower() == "true"
@@ -405,7 +409,9 @@ def main():
         initialize_services()
 
     # Start the Flask application
-    logger.info(f"Starting Joyride DNS service on {app.config['HOST']}:{app.config['PORT']}")
+    logger.info(
+        f"Starting Joyride DNS service on {app.config['HOST']}:{app.config['PORT']}"
+    )
     app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
 
 
