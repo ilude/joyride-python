@@ -59,6 +59,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     build-base \
     coreutils \
     docker-cli \
+    docker-cli-compose \
     git \
     github-cli \
     jq \

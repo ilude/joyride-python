@@ -44,13 +44,14 @@
 ### Development Environment
 - **UV Package Manager**: Use UV for modern Python dependency management and workspace setup
 - **DevContainers**: Use VS Code devcontainers for consistent development
-- **Docker Compose**: Profiles for different environments (dev/prod)
+- **Docker Compose**: Use `docker compose` (without hyphen) - modern Docker Compose V2 command format
 - **Hot Reload**: Enable in development for faster iteration
 - **Debugging**: Configure proper debugging in devcontainer
 - **Shell**: Use zsh with autosuggestions and syntax highlighting; add additional zsh completion libraries as project needs grow
 - **Git Submodules**: swimmies library as independent Git submodule for clean separation
 - **ALWAYS use `.internal`** for container-generated DNS records
 - **NEVER use `.local`** as it conflicts with mDNS/Bonjour services
+- **Swimmies Development**: When working on swimmies library, always `cd /workspaces/joyride/swimmies` first
 
 ## Future Architecture Considerations
 
