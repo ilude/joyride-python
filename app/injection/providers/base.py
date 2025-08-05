@@ -5,7 +5,10 @@ import weakref
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Generic, List, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, List, Type, TypeVar
+
+if TYPE_CHECKING:
+    from .registry import JoyrideProviderRegistry
 
 T = TypeVar("T")
 

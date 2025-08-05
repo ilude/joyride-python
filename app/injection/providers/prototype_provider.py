@@ -1,8 +1,11 @@
 """Prototype Provider Implementation for Joyride Dependency Injection Container."""
 
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from .base import JoyrideDependency, JoyrideProvider, T
+
+if TYPE_CHECKING:
+    from .registry import JoyrideProviderRegistry
 
 
 class JoyridePrototypeProvider(JoyrideProvider[T]):

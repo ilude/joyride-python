@@ -1,6 +1,6 @@
 """Singleton Provider Implementation for Joyride Dependency Injection Container."""
 
-from typing import Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, List, Optional
 
 from .base import (
     JoyrideDependency,
@@ -8,6 +8,9 @@ from .base import (
     JoyrideProvider,
     T,
 )
+
+if TYPE_CHECKING:
+    from .registry import JoyrideProviderRegistry
 
 
 class JoyrideSingletonProvider(JoyrideProvider[T]):

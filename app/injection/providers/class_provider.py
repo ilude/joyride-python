@@ -1,7 +1,7 @@
-"""Class Provider Implementation for Joyride Dependency Injection Container."""
+"""Class provider implementation for Joyride dependency injection."""
 
 import inspect
-from typing import Any, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
 from .base import (
     JoyrideDependency,
@@ -10,6 +10,9 @@ from .base import (
     JoyrideProvider,
     T,
 )
+
+if TYPE_CHECKING:
+    from .registry import JoyrideProviderRegistry
 
 
 class JoyrideClassProvider(JoyrideProvider[T]):
