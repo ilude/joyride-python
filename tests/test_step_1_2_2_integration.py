@@ -7,7 +7,7 @@ import pytest
 
 from app.joyride.injection import Config as InjectionConfig
 from app.joyride.injection import (
-    Provider as InjectionProvider,  # Test that injection module exports work
+    ProviderBase as InjectionProvider,  # Test that injection module exports work
 )
 from app.joyride.injection.config import (
     Config,
@@ -25,7 +25,7 @@ from app.joyride.injection.providers import (
     FactoryProvider,
     LifecycleType,
     PrototypeProvider,
-    Provider,
+    ProviderBase,
     ProviderInfo,
     ProviderRegistry,
     SingletonProvider,
@@ -38,7 +38,7 @@ class TestStep122ModularImports:
     def test_provider_imports_available(self):
         """Test that all provider classes can be imported."""
         # Base types
-        assert Provider is not None
+        assert ProviderBase is not None
         assert Dependency is not None
         assert ProviderInfo is not None
         assert LifecycleType is not None
@@ -72,7 +72,7 @@ class TestStep122ModularImports:
         assert InjectionConfig is not None
 
         # Should be the same classes
-        assert InjectionProvider is Provider
+        assert InjectionProvider is ProviderBase
         assert InjectionConfig is Config
 
 
@@ -268,7 +268,7 @@ class TestStep122FullIntegration:
         # Check for key modular files
         expected_files = [
             "__init__.py",
-            "base.py",
+            "provider_base.py",
             "singleton_provider.py",
             "factory_provider.py",
             "prototype_provider.py",

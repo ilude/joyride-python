@@ -4,17 +4,17 @@ import threading
 import weakref
 from typing import Any, Callable, Dict, List, Optional, Type
 
-from .base import (
+from .class_provider import ClassProvider
+from .factory_provider import FactoryProvider
+from .prototype_provider import PrototypeProvider
+from .provider_base import (
     CircularDependencyError,
     Dependency,
     DependencyResolutionError,
     LifecycleType,
-    Provider,
+    ProviderBase,
     ProviderInfo,
 )
-from .class_provider import ClassProvider
-from .factory_provider import FactoryProvider
-from .prototype_provider import PrototypeProvider
 from .singleton_provider import SingletonProvider
 
 
@@ -28,7 +28,7 @@ class ProviderRegistry:
         self._lock = threading.RLock()
 
     def register_provider(
-        self, provider: Provider[Any], lifecycle: LifecycleType
+        self, provider: ProviderBase[Any], lifecycle: LifecycleType
     ) -> None:
         """Register a provider with the registry."""
         with self._lock:

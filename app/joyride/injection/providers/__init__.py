@@ -4,17 +4,17 @@ This package provides a comprehensive dependency injection system with multiple
 provider types and automatic dependency resolution.
 """
 
-from .base import (
+from .class_provider import ClassProvider
+from .factory_provider import FactoryProvider
+from .prototype_provider import PrototypeProvider
+from .provider_base import (
     CircularDependencyError,
     Dependency,
     DependencyResolutionError,
     LifecycleType,
-    Provider,
+    ProviderBase,
     ProviderInfo,
 )
-from .class_provider import ClassProvider
-from .factory_provider import FactoryProvider
-from .prototype_provider import PrototypeProvider
 from .provider_registry import ProviderRegistry
 from .singleton_provider import SingletonProvider
 
@@ -25,7 +25,7 @@ __all__ = [
     "DependencyResolutionError",
     "Dependency",
     "ProviderInfo",
-    "Provider",
+    "ProviderBase",
     # Provider implementations
     "SingletonProvider",
     "FactoryProvider",

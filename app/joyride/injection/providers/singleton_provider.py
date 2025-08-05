@@ -2,13 +2,13 @@
 
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from .base import Dependency, DependencyResolutionError, Provider, T
+from .provider_base import Dependency, DependencyResolutionError, ProviderBase, T
 
 if TYPE_CHECKING:
     from .provider_registry import ProviderRegistry
 
 
-class SingletonProvider(Provider[T]):
+class SingletonProvider(ProviderBase[T]):
     """Provider that creates and maintains a single instance (singleton pattern)."""
 
     def __init__(

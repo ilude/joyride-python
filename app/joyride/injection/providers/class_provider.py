@@ -3,13 +3,19 @@
 import inspect
 from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
-from .base import Dependency, DependencyResolutionError, LifecycleType, Provider, T
+from .provider_base import (
+    Dependency,
+    DependencyResolutionError,
+    LifecycleType,
+    ProviderBase,
+    T,
+)
 
 if TYPE_CHECKING:
     from .provider_registry import ProviderRegistry
 
 
-class ClassProvider(Provider[T]):
+class ClassProvider(ProviderBase[T]):
     """Provider that creates instances from a class with automatic dependency injection."""
 
     def __init__(

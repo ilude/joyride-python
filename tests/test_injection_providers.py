@@ -30,7 +30,7 @@ from app.joyride.injection.providers import (  # noqa: E402
     FactoryProvider,
     LifecycleType,
     PrototypeProvider,
-    Provider,
+    ProviderBase,
     ProviderInfo,
     ProviderRegistry,
     SingletonProvider,
@@ -92,7 +92,7 @@ class TestProviderInfo:
 
     def test_provider_info_creation(self):
         """Test creating provider info."""
-        provider = Mock(spec=Provider)
+        provider = Mock(spec=ProviderBase)
         provider.name = "test"
 
         info = ProviderInfo(
@@ -110,7 +110,7 @@ class TestProviderInfo:
 
     def test_provider_info_validation(self):
         """Test provider info validation."""
-        provider = Mock(spec=Provider)
+        provider = Mock(spec=ProviderBase)
 
         # Invalid name
         with pytest.raises(
@@ -120,7 +120,7 @@ class TestProviderInfo:
 
         # Invalid provider
         with pytest.raises(
-            ValueError, match="Provider must be a Provider instance"
+            ValueError, match="Provider must be a ProviderBase instance"
         ):
             ProviderInfo(
                 "test", "not a provider", LifecycleType.SINGLETON

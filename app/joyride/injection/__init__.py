@@ -17,7 +17,7 @@ from .providers import (  # Base types and exceptions; Provider implementations;
     FactoryProvider,
     LifecycleType,
     PrototypeProvider,
-    Provider,
+    ProviderBase,
     ProviderInfo,
     ProviderRegistry,
     SingletonProvider,
@@ -29,7 +29,7 @@ __all__ = [
     "ConfigLoader",
     "ConfigValidator",
     # Providers
-    "Provider",
+    "ProviderBase",
     "ProviderRegistry",
     "ProviderInfo",
     "LifecycleType",

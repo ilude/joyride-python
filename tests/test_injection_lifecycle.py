@@ -18,7 +18,7 @@ from app.joyride.injection.lifecycle import (
     LifecycleTimeoutError,
     ProviderComponent,
 )
-from app.joyride.injection.providers import Provider, ProviderRegistry
+from app.joyride.injection.providers import ProviderBase, ProviderRegistry
 
 
 class MockComponent(LifecycleComponent):
@@ -103,7 +103,7 @@ class MockComponent(LifecycleComponent):
         return self._shutdown_time
 
 
-class MockProvider(Provider):
+class MockProvider(ProviderBase):
     """Mock provider for testing."""
 
     def __init__(self, name: str, create_func=None):

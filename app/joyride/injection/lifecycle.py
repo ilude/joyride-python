@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-from .providers import Provider, ProviderRegistry
+from .providers import ProviderBase, ProviderRegistry
 
 
 class LifecycleState(Enum):
@@ -144,7 +144,7 @@ class ProviderComponent(LifecycleComponent):
     """Lifecycle component that wraps a provider."""
 
     def __init__(
-        self, name: str, provider: Provider, registry: ProviderRegistry
+        self, name: str, provider: ProviderBase, registry: ProviderRegistry
     ):
         """Initialize provider component.
 

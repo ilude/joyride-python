@@ -2,13 +2,13 @@
 
 from typing import TYPE_CHECKING, List
 
-from .base import Dependency, Provider, T
+from .provider_base import Dependency, ProviderBase, T
 
 if TYPE_CHECKING:
     from .provider_registry import ProviderRegistry
 
 
-class PrototypeProvider(Provider[T]):
+class PrototypeProvider(ProviderBase[T]):
     """Provider that creates instances from a prototype (clone pattern)."""
 
     def __init__(self, name: str, prototype: T, clone_method: str = "copy"):

@@ -2,13 +2,13 @@
 
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from .base import Dependency, DependencyResolutionError, Provider, T
+from .provider_base import Dependency, DependencyResolutionError, ProviderBase, T
 
 if TYPE_CHECKING:
     from .provider_registry import ProviderRegistry
 
 
-class FactoryProvider(Provider[T]):
+class FactoryProvider(ProviderBase[T]):
     """Provider that creates new instances each time (factory pattern)."""
 
     def __init__(
