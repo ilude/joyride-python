@@ -77,6 +77,7 @@
   "mounts": [
     "source=devcontainer-home,target=/home/vscode,type=volume",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "source=${localWorkspaceFolder},target=/workspace,type=bind"
   ]
 }
