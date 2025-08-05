@@ -143,9 +143,7 @@ class LifecycleComponent(ABC):
 class ProviderComponent(LifecycleComponent):
     """Lifecycle component that wraps a provider."""
 
-    def __init__(
-        self, name: str, provider: ProviderBase, registry: ProviderRegistry
-    ):
+    def __init__(self, name: str, provider: ProviderBase, registry: ProviderRegistry):
         """Initialize provider component.
 
         Args:
@@ -252,9 +250,7 @@ class ProviderComponent(LifecycleComponent):
                         return status
                     elif isinstance(status, bool):
                         self.health_status = (
-                            HealthStatus.HEALTHY
-                            if status
-                            else HealthStatus.UNHEALTHY
+                            HealthStatus.HEALTHY if status else HealthStatus.UNHEALTHY
                         )
                         return self.health_status
                     elif isinstance(status, str):
@@ -559,9 +555,7 @@ class LifecycleManager:
                 errors.append(error_msg)
 
         if errors:
-            raise LifecycleError(
-                f"Some components failed to stop: {'; '.join(errors)}"
-            )
+            raise LifecycleError(f"Some components failed to stop: {'; '.join(errors)}")
 
         self._logger.info("All components stopped successfully")
 
@@ -602,9 +596,7 @@ class LifecycleManager:
                 await asyncio.wait_for(component.start(), timeout=self.startup_timeout)
                 self._logger.info(f"Started component: {comp_name}")
             except Exception as e:
-                raise LifecycleError(
-                    f"Failed to start component {comp_name}"
-                ) from e
+                raise LifecycleError(f"Failed to start component {comp_name}") from e
 
     async def stop_component(self, name: str) -> None:
         """Stop a specific component and its dependents.
@@ -650,9 +642,7 @@ class LifecycleManager:
                 errors.append(error_msg)
 
         if errors:
-            raise LifecycleError(
-                f"Some components failed to stop: {'; '.join(errors)}"
-            )
+            raise LifecycleError(f"Some components failed to stop: {'; '.join(errors)}")
 
     async def health_check_all(self) -> Dict[str, HealthStatus]:
         """Perform health check on all components.

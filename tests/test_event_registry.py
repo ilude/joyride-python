@@ -15,11 +15,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from app.joyride.events import (
-    EventFilter,
-    EventRegistry,
-    EventSubscription,
-)
+from app.joyride.events import EventFilter, EventRegistry, EventSubscription
 from app.joyride.events.types import ContainerEvent, DNSEvent
 
 

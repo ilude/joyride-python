@@ -444,9 +444,7 @@ class TestLifecycleManager:
         """Test registering invalid component."""
         manager = LifecycleManager()
 
-        with pytest.raises(
-            ValueError, match="Component must be a LifecycleComponent"
-        ):
+        with pytest.raises(ValueError, match="Component must be a LifecycleComponent"):
             manager.register_component("not a component")
 
     def test_unregister_component(self):
@@ -499,9 +497,7 @@ class TestLifecycleManager:
         manager.add_dependency("component3", "component2")
 
         # Try to create circular dependency: comp1 -> comp3
-        with pytest.raises(
-            LifecycleDependencyError, match="circular dependency"
-        ):
+        with pytest.raises(LifecycleDependencyError, match="circular dependency"):
             manager.add_dependency("component1", "component3")
 
     def test_get_startup_order(self):
@@ -618,9 +614,7 @@ class TestLifecycleManager:
 
         await manager.start_all()
 
-        with pytest.raises(
-            LifecycleError, match="Some components failed to stop"
-        ):
+        with pytest.raises(LifecycleError, match="Some components failed to stop"):
             await manager.stop_all()
 
     @pytest.mark.asyncio

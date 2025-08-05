@@ -115,9 +115,7 @@ class ProviderRegistry:
         """Get an instance from a provider."""
         with self._lock:
             if name not in self._providers:
-                raise DependencyResolutionError(
-                    f"Provider '{name}' is not registered"
-                )
+                raise DependencyResolutionError(f"Provider '{name}' is not registered")
 
             # Check for circular dependencies
             if name in self._resolution_stack:

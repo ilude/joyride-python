@@ -54,9 +54,7 @@ class TestDependency:
 
     def test_dependency_creation(self):
         """Test creating a dependency."""
-        dep = Dependency(
-            name="test_service", type_hint=TestService, required=True
-        )
+        dep = Dependency(name="test_service", type_hint=TestService, required=True)
 
         assert dep.name == "test_service"
         assert dep.type_hint == TestService
@@ -122,14 +120,10 @@ class TestProviderInfo:
         with pytest.raises(
             ValueError, match="Provider must be a ProviderBase instance"
         ):
-            ProviderInfo(
-                "test", "not a provider", LifecycleType.SINGLETON
-            )
+            ProviderInfo("test", "not a provider", LifecycleType.SINGLETON)
 
         # Invalid lifecycle
-        with pytest.raises(
-            ValueError, match="Lifecycle must be a LifecycleType"
-        ):
+        with pytest.raises(ValueError, match="Lifecycle must be a LifecycleType"):
             ProviderInfo("test", provider, "not a lifecycle")
 
 
@@ -437,9 +431,7 @@ class TestClassProvider:
 
     def test_class_provider_singleton_lifecycle(self):
         """Test class provider with singleton lifecycle."""
-        provider = ClassProvider(
-            "test_class", TestService, LifecycleType.SINGLETON
-        )
+        provider = ClassProvider("test_class", TestService, LifecycleType.SINGLETON)
         registry = Mock()
 
         # First call creates instance

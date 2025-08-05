@@ -9,8 +9,8 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from .event import Event
     from .bus import EventBus
+    from .event import Event
 
 
 class EventProducer(ABC):

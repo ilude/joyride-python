@@ -40,9 +40,7 @@ class EventRegistry:
             ValueError: If event class is invalid or already registered
         """
         if not issubclass(event_class, Event):
-            raise ValueError(
-                f"Event class {event_class} must inherit from Event"
-            )
+            raise ValueError(f"Event class {event_class} must inherit from Event")
 
         class_name = event_class.__name__
 
@@ -149,9 +147,7 @@ class EventRegistry:
                 return True
             return False
 
-    def get_matching_subscriptions(
-        self, event: Event
-    ) -> List[EventSubscription]:
+    def get_matching_subscriptions(self, event: Event) -> List[EventSubscription]:
         """
         Get all subscriptions that match the given event.
 

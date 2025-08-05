@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Set, Type
 if TYPE_CHECKING:
     from .event_handler import EventHandler
     from .event import Event
-    from .event_registry import EventRegistry
 
 from .event_registry import EventRegistry
 from .event_subscription import EventSubscription

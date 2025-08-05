@@ -29,9 +29,7 @@ class TestConfigSource:
     def test_config_source_creation(self):
         """Test creating a configuration source."""
         data = {"key": "value"}
-        source = ConfigSource(
-            name="test", priority=10, data=data, source_type="test"
-        )
+        source = ConfigSource(name="test", priority=10, data=data, source_type="test")
 
         assert source.name == "test"
         assert source.priority == 10
@@ -199,9 +197,7 @@ class TestConfigLoader:
         """Test validation when adding sources."""
         loader = ConfigLoader()
 
-        with pytest.raises(
-            ValueError, match="Source must be a ConfigSource instance"
-        ):
+        with pytest.raises(ValueError, match="Source must be a ConfigSource instance"):
             loader.add_source("not a source")
 
     @patch.dict(
@@ -410,9 +406,7 @@ class TestConfigValidator:
 
     def test_validator_custom_schema(self):
         """Test validator with custom schema."""
-        schema = ConfigSchema(
-            required_keys=["service"], key_types={"service": str}
-        )
+        schema = ConfigSchema(required_keys=["service"], key_types={"service": str})
 
         validator = ConfigValidator(schema)
 

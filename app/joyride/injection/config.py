@@ -106,9 +106,7 @@ class ConfigLoader:
         # Sort by priority (highest first)
         self.sources.sort(key=lambda s: s.priority, reverse=True)
 
-    def load_from_environment(
-        self, prefix: Optional[str] = None
-    ) -> ConfigSource:
+    def load_from_environment(self, prefix: Optional[str] = None) -> ConfigSource:
         """Load configuration from environment variables."""
         if prefix is None:
             prefix = self._env_prefix
