@@ -15,12 +15,12 @@ from unittest.mock import Mock
 
 import pytest
 
-from app.events import (
+from app.joyride.events import (
     JoyrideEventFilter,
     JoyrideEventRegistry,
     JoyrideEventSubscription,
 )
-from app.events.types import JoyrideContainerEvent, JoyrideDNSEvent
+from app.joyride.events.types import JoyrideContainerEvent, JoyrideDNSEvent
 
 
 class TestJoyrideEventFilter:

@@ -22,7 +22,7 @@ from injection_helpers import (  # noqa: E402
     SimpleService,
 )
 
-from app.injection.providers import (  # noqa: E402
+from app.joyride.injection.providers import (  # noqa: E402
     JoyrideCircularDependencyError,
     JoyrideClassProvider,
     JoyrideDependency,

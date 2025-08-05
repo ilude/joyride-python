@@ -8,7 +8,7 @@ import asyncio
 
 import pytest
 
-from app.injection.lifecycle import (
+from app.joyride.injection.lifecycle import (
     JoyrideHealthStatus,
     JoyrideLifecycleComponent,
     JoyrideLifecycleDependencyError,
@@ -18,7 +18,7 @@ from app.injection.lifecycle import (
     JoyrideLifecycleTimeoutError,
     JoyrideProviderComponent,
 )
-from app.injection.providers import JoyrideProvider, JoyrideProviderRegistry
+from app.joyride.injection.providers import JoyrideProvider, JoyrideProviderRegistry
 
 
 class MockComponent(JoyrideLifecycleComponent):

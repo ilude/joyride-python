@@ -5,11 +5,11 @@ It replaces the inline Python scripts with proper test cases.
 """
 import pytest
 
-from app.injection import JoyrideConfig as InjectionJoyrideConfig
-from app.injection import (
+from app.joyride.injection import JoyrideConfig as InjectionJoyrideConfig
+from app.joyride.injection import (
     JoyrideProvider as InjectionJoyrideProvider,  # Test that injection module exports work
 )
-from app.injection.config import (
+from app.joyride.injection.config import (
     JoyrideConfig,
     JoyrideConfigLoader,
     JoyrideConfigSchema,
@@ -17,7 +17,7 @@ from app.injection.config import (
     JoyrideConfigValidator,
     create_config,
 )
-from app.injection.providers import (
+from app.joyride.injection.providers import (
     JoyrideCircularDependencyError,
     JoyrideClassProvider,
     JoyrideDependency,
@@ -254,13 +254,13 @@ class TestStep122FullIntegration:
         import os
 
         # Check that we don't have the old monolithic providers.py
-        providers_py = "/workspaces/joyride/app/injection/providers.py"
+        providers_py = "/workspaces/joyride/app/joyride/injection/providers.py"
         assert not os.path.exists(
             providers_py
         ), "Found legacy providers.py file - should be removed for greenfield app"
 
         # Check that we have the modular structure
-        providers_dir = "/workspaces/joyride/app/injection/providers"
+        providers_dir = "/workspaces/joyride/app/joyride/injection/providers"
         assert os.path.isdir(
             providers_dir
         ), "Missing modular providers package directory"

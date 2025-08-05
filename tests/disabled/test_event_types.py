@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.events.types import (
+from app.joyride.events.types import (
     JoyrideContainerEvent,
     JoyrideDNSEvent,
     JoyrideErrorEvent,
@@ -614,7 +614,7 @@ class TestEventTypeInheritance:
 
     def test_all_events_inherit_from_event(self):
         """Test that all event types are instances of JoyrideEvent."""
-        from app.events import JoyrideEvent
+        from app.joyride.events import JoyrideEvent
 
         # Create instances of all event types
         dns_event = JoyrideDNSEvent("test", "test", "test.com")

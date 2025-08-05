@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import pytest
 
-from app.injection.config import (
+from app.joyride.injection.config import (
     JoyrideConfig,
     JoyrideConfigLoader,
     JoyrideConfigSchema,
