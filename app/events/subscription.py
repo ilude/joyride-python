@@ -7,7 +7,7 @@ and event matching capabilities.
 
 from typing import Callable
 
-from ..event_base import JoyrideEvent
+from .event_base import JoyrideEvent
 from .filter import JoyrideEventFilter
 
 

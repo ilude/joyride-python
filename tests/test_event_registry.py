@@ -15,7 +15,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from app.events.registry import (
+from app.events import (
     JoyrideEventFilter,
     JoyrideEventRegistry,
     JoyrideEventSubscription,

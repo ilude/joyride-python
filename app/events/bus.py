@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from .event_base import JoyrideEvent
     from .event_handler import JoyrideEventHandler
 
-from .registry.registry import JoyrideEventRegistry
-from .registry.subscription import JoyrideEventSubscription
+from .event_registry import JoyrideEventRegistry
+from .subscription import JoyrideEventSubscription
 
 logger = logging.getLogger(__name__)
 

@@ -15,9 +15,15 @@ from .bus import JoyrideEventBus
 from .event_base import JoyrideEvent
 from .event_handler import JoyrideEventHandler
 from .event_producer import JoyrideEventProducer
+from .event_registry import (
+    JoyrideEventRegistry,
+    get_joyride_registry,
+    reset_joyride_registry,
+)
 
 # Registry system
-from .registry import JoyrideEventFilter, JoyrideEventRegistry, JoyrideEventSubscription
+from .filter import JoyrideEventFilter
+from .subscription import JoyrideEventSubscription
 
 # Event types
 from .types import (
@@ -40,6 +46,8 @@ __all__ = [
     "JoyrideEventFilter",
     "JoyrideEventRegistry",
     "JoyrideEventSubscription",
+    "get_joyride_registry",
+    "reset_joyride_registry",
     # Event types
     "JoyrideContainerEvent",
     "JoyrideDNSEvent",
