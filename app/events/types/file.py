@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..core.event_base import JoyrideEvent
+from ..event_base import JoyrideEvent
 
 
 class JoyrideFileEvent(JoyrideEvent):

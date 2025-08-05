@@ -8,7 +8,7 @@ management with thread-safe operations and pattern-based filtering.
 import threading
 from typing import Any, Callable, Dict, List, Optional, Type
 
-from ..core.event_base import JoyrideEvent
+from ..event_base import JoyrideEvent
 from .filter import JoyrideEventFilter
 from .subscription import JoyrideEventSubscription
 

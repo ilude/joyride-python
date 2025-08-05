@@ -614,7 +614,7 @@ class TestEventTypeInheritance:
 
     def test_all_events_inherit_from_event(self):
         """Test that all event types are instances of JoyrideEvent."""
-        from app.events.core import JoyrideEvent
+        from app.events import JoyrideEvent
 
         # Create instances of all event types
         dns_event = JoyrideDNSEvent("test", "test", "test.com")

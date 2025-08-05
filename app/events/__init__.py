@@ -12,7 +12,9 @@ synchronous and filtered event processing capabilities.
 from .bus import JoyrideEventBus
 
 # Core event system
-from .core import JoyrideEvent, JoyrideEventHandler, JoyrideEventProducer
+from .event_base import JoyrideEvent
+from .event_handler import JoyrideEventHandler
+from .event_producer import JoyrideEventProducer
 
 # Registry system
 from .registry import JoyrideEventFilter, JoyrideEventRegistry, JoyrideEventSubscription

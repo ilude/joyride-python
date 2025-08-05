@@ -9,7 +9,7 @@ import fnmatch
 import re
 from typing import Callable, Optional, Pattern
 
-from ..core.event_base import JoyrideEvent
+from ..event_base import JoyrideEvent
 
 
 class JoyrideEventFilter:

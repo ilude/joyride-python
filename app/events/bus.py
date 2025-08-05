@@ -9,8 +9,8 @@ import threading
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Type
 
 if TYPE_CHECKING:
-    from .core.event_base import JoyrideEvent
-    from .core.event_handler import JoyrideEventHandler
+    from .event_base import JoyrideEvent
+    from .event_handler import JoyrideEventHandler
 
 from .registry.registry import JoyrideEventRegistry
 from .registry.subscription import JoyrideEventSubscription
