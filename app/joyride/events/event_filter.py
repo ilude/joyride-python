@@ -25,7 +25,7 @@ class EventFilter:
         event_type: Optional[str] = None,
         source: Optional[str] = None,
         pattern: Optional[str] = None,
-        custom_filter: Optional[Callable[[JoyrideEvent], bool]] = None,
+        custom_filter: Optional[Callable[[Event], bool]] = None,
     ):
         """
         Initialize event filter.
@@ -48,7 +48,7 @@ class EventFilter:
             regex_pattern = fnmatch.translate(pattern)
             self._compiled_pattern = re.compile(regex_pattern, re.IGNORECASE)
 
-    def matches(self, event: JoyrideEvent) -> bool:
+    def matches(self, event: Event) -> bool:
         """
         Check if an event matches this filter.
 

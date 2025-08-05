@@ -8,52 +8,48 @@ The event system follows the Observer pattern and provides both
 synchronous and filtered event processing capabilities.
 """
 
-# Event bus
-from .bus import JoyrideEventBus
-
 # Core event system
-from .event_base import JoyrideEvent
-from .event_handler import JoyrideEventHandler
-from .event_producer import JoyrideEventProducer
-from .event_registry import (
-    JoyrideEventRegistry,
-    get_joyride_registry,
-    reset_joyride_registry,
-)
+from .event import Event
+
+# Event bus
+from .event_bus import EventBus
 
 # Registry system
-from .filter import JoyrideEventFilter
-from .subscription import JoyrideEventSubscription
+from .event_filter import EventFilter
+from .event_subscription import EventSubscription
+from .handler import EventHandler
+from .producer import EventProducer
+from .registry import EventRegistry, get_event_registry, reset_event_registry
 
 # Event types
 from .types import (
-    JoyrideContainerEvent,
-    JoyrideDNSEvent,
-    JoyrideErrorEvent,
-    JoyrideFileEvent,
-    JoyrideHealthEvent,
-    JoyrideNodeEvent,
-    JoyrideSystemEvent,
+    ContainerEvent,
+    DNSEvent,
+    ErrorEvent,
+    FileEvent,
+    HealthEvent,
+    NodeEvent,
+    SystemEvent,
 )
 
 __all__ = [
-    # Core classes
-    "JoyrideEvent",
-    "JoyrideEventHandler",
-    "JoyrideEventProducer",
-    "JoyrideEventBus",
+    # Event system classes
+    "Event",
+    "EventHandler",
+    "EventProducer",
+    "EventBus",
     # Registry system
-    "JoyrideEventFilter",
-    "JoyrideEventRegistry",
-    "JoyrideEventSubscription",
-    "get_joyride_registry",
-    "reset_joyride_registry",
+    "EventFilter",
+    "EventRegistry",
+    "EventSubscription",
+    "get_event_registry",
+    "reset_event_registry",
     # Event types
-    "JoyrideContainerEvent",
-    "JoyrideDNSEvent",
-    "JoyrideErrorEvent",
-    "JoyrideFileEvent",
-    "JoyrideHealthEvent",
-    "JoyrideNodeEvent",
-    "JoyrideSystemEvent",
+    "ContainerEvent",
+    "DNSEvent",
+    "ErrorEvent",
+    "FileEvent",
+    "HealthEvent",
+    "NodeEvent",
+    "SystemEvent",
 ]

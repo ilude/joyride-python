@@ -9,19 +9,19 @@ import asyncio
 import pytest
 
 from app.joyride.injection.lifecycle import (
-    JoyrideHealthStatus,
-    JoyrideLifecycleComponent,
-    JoyrideLifecycleDependencyError,
-    JoyrideLifecycleError,
-    JoyrideLifecycleManager,
-    JoyrideLifecycleState,
-    JoyrideLifecycleTimeoutError,
-    JoyrideProviderComponent,
+    HealthStatus,
+    LifecycleComponent,
+    LifecycleDependencyError,
+    LifecycleError,
+    LifecycleManager,
+    LifecycleState,
+    LifecycleTimeoutError,
+    ProviderComponent,
 )
-from app.joyride.injection.providers import JoyrideProvider, JoyrideProviderRegistry
+from app.joyride.injection.providers import Provider, ProviderRegistry
 
 
-class MockComponent(JoyrideLifecycleComponent):
+class MockComponent(LifecycleComponent):
     """Mock component for testing."""
 
     def __init__(
@@ -50,18 +50,18 @@ class MockComponent(JoyrideLifecycleComponent):
         start_time = time.time()
 
         self.start_called = True
-        self.state = JoyrideLifecycleState.STARTING
+        self.state = LifecycleState.STARTING
 
         if self.start_delay > 0:
             await asyncio.sleep(self.start_delay)
 
         if self.start_should_fail:
-            self.state = JoyrideLifecycleState.FAILED
-            self.health_status = JoyrideHealthStatus.UNHEALTHY
+            self.state = LifecycleState.FAILED
+            self.health_status = HealthStatus.UNHEALTHY
             raise RuntimeError(f"Mock start failure for {self.name}")
 
-        self.state = JoyrideLifecycleState.STARTED
-        self.health_status = JoyrideHealthStatus.HEALTHY
+        self.state = LifecycleState.STARTED
+        self.health_status = HealthStatus.HEALTHY
         self._startup_time = time.time() - start_time
 
     async def stop(self) -> None:
@@ -71,28 +71,28 @@ class MockComponent(JoyrideLifecycleComponent):
         start_time = time.time()
 
         self.stop_called = True
-        self.state = JoyrideLifecycleState.STOPPING
+        self.state = LifecycleState.STOPPING
 
         if self.stop_delay > 0:
             await asyncio.sleep(self.stop_delay)
 
         if self.stop_should_fail:
-            self.state = JoyrideLifecycleState.FAILED
+            self.state = LifecycleState.FAILED
             raise RuntimeError(f"Mock stop failure for {self.name}")
 
-        self.state = JoyrideLifecycleState.STOPPED
-        self.health_status = JoyrideHealthStatus.UNKNOWN
+        self.state = LifecycleState.STOPPED
+        self.health_status = HealthStatus.UNKNOWN
         self._shutdown_time = time.time() - start_time
 
-    async def health_check(self) -> JoyrideHealthStatus:
+    async def health_check(self) -> HealthStatus:
         """Mock health check implementation."""
         self.health_check_called = True
-        if self.state == JoyrideLifecycleState.STARTED:
-            return JoyrideHealthStatus.HEALTHY
-        elif self.state == JoyrideLifecycleState.FAILED:
-            return JoyrideHealthStatus.UNHEALTHY
+        if self.state == LifecycleState.STARTED:
+            return HealthStatus.HEALTHY
+        elif self.state == LifecycleState.FAILED:
+            return HealthStatus.UNHEALTHY
         else:
-            return JoyrideHealthStatus.UNKNOWN
+            return HealthStatus.UNKNOWN
 
     def get_startup_time(self):
         """Get startup time."""
@@ -103,7 +103,7 @@ class MockComponent(JoyrideLifecycleComponent):
         return self._shutdown_time
 
 
-class MockProvider(JoyrideProvider):
+class MockProvider(Provider):
     """Mock provider for testing."""
 
     def __init__(self, name: str, create_func=None):
@@ -161,16 +161,16 @@ class MockService:
         return self.health_status
 
 
-class TestJoyrideLifecycleComponent:
-    """Test JoyrideLifecycleComponent functionality."""
+class TestLifecycleComponent:
+    """Test LifecycleComponent functionality."""
 
     def test_component_creation(self):
         """Test creating a lifecycle component."""
         component = MockComponent("test_component")
 
         assert component.name == "test_component"
-        assert component.state == JoyrideLifecycleState.STOPPED
-        assert component.health_status == JoyrideHealthStatus.UNKNOWN
+        assert component.state == LifecycleState.STOPPED
+        assert component.health_status == HealthStatus.UNKNOWN
         assert component.dependencies == set()
         assert component.dependents == set()
         assert component.get_startup_time() is None
@@ -228,7 +228,7 @@ class TestJoyrideLifecycleComponent:
         component = MockComponent("test_component")
 
         # Initial state
-        assert component.state == JoyrideLifecycleState.STOPPED
+        assert component.state == LifecycleState.STOPPED
 
         # Start component
         await component.start()
@@ -245,7 +245,7 @@ class TestJoyrideLifecycleComponent:
 
         # Default health check
         status = await component.health_check()
-        assert status == JoyrideHealthStatus.UNKNOWN
+        assert status == HealthStatus.UNKNOWN
         assert component.health_check_called
 
     def test_string_representation(self):
@@ -264,15 +264,15 @@ class TestJoyrideLifecycleComponent:
         assert "health=unknown" in repr_str
 
 
-class TestJoyrideProviderComponent:
-    """Test JoyrideProviderComponent functionality."""
+class TestProviderComponent:
+    """Test ProviderComponent functionality."""
 
     def test_provider_component_creation(self):
         """Test creating a provider component."""
         provider = MockProvider("test_provider")
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
 
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        component = ProviderComponent("test_component", provider, registry)
 
         assert component.name == "test_component"
         assert component.provider == provider
@@ -283,14 +283,14 @@ class TestJoyrideProviderComponent:
     async def test_provider_component_start(self):
         """Test starting a provider component."""
         provider = MockProvider("test_provider")
-        registry = JoyrideProviderRegistry()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        registry = ProviderRegistry()
+        component = ProviderComponent("test_component", provider, registry)
 
         # Start component
         await component.start()
 
-        assert component.state == JoyrideLifecycleState.STARTED
-        assert component.health_status == JoyrideHealthStatus.HEALTHY
+        assert component.state == LifecycleState.STARTED
+        assert component.health_status == HealthStatus.HEALTHY
         assert component.instance is not None
         assert provider.create_called
         assert component.get_startup_time() is not None
@@ -303,28 +303,28 @@ class TestJoyrideProviderComponent:
             return MockService("test_service", has_lifecycle=True)
 
         provider = MockProvider("test_provider", create_service)
-        registry = JoyrideProviderRegistry()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        registry = ProviderRegistry()
+        component = ProviderComponent("test_component", provider, registry)
 
         # Start component
         await component.start()
 
-        assert component.state == JoyrideLifecycleState.STARTED
+        assert component.state == LifecycleState.STARTED
         assert component.instance.started
 
     @pytest.mark.asyncio
     async def test_provider_component_stop(self):
         """Test stopping a provider component."""
         provider = MockProvider("test_provider")
-        registry = JoyrideProviderRegistry()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        registry = ProviderRegistry()
+        component = ProviderComponent("test_component", provider, registry)
 
         # Start then stop
         await component.start()
         await component.stop()
 
-        assert component.state == JoyrideLifecycleState.STOPPED
-        assert component.health_status == JoyrideHealthStatus.UNKNOWN
+        assert component.state == LifecycleState.STOPPED
+        assert component.health_status == HealthStatus.UNKNOWN
         assert component.instance is None
         assert component.get_shutdown_time() is not None
 
@@ -336,8 +336,8 @@ class TestJoyrideProviderComponent:
             return MockService("test_service", has_lifecycle=True)
 
         provider = MockProvider("test_provider", create_service)
-        registry = JoyrideProviderRegistry()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        registry = ProviderRegistry()
+        component = ProviderComponent("test_component", provider, registry)
 
         # Start then stop
         await component.start()
@@ -354,15 +354,15 @@ class TestJoyrideProviderComponent:
             return MockService("test_service", has_health_check=True)
 
         provider = MockProvider("test_provider", create_service)
-        registry = JoyrideProviderRegistry()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        registry = ProviderRegistry()
+        component = ProviderComponent("test_component", provider, registry)
 
         # Start component
         await component.start()
 
         # Health check
         status = await component.health_check()
-        assert status == JoyrideHealthStatus.HEALTHY
+        assert status == HealthStatus.HEALTHY
         assert component.get_last_health_check_time() is not None
 
     @pytest.mark.asyncio
@@ -373,22 +373,22 @@ class TestJoyrideProviderComponent:
             raise RuntimeError("Provider creation failed")
 
         provider = MockProvider("test_provider", failing_create)
-        registry = JoyrideProviderRegistry()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        registry = ProviderRegistry()
+        component = ProviderComponent("test_component", provider, registry)
 
         # Start should fail
         with pytest.raises(RuntimeError, match="Failed to start component"):
             await component.start()
 
-        assert component.state == JoyrideLifecycleState.FAILED
-        assert component.health_status == JoyrideHealthStatus.UNHEALTHY
+        assert component.state == LifecycleState.FAILED
+        assert component.health_status == HealthStatus.UNHEALTHY
 
     @pytest.mark.asyncio
     async def test_provider_component_invalid_state(self):
         """Test provider component with invalid state transitions."""
         provider = MockProvider("test_provider")
-        registry = JoyrideProviderRegistry()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        registry = ProviderRegistry()
+        component = ProviderComponent("test_component", provider, registry)
 
         # Start component
         await component.start()
@@ -398,12 +398,12 @@ class TestJoyrideProviderComponent:
             await component.start()
 
 
-class TestJoyrideLifecycleManager:
-    """Test JoyrideLifecycleManager functionality."""
+class TestLifecycleManager:
+    """Test LifecycleManager functionality."""
 
     def test_manager_creation(self):
         """Test creating a lifecycle manager."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
 
         assert manager.startup_timeout == 30.0
         assert manager.shutdown_timeout == 30.0
@@ -412,14 +412,14 @@ class TestJoyrideLifecycleManager:
 
     def test_manager_custom_timeouts(self):
         """Test creating manager with custom timeouts."""
-        manager = JoyrideLifecycleManager(startup_timeout=60.0, shutdown_timeout=45.0)
+        manager = LifecycleManager(startup_timeout=60.0, shutdown_timeout=45.0)
 
         assert manager.startup_timeout == 60.0
         assert manager.shutdown_timeout == 45.0
 
     def test_register_component(self):
         """Test registering components."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         component = MockComponent("test_component")
 
         manager.register_component(component)
@@ -429,7 +429,7 @@ class TestJoyrideLifecycleManager:
 
     def test_register_duplicate_component(self):
         """Test registering duplicate component."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         component1 = MockComponent("test_component")
         component2 = MockComponent("test_component")
 
@@ -442,16 +442,16 @@ class TestJoyrideLifecycleManager:
 
     def test_register_invalid_component(self):
         """Test registering invalid component."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
 
         with pytest.raises(
-            ValueError, match="Component must be a JoyrideLifecycleComponent"
+            ValueError, match="Component must be a LifecycleComponent"
         ):
             manager.register_component("not a component")
 
     def test_unregister_component(self):
         """Test unregistering components."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         component = MockComponent("test_component")
 
         manager.register_component(component)
@@ -461,7 +461,7 @@ class TestJoyrideLifecycleManager:
 
     def test_unregister_nonexistent_component(self):
         """Test unregistering non-existent component."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
 
         with pytest.raises(
             ValueError, match="Component 'nonexistent' is not registered"
@@ -470,7 +470,7 @@ class TestJoyrideLifecycleManager:
 
     def test_add_dependency(self):
         """Test adding dependencies between components."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
 
@@ -485,7 +485,7 @@ class TestJoyrideLifecycleManager:
 
     def test_add_circular_dependency(self):
         """Test detecting circular dependencies."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
         comp3 = MockComponent("component3")
@@ -500,13 +500,13 @@ class TestJoyrideLifecycleManager:
 
         # Try to create circular dependency: comp1 -> comp3
         with pytest.raises(
-            JoyrideLifecycleDependencyError, match="circular dependency"
+            LifecycleDependencyError, match="circular dependency"
         ):
             manager.add_dependency("component1", "component3")
 
     def test_get_startup_order(self):
         """Test getting startup order."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")  # No dependencies
         comp2 = MockComponent("component2")  # Depends on comp1
         comp3 = MockComponent("component3")  # Depends on comp2
@@ -526,7 +526,7 @@ class TestJoyrideLifecycleManager:
 
     def test_get_shutdown_order(self):
         """Test getting shutdown order."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
         comp3 = MockComponent("component3")
@@ -547,7 +547,7 @@ class TestJoyrideLifecycleManager:
     @pytest.mark.asyncio
     async def test_start_all_components(self):
         """Test starting all components."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
 
@@ -559,8 +559,8 @@ class TestJoyrideLifecycleManager:
 
         assert comp1.start_called
         assert comp2.start_called
-        assert comp1.state == JoyrideLifecycleState.STARTED
-        assert comp2.state == JoyrideLifecycleState.STARTED
+        assert comp1.state == LifecycleState.STARTED
+        assert comp2.state == LifecycleState.STARTED
 
         # Cleanup
         await manager.stop_all()
@@ -568,7 +568,7 @@ class TestJoyrideLifecycleManager:
     @pytest.mark.asyncio
     async def test_stop_all_components(self):
         """Test stopping all components."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
 
@@ -581,37 +581,37 @@ class TestJoyrideLifecycleManager:
 
         assert comp1.stop_called
         assert comp2.stop_called
-        assert comp1.state == JoyrideLifecycleState.STOPPED
-        assert comp2.state == JoyrideLifecycleState.STOPPED
+        assert comp1.state == LifecycleState.STOPPED
+        assert comp2.state == LifecycleState.STOPPED
 
     @pytest.mark.asyncio
     async def test_start_component_failure(self):
         """Test handling component start failure."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1", start_should_fail=True)
 
         manager.register_component(comp1)
 
         with pytest.raises(
-            JoyrideLifecycleError, match="Component component1 failed to start"
+            LifecycleError, match="Component component1 failed to start"
         ):
             await manager.start_all()
 
     @pytest.mark.asyncio
     async def test_start_component_timeout(self):
         """Test handling component start timeout."""
-        manager = JoyrideLifecycleManager(startup_timeout=0.1)
+        manager = LifecycleManager(startup_timeout=0.1)
         comp1 = MockComponent("component1", start_delay=0.2)
 
         manager.register_component(comp1)
 
-        with pytest.raises(JoyrideLifecycleTimeoutError, match="startup timed out"):
+        with pytest.raises(LifecycleTimeoutError, match="startup timed out"):
             await manager.start_all()
 
     @pytest.mark.asyncio
     async def test_stop_component_failure(self):
         """Test handling component stop failure."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1", stop_should_fail=True)
 
         manager.register_component(comp1)
@@ -619,14 +619,14 @@ class TestJoyrideLifecycleManager:
         await manager.start_all()
 
         with pytest.raises(
-            JoyrideLifecycleError, match="Some components failed to stop"
+            LifecycleError, match="Some components failed to stop"
         ):
             await manager.stop_all()
 
     @pytest.mark.asyncio
     async def test_start_specific_component(self):
         """Test starting a specific component."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
         comp3 = MockComponent("component3")
@@ -651,7 +651,7 @@ class TestJoyrideLifecycleManager:
     @pytest.mark.asyncio
     async def test_stop_specific_component(self):
         """Test stopping a specific component."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
         comp3 = MockComponent("component3")
@@ -678,7 +678,7 @@ class TestJoyrideLifecycleManager:
     @pytest.mark.asyncio
     async def test_health_check_all(self):
         """Test health checking all components."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
 
@@ -688,14 +688,14 @@ class TestJoyrideLifecycleManager:
         results = await manager.health_check_all()
 
         assert len(results) == 2
-        assert results["component1"] == JoyrideHealthStatus.UNKNOWN
-        assert results["component2"] == JoyrideHealthStatus.UNKNOWN
+        assert results["component1"] == HealthStatus.UNKNOWN
+        assert results["component2"] == HealthStatus.UNKNOWN
         assert comp1.health_check_called
         assert comp2.health_check_called
 
     def test_get_component_status(self):
         """Test getting component status information."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2")
 
@@ -717,7 +717,7 @@ class TestJoyrideLifecycleManager:
 
     def test_set_health_check_interval(self):
         """Test setting health check interval."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
 
         manager.set_health_check_interval(60.0)
         assert manager.get_health_check_interval() == 60.0
@@ -729,7 +729,7 @@ class TestJoyrideLifecycleManager:
     @pytest.mark.asyncio
     async def test_health_monitoring(self):
         """Test health check monitoring."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
         manager.set_health_check_interval(0.1)  # Fast interval for testing
 
         comp1 = MockComponent("component1")
@@ -754,7 +754,7 @@ class TestLifecycleIntegration:
     @pytest.mark.asyncio
     async def test_complex_dependency_graph(self):
         """Test complex dependency graph management."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
 
         # Create components: A -> B, A -> C, B -> D, C -> D
         comp_a = MockComponent("A")
@@ -800,33 +800,33 @@ class TestLifecycleIntegration:
             )
 
         provider = MockProvider("test_provider", create_service)
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
 
         # Create lifecycle manager and provider component
-        manager = JoyrideLifecycleManager()
-        component = JoyrideProviderComponent("test_component", provider, registry)
+        manager = LifecycleManager()
+        component = ProviderComponent("test_component", provider, registry)
 
         manager.register_component(component)
 
         # Test full lifecycle
         await manager.start_all()
 
-        assert component.state == JoyrideLifecycleState.STARTED
+        assert component.state == LifecycleState.STARTED
         assert component.instance.started
 
         # Test health check
         health_results = await manager.health_check_all()
-        assert health_results["test_component"] == JoyrideHealthStatus.HEALTHY
+        assert health_results["test_component"] == HealthStatus.HEALTHY
 
         await manager.stop_all()
 
-        assert component.state == JoyrideLifecycleState.STOPPED
+        assert component.state == LifecycleState.STOPPED
         assert component.instance is None
 
     @pytest.mark.asyncio
     async def test_partial_failure_recovery(self):
         """Test handling partial startup failures."""
-        manager = JoyrideLifecycleManager()
+        manager = LifecycleManager()
 
         comp1 = MockComponent("component1")
         comp2 = MockComponent("component2", start_should_fail=True)
@@ -839,7 +839,7 @@ class TestLifecycleIntegration:
         manager.add_dependency("component3", "component2")
 
         # Start should fail due to component2 failure
-        with pytest.raises(JoyrideLifecycleError):
+        with pytest.raises(LifecycleError):
             await manager.start_all()
 
         # component1 should have started, component2 failed, component3 not started

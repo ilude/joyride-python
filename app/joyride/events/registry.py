@@ -9,8 +9,8 @@ import threading
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from .event import Event
-from .filter import JoyrideEventFilter
-from .subscription import JoyrideEventSubscription
+from .event_filter import EventFilter
+from .event_subscription import EventSubscription
 
 
 class EventRegistry:
@@ -25,7 +25,7 @@ class EventRegistry:
     def __init__(self):
         """Initialize the event registry."""
         self._event_types: Dict[str, Type[Event]] = {}
-        self._subscriptions: Dict[str, JoyrideEventSubscription] = {}
+        self._subscriptions: Dict[str, EventSubscription] = {}
         self._lock = threading.RLock()
         self._subscription_counter = 0
 
@@ -110,7 +110,7 @@ class EventRegistry:
         if not any([event_type, source, pattern, custom_filter]):
             raise ValueError("At least one filter criterion must be provided")
 
-        event_filter = JoyrideEventFilter(
+        event_filter = EventFilter(
             event_type=event_type,
             source=source,
             pattern=pattern,
@@ -121,7 +121,7 @@ class EventRegistry:
             self._subscription_counter += 1
             subscription_id = f"sub_{self._subscription_counter}"
 
-            subscription = JoyrideEventSubscription(
+            subscription = EventSubscription(
                 handler=handler,
                 event_filter=event_filter,
                 subscription_id=subscription_id,
@@ -151,7 +151,7 @@ class EventRegistry:
 
     def get_matching_subscriptions(
         self, event: Event
-    ) -> List[JoyrideEventSubscription]:
+    ) -> List[EventSubscription]:
         """
         Get all subscriptions that match the given event.
 

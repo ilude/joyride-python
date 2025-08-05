@@ -2,13 +2,13 @@
 
 from typing import TYPE_CHECKING, List
 
-from .base import JoyrideDependency, JoyrideProvider, T
+from .base import Dependency, Provider, T
 
 if TYPE_CHECKING:
-    from .registry import JoyrideProviderRegistry
+    from .registry import ProviderRegistry
 
 
-class JoyridePrototypeProvider(JoyrideProvider[T]):
+class PrototypeProvider(Provider[T]):
     """Provider that creates instances from a prototype (clone pattern)."""
 
     def __init__(self, name: str, prototype: T, clone_method: str = "copy"):
@@ -21,15 +21,15 @@ class JoyridePrototypeProvider(JoyrideProvider[T]):
         self._prototype = prototype
         self._clone_method = clone_method
 
-    def create(self, container: "JoyrideProviderRegistry", **kwargs) -> T:
+    def create(self, container: "ProviderRegistry", **kwargs) -> T:
         """Create instance by cloning the prototype."""
         clone_func = getattr(self._prototype, self._clone_method)
         return clone_func()
 
-    def can_create(self, container: "JoyrideProviderRegistry") -> bool:
+    def can_create(self, container: "ProviderRegistry") -> bool:
         """Check if prototype can create instances."""
         return True
 
-    def get_dependencies(self) -> List[JoyrideDependency]:
+    def get_dependencies(self) -> List[Dependency]:
         """Get dependencies for this provider."""
         return []

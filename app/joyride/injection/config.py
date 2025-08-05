@@ -16,7 +16,7 @@ import yaml
 
 
 @dataclass
-class JoyrideConfigSource:
+class ConfigSource:
     """Represents a configuration source with priority and metadata."""
 
     name: str
@@ -36,13 +36,13 @@ class JoyrideConfigSource:
 
 
 @dataclass
-class JoyrideConfigSchema:
+class ConfigSchema:
     """Configuration schema definition for validation."""
 
     required_keys: List[str] = field(default_factory=list)
     optional_keys: List[str] = field(default_factory=list)
     key_types: Dict[str, Type] = field(default_factory=dict)
-    nested_schemas: Dict[str, "JoyrideConfigSchema"] = field(default_factory=dict)
+    nested_schemas: Dict[str, "ConfigSchema"] = field(default_factory=dict)
     validators: Dict[str, callable] = field(default_factory=dict)
 
     def validate_key(self, key: str, value: Any) -> bool:
@@ -89,18 +89,18 @@ class JoyrideConfigSchema:
         return True
 
 
-class JoyrideConfigLoader:
+class ConfigLoader:
     """Hierarchical configuration loader supporting multiple sources."""
 
     def __init__(self):
         """Initialize configuration loader."""
-        self.sources: List[JoyrideConfigSource] = []
+        self.sources: List[ConfigSource] = []
         self._env_prefix = "JOYRIDE_"
 
-    def add_source(self, source: JoyrideConfigSource) -> None:
+    def add_source(self, source: ConfigSource) -> None:
         """Add a configuration source."""
-        if not isinstance(source, JoyrideConfigSource):
-            raise ValueError("Source must be a JoyrideConfigSource instance")
+        if not isinstance(source, ConfigSource):
+            raise ValueError("Source must be a ConfigSource instance")
 
         self.sources.append(source)
         # Sort by priority (highest first)
@@ -108,7 +108,7 @@ class JoyrideConfigLoader:
 
     def load_from_environment(
         self, prefix: Optional[str] = None
-    ) -> JoyrideConfigSource:
+    ) -> ConfigSource:
         """Load configuration from environment variables."""
         if prefix is None:
             prefix = self._env_prefix
@@ -122,7 +122,7 @@ class JoyrideConfigLoader:
                     env_config, config_key, self._parse_env_value(value)
                 )
 
-        return JoyrideConfigSource(
+        return ConfigSource(
             name="environment",
             priority=100,  # High priority for environment variables
             data=env_config,
@@ -132,7 +132,7 @@ class JoyrideConfigLoader:
 
     def load_from_file(
         self, file_path: Union[str, Path], priority: int = 50
-    ) -> JoyrideConfigSource:
+    ) -> ConfigSource:
         """Load configuration from YAML or JSON file."""
         path = Path(file_path)
         if not path.exists():
@@ -147,7 +147,7 @@ class JoyrideConfigLoader:
                 else:
                     raise ValueError(f"Unsupported file format: {path.suffix}")
 
-            return JoyrideConfigSource(
+            return ConfigSource(
                 name=f"file:{path.name}",
                 priority=priority,
                 data=data,
@@ -158,7 +158,7 @@ class JoyrideConfigLoader:
         except (yaml.YAMLError, json.JSONDecodeError) as e:
             raise ValueError(f"Failed to parse configuration file {path}: {e}")
 
-    def load_defaults(self) -> JoyrideConfigSource:
+    def load_defaults(self) -> ConfigSource:
         """Load default configuration values."""
         defaults = {
             "dns": {"port": 53, "host": "0.0.0.0", "ttl": 300, "backend": "memory"},
@@ -186,7 +186,7 @@ class JoyrideConfigLoader:
             },
         }
 
-        return JoyrideConfigSource(
+        return ConfigSource(
             name="defaults",
             priority=0,  # Lowest priority
             data=defaults,
@@ -262,10 +262,10 @@ class JoyrideConfigLoader:
         return result
 
 
-class JoyrideConfigValidator:
+class ConfigValidator:
     """Configuration validator with schema support."""
 
-    def __init__(self, schema: Optional[JoyrideConfigSchema] = None):
+    def __init__(self, schema: Optional[ConfigSchema] = None):
         """Initialize validator with optional schema."""
         self.schema = schema or self._create_default_schema()
 
@@ -276,10 +276,10 @@ class JoyrideConfigValidator:
         except ValueError as e:
             raise ValueError(f"Configuration validation failed: {e}")
 
-    def _create_default_schema(self) -> JoyrideConfigSchema:
+    def _create_default_schema(self) -> ConfigSchema:
         """Create default configuration schema for Joyride."""
         # DNS schema
-        dns_schema = JoyrideConfigSchema(
+        dns_schema = ConfigSchema(
             required_keys=["port", "host"],
             optional_keys=["ttl", "backend"],
             key_types={"port": int, "host": str, "ttl": int, "backend": str},
@@ -287,14 +287,14 @@ class JoyrideConfigValidator:
         )
 
         # Docker schema
-        docker_schema = JoyrideConfigSchema(
+        docker_schema = ConfigSchema(
             required_keys=["socket"],
             optional_keys=["labels", "network_mode"],
             key_types={"socket": str, "labels": list, "network_mode": str},
         )
 
         # SWIM schema
-        swim_schema = JoyrideConfigSchema(
+        swim_schema = ConfigSchema(
             required_keys=["port"],
             optional_keys=["gossip_interval", "probe_timeout", "probe_interval"],
             key_types={
@@ -307,28 +307,28 @@ class JoyrideConfigValidator:
         )
 
         # Hosts schema
-        hosts_schema = JoyrideConfigSchema(
+        hosts_schema = ConfigSchema(
             required_keys=["directories"],
             optional_keys=["poll_interval", "recursive"],
             key_types={"directories": list, "poll_interval": float, "recursive": bool},
         )
 
         # Logging schema
-        logging_schema = JoyrideConfigSchema(
+        logging_schema = ConfigSchema(
             required_keys=["level"],
             optional_keys=["format", "handlers"],
             key_types={"level": str, "format": str, "handlers": list},
         )
 
         # Events schema
-        events_schema = JoyrideConfigSchema(
+        events_schema = ConfigSchema(
             required_keys=["bus_type"],
             optional_keys=["max_handlers", "error_strategy"],
             key_types={"bus_type": str, "max_handlers": int, "error_strategy": str},
         )
 
         # Main schema
-        return JoyrideConfigSchema(
+        return ConfigSchema(
             required_keys=[],
             optional_keys=["dns", "docker", "swim", "hosts", "logging", "events"],
             nested_schemas={
@@ -343,17 +343,17 @@ class JoyrideConfigValidator:
 
 
 @dataclass
-class JoyrideConfig:
+class Config:
     """Main configuration class for Joyride DNS Service."""
 
     data: Dict[str, Any]
-    sources: List[JoyrideConfigSource] = field(default_factory=list)
-    schema: Optional[JoyrideConfigSchema] = None
+    sources: List[ConfigSource] = field(default_factory=list)
+    schema: Optional[ConfigSchema] = None
 
     def __post_init__(self):
         """Validate configuration after initialization."""
         if self.schema:
-            validator = JoyrideConfigValidator(self.schema)
+            validator = ConfigValidator(self.schema)
             validator.validate(self.data)
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -382,18 +382,18 @@ class JoyrideConfig:
 
         # Re-validate if schema is present
         if self.schema:
-            validator = JoyrideConfigValidator(self.schema)
+            validator = ConfigValidator(self.schema)
             validator.validate(self.data)
 
     def update(self, updates: Dict[str, Any]) -> None:
         """Update configuration with new values."""
         # Use deep merge instead of simple update
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
         self.data = loader._deep_merge(self.data, updates)
 
         # Re-validate if schema is present
         if self.schema:
-            validator = JoyrideConfigValidator(self.schema)
+            validator = ConfigValidator(self.schema)
             validator.validate(self.data)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -417,8 +417,8 @@ def create_config(
     config_files: Optional[List[Union[str, Path]]] = None,
     env_prefix: str = "JOYRIDE_",
     include_defaults: bool = True,
-    schema: Optional[JoyrideConfigSchema] = None,
-) -> JoyrideConfig:
+    schema: Optional[ConfigSchema] = None,
+) -> Config:
     """
     Create a complete Joyride configuration from multiple sources.
 
@@ -429,9 +429,9 @@ def create_config(
         schema: Configuration schema for validation
 
     Returns:
-        JoyrideConfig: Fully configured instance
+        Config: Fully configured instance
     """
-    loader = JoyrideConfigLoader()
+    loader = ConfigLoader()
     loader._env_prefix = env_prefix
 
     # Add default configuration
@@ -451,4 +451,4 @@ def create_config(
     # Merge and create final configuration
     merged_data = loader.merge_sources()
 
-    return JoyrideConfig(data=merged_data, sources=loader.sources.copy(), schema=schema)
+    return Config(data=merged_data, sources=loader.sources.copy(), schema=schema)

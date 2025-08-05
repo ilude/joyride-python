@@ -5,20 +5,20 @@ This package contains individual event type classes organized by category.
 Each event type is in its own module for better maintainability.
 """
 
-from .container import JoyrideContainerEvent
-from .dns import JoyrideDNSEvent
-from .error import JoyrideErrorEvent
-from .file import JoyrideFileEvent
-from .health import JoyrideHealthEvent
-from .node import JoyrideNodeEvent
-from .system import JoyrideSystemEvent
+from .container_event import ContainerEvent
+from .dns_event import DNSEvent
+from .error_event import ErrorEvent
+from .file_event import FileEvent
+from .health_event import HealthEvent
+from .node_event import NodeEvent
+from .system_event import SystemEvent
 
 __all__ = [
-    "JoyrideContainerEvent",
-    "JoyrideDNSEvent",
-    "JoyrideErrorEvent",
-    "JoyrideFileEvent",
-    "JoyrideHealthEvent",
-    "JoyrideNodeEvent",
-    "JoyrideSystemEvent",
+    "ContainerEvent",
+    "DNSEvent",
+    "ErrorEvent",
+    "FileEvent",
+    "HealthEvent",
+    "NodeEvent",
+    "SystemEvent",
 ]

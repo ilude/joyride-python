@@ -5,37 +5,37 @@ import weakref
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from .base import (
-    JoyrideCircularDependencyError,
-    JoyrideDependency,
-    JoyrideDependencyResolutionError,
-    JoyrideLifecycleType,
-    JoyrideProvider,
-    JoyrideProviderInfo,
+    CircularDependencyError,
+    Dependency,
+    DependencyResolutionError,
+    LifecycleType,
+    Provider,
+    ProviderInfo,
 )
-from .class_provider import JoyrideClassProvider
-from .factory_provider import JoyrideFactoryProvider
-from .prototype_provider import JoyridePrototypeProvider
-from .singleton_provider import JoyrideSingletonProvider
+from .class_provider import ClassProvider
+from .factory_provider import FactoryProvider
+from .prototype_provider import PrototypeProvider
+from .singleton_provider import SingletonProvider
 
 
-class JoyrideProviderRegistry:
+class ProviderRegistry:
     """Registry for managing component providers and dependency resolution."""
 
     def __init__(self):
         """Initialize provider registry."""
-        self._providers: Dict[str, JoyrideProviderInfo] = {}
+        self._providers: Dict[str, ProviderInfo] = {}
         self._resolution_stack: List[str] = []
         self._lock = threading.RLock()
 
     def register_provider(
-        self, provider: JoyrideProvider[Any], lifecycle: JoyrideLifecycleType
+        self, provider: Provider[Any], lifecycle: LifecycleType
     ) -> None:
         """Register a provider with the registry."""
         with self._lock:
             if provider.name in self._providers:
                 raise ValueError(f"Provider '{provider.name}' is already registered")
 
-            info = JoyrideProviderInfo(
+            info = ProviderInfo(
                 name=provider.name,
                 provider=provider,
                 lifecycle=lifecycle,
@@ -48,40 +48,40 @@ class JoyrideProviderRegistry:
         self,
         name: str,
         factory: Callable[..., Any],
-        dependencies: Optional[List[JoyrideDependency]] = None,
-    ) -> JoyrideSingletonProvider:
+        dependencies: Optional[List[Dependency]] = None,
+    ) -> SingletonProvider:
         """Register a singleton provider."""
-        provider = JoyrideSingletonProvider(name, factory, dependencies)
-        self.register_provider(provider, JoyrideLifecycleType.SINGLETON)
+        provider = SingletonProvider(name, factory, dependencies)
+        self.register_provider(provider, LifecycleType.SINGLETON)
         return provider
 
     def register_factory(
         self,
         name: str,
         factory: Callable[..., Any],
-        dependencies: Optional[List[JoyrideDependency]] = None,
-    ) -> JoyrideFactoryProvider:
+        dependencies: Optional[List[Dependency]] = None,
+    ) -> FactoryProvider:
         """Register a factory provider."""
-        provider = JoyrideFactoryProvider(name, factory, dependencies)
-        self.register_provider(provider, JoyrideLifecycleType.FACTORY)
+        provider = FactoryProvider(name, factory, dependencies)
+        self.register_provider(provider, LifecycleType.FACTORY)
         return provider
 
     def register_prototype(
         self, name: str, prototype: Any, clone_method: str = "copy"
-    ) -> JoyridePrototypeProvider:
+    ) -> PrototypeProvider:
         """Register a prototype provider."""
-        provider = JoyridePrototypeProvider(name, prototype, clone_method)
-        self.register_provider(provider, JoyrideLifecycleType.PROTOTYPE)
+        provider = PrototypeProvider(name, prototype, clone_method)
+        self.register_provider(provider, LifecycleType.PROTOTYPE)
         return provider
 
     def register_class(
         self,
         name: str,
         cls: Type[Any],
-        lifecycle: JoyrideLifecycleType = JoyrideLifecycleType.FACTORY,
-    ) -> JoyrideClassProvider:
+        lifecycle: LifecycleType = LifecycleType.FACTORY,
+    ) -> ClassProvider:
         """Register a class provider."""
-        provider = JoyrideClassProvider(name, cls, lifecycle)
+        provider = ClassProvider(name, cls, lifecycle)
         self.register_provider(provider, lifecycle)
         return provider
 
@@ -115,7 +115,7 @@ class JoyrideProviderRegistry:
         """Get an instance from a provider."""
         with self._lock:
             if name not in self._providers:
-                raise JoyrideDependencyResolutionError(
+                raise DependencyResolutionError(
                     f"Provider '{name}' is not registered"
                 )
 
@@ -124,7 +124,7 @@ class JoyrideProviderRegistry:
                 cycle = self._resolution_stack[self._resolution_stack.index(name) :] + [
                     name
                 ]
-                raise JoyrideCircularDependencyError(
+                raise CircularDependencyError(
                     f"Circular dependency detected: {' -> '.join(cycle)}"
                 )
 
@@ -136,8 +136,8 @@ class JoyrideProviderRegistry:
 
                 # Track instance for lifecycle management
                 if info.lifecycle in (
-                    JoyrideLifecycleType.FACTORY,
-                    JoyrideLifecycleType.PROTOTYPE,
+                    LifecycleType.FACTORY,
+                    LifecycleType.PROTOTYPE,
                 ):
                     info.created_instances.append(weakref.ref(instance))
 

@@ -15,10 +15,10 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-from .providers import JoyrideProvider, JoyrideProviderRegistry
+from .providers import Provider, ProviderRegistry
 
 
-class JoyrideLifecycleState(Enum):
+class LifecycleState(Enum):
     """Component lifecycle states."""
 
     STOPPED = "stopped"
@@ -28,7 +28,7 @@ class JoyrideLifecycleState(Enum):
     FAILED = "failed"
 
 
-class JoyrideHealthStatus(Enum):
+class HealthStatus(Enum):
     """Component health status."""
 
     HEALTHY = "healthy"
@@ -37,7 +37,7 @@ class JoyrideHealthStatus(Enum):
     UNKNOWN = "unknown"
 
 
-class JoyrideLifecycleComponent(ABC):
+class LifecycleComponent(ABC):
     """Abstract base class for lifecycle-managed components."""
 
     def __init__(self, name: str):
@@ -50,8 +50,8 @@ class JoyrideLifecycleComponent(ABC):
             raise ValueError("Component name must be a non-empty string")
 
         self.name = name
-        self.state = JoyrideLifecycleState.STOPPED
-        self.health_status = JoyrideHealthStatus.UNKNOWN
+        self.state = LifecycleState.STOPPED
+        self.health_status = HealthStatus.UNKNOWN
         self.dependencies: Set[str] = set()
         self.dependents: Set[str] = set()
         self._startup_time: Optional[float] = None
@@ -77,7 +77,7 @@ class JoyrideLifecycleComponent(ABC):
         """
         pass
 
-    async def health_check(self) -> JoyrideHealthStatus:
+    async def health_check(self) -> HealthStatus:
         """Perform health check on the component.
 
         Returns:
@@ -85,12 +85,12 @@ class JoyrideLifecycleComponent(ABC):
         """
         # Default implementation - override in subclasses
         with self._lock:
-            if self.state == JoyrideLifecycleState.STARTED:
-                return JoyrideHealthStatus.HEALTHY
-            elif self.state == JoyrideLifecycleState.FAILED:
-                return JoyrideHealthStatus.UNHEALTHY
+            if self.state == LifecycleState.STARTED:
+                return HealthStatus.HEALTHY
+            elif self.state == LifecycleState.FAILED:
+                return HealthStatus.UNHEALTHY
             else:
-                return JoyrideHealthStatus.UNKNOWN
+                return HealthStatus.UNKNOWN
 
     def add_dependency(self, component_name: str) -> None:
         """Add a dependency on another component.
@@ -140,11 +140,11 @@ class JoyrideLifecycleComponent(ABC):
         )
 
 
-class JoyrideProviderComponent(JoyrideLifecycleComponent):
+class ProviderComponent(LifecycleComponent):
     """Lifecycle component that wraps a provider."""
 
     def __init__(
-        self, name: str, provider: JoyrideProvider, registry: JoyrideProviderRegistry
+        self, name: str, provider: Provider, registry: ProviderRegistry
     ):
         """Initialize provider component.
 
@@ -164,10 +164,10 @@ class JoyrideProviderComponent(JoyrideLifecycleComponent):
 
         try:
             with self._lock:
-                if self.state != JoyrideLifecycleState.STOPPED:
+                if self.state != LifecycleState.STOPPED:
                     raise RuntimeError(f"Component {self.name} is not in stopped state")
 
-                self.state = JoyrideLifecycleState.STARTING
+                self.state = LifecycleState.STARTING
 
             # Create instance through provider
             self.instance = self.provider.create(self.registry)
@@ -182,14 +182,14 @@ class JoyrideProviderComponent(JoyrideLifecycleComponent):
                     self.instance.start()
 
             with self._lock:
-                self.state = JoyrideLifecycleState.STARTED
-                self.health_status = JoyrideHealthStatus.HEALTHY
+                self.state = LifecycleState.STARTED
+                self.health_status = HealthStatus.HEALTHY
                 self._startup_time = time.time() - start_time
 
         except Exception as e:
             with self._lock:
-                self.state = JoyrideLifecycleState.FAILED
-                self.health_status = JoyrideHealthStatus.UNHEALTHY
+                self.state = LifecycleState.FAILED
+                self.health_status = HealthStatus.UNHEALTHY
                 self._startup_time = time.time() - start_time
             raise RuntimeError(f"Failed to start component {self.name}: {e}") from e
 
@@ -200,12 +200,12 @@ class JoyrideProviderComponent(JoyrideLifecycleComponent):
         try:
             with self._lock:
                 if self.state not in (
-                    JoyrideLifecycleState.STARTED,
-                    JoyrideLifecycleState.FAILED,
+                    LifecycleState.STARTED,
+                    LifecycleState.FAILED,
                 ):
                     return  # Already stopped or stopping
 
-                self.state = JoyrideLifecycleState.STOPPING
+                self.state = LifecycleState.STOPPING
 
             # Call stop method if instance has one
             if (
@@ -219,24 +219,24 @@ class JoyrideProviderComponent(JoyrideLifecycleComponent):
                     self.instance.stop()
 
             with self._lock:
-                self.state = JoyrideLifecycleState.STOPPED
-                self.health_status = JoyrideHealthStatus.UNKNOWN
+                self.state = LifecycleState.STOPPED
+                self.health_status = HealthStatus.UNKNOWN
                 self._shutdown_time = time.time() - stop_time
                 self.instance = None
 
         except Exception as e:
             with self._lock:
-                self.state = JoyrideLifecycleState.FAILED
-                self.health_status = JoyrideHealthStatus.UNHEALTHY
+                self.state = LifecycleState.FAILED
+                self.health_status = HealthStatus.UNHEALTHY
                 self._shutdown_time = time.time() - stop_time
             raise RuntimeError(f"Failed to stop component {self.name}: {e}") from e
 
-    async def health_check(self) -> JoyrideHealthStatus:
+    async def health_check(self) -> HealthStatus:
         """Perform health check on the provider component."""
         with self._lock:
             self._last_health_check = time.time()
 
-            if self.state != JoyrideLifecycleState.STARTED:
+            if self.state != LifecycleState.STARTED:
                 return await super().health_check()
 
             # Call health check method if instance has one
@@ -247,26 +247,26 @@ class JoyrideProviderComponent(JoyrideLifecycleComponent):
                     else:
                         status = self.instance.health_check()
 
-                    if isinstance(status, JoyrideHealthStatus):
+                    if isinstance(status, HealthStatus):
                         self.health_status = status
                         return status
                     elif isinstance(status, bool):
                         self.health_status = (
-                            JoyrideHealthStatus.HEALTHY
+                            HealthStatus.HEALTHY
                             if status
-                            else JoyrideHealthStatus.UNHEALTHY
+                            else HealthStatus.UNHEALTHY
                         )
                         return self.health_status
                     elif isinstance(status, str):
                         # Try to map string to health status
                         status_mapping = {
-                            "healthy": JoyrideHealthStatus.HEALTHY,
-                            "degraded": JoyrideHealthStatus.DEGRADED,
-                            "unhealthy": JoyrideHealthStatus.UNHEALTHY,
-                            "unknown": JoyrideHealthStatus.UNKNOWN,
+                            "healthy": HealthStatus.HEALTHY,
+                            "degraded": HealthStatus.DEGRADED,
+                            "unhealthy": HealthStatus.UNHEALTHY,
+                            "unknown": HealthStatus.UNKNOWN,
                         }
                         self.health_status = status_mapping.get(
-                            status.lower(), JoyrideHealthStatus.UNKNOWN
+                            status.lower(), HealthStatus.UNKNOWN
                         )
                         return self.health_status
 
@@ -274,33 +274,33 @@ class JoyrideProviderComponent(JoyrideLifecycleComponent):
                     logging.warning(
                         f"Health check failed for component {self.name}: {e}"
                     )
-                    self.health_status = JoyrideHealthStatus.UNHEALTHY
+                    self.health_status = HealthStatus.UNHEALTHY
                     return self.health_status
 
             # Default to healthy if no health check method
-            self.health_status = JoyrideHealthStatus.HEALTHY
+            self.health_status = HealthStatus.HEALTHY
             return self.health_status
 
 
-class JoyrideLifecycleError(Exception):
+class LifecycleError(Exception):
     """Base exception for lifecycle management errors."""
 
     pass
 
 
-class JoyrideLifecycleDependencyError(JoyrideLifecycleError):
+class LifecycleDependencyError(LifecycleError):
     """Exception raised when there are dependency issues."""
 
     pass
 
 
-class JoyrideLifecycleTimeoutError(JoyrideLifecycleError):
+class LifecycleTimeoutError(LifecycleError):
     """Exception raised when lifecycle operations timeout."""
 
     pass
 
 
-class JoyrideLifecycleManager:
+class LifecycleManager:
     """Manages component lifecycle with dependency ordering."""
 
     def __init__(self, startup_timeout: float = 30.0, shutdown_timeout: float = 30.0):
@@ -312,14 +312,14 @@ class JoyrideLifecycleManager:
         """
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
-        self.components: Dict[str, JoyrideLifecycleComponent] = {}
+        self.components: Dict[str, LifecycleComponent] = {}
         self._logger = logging.getLogger(__name__)
         self._lock = threading.Lock()
         self._health_check_interval = 30.0  # seconds
         self._health_check_task: Optional[asyncio.Task] = None
         self._shutdown_event = asyncio.Event()
 
-    def register_component(self, component: JoyrideLifecycleComponent) -> None:
+    def register_component(self, component: LifecycleComponent) -> None:
         """Register a component for lifecycle management.
 
         Args:
@@ -328,8 +328,8 @@ class JoyrideLifecycleManager:
         Raises:
             ValueError: If component name already registered
         """
-        if not isinstance(component, JoyrideLifecycleComponent):
-            raise ValueError("Component must be a JoyrideLifecycleComponent")
+        if not isinstance(component, LifecycleComponent):
+            raise ValueError("Component must be a LifecycleComponent")
 
         with self._lock:
             if component.name in self.components:
@@ -353,8 +353,8 @@ class JoyrideLifecycleManager:
 
             component = self.components[name]
             if component.state not in (
-                JoyrideLifecycleState.STOPPED,
-                JoyrideLifecycleState.FAILED,
+                LifecycleState.STOPPED,
+                LifecycleState.FAILED,
             ):
                 raise ValueError(
                     f"Component '{name}' must be stopped before unregistering"
@@ -381,7 +381,7 @@ class JoyrideLifecycleManager:
 
             # Check for circular dependencies
             if self._has_circular_dependency(component_name, dependency_name):
-                raise JoyrideLifecycleDependencyError(
+                raise LifecycleDependencyError(
                     f"Adding dependency would create circular dependency: {component_name} -> {dependency_name}"
                 )
 
@@ -432,7 +432,7 @@ class JoyrideLifecycleManager:
             List of component names in startup order
 
         Raises:
-            JoyrideLifecycleDependencyError: If circular dependencies exist
+            LifecycleDependencyError: If circular dependencies exist
         """
         with self._lock:
             # Topological sort for startup order
@@ -442,7 +442,7 @@ class JoyrideLifecycleManager:
 
             def visit(name: str):
                 if name in temp_visited:
-                    raise JoyrideLifecycleDependencyError(
+                    raise LifecycleDependencyError(
                         f"Circular dependency detected involving {name}"
                     )
                 if name in visited:
@@ -478,7 +478,7 @@ class JoyrideLifecycleManager:
         """Start all components in dependency order.
 
         Raises:
-            JoyrideLifecycleError: If any component fails to start
+            LifecycleError: If any component fails to start
         """
         startup_order = self.get_startup_order()
         self._logger.info(f"Starting components in order: {startup_order}")
@@ -486,7 +486,7 @@ class JoyrideLifecycleManager:
         for name in startup_order:
             component = self.components[name]
 
-            if component.state != JoyrideLifecycleState.STOPPED:
+            if component.state != LifecycleState.STOPPED:
                 self._logger.warning(
                     f"Component {name} is not in stopped state, skipping"
                 )
@@ -502,12 +502,12 @@ class JoyrideLifecycleManager:
                 )
 
             except asyncio.TimeoutError:
-                raise JoyrideLifecycleTimeoutError(
+                raise LifecycleTimeoutError(
                     f"Component {name} startup timed out after {self.startup_timeout}s"
                 )
             except Exception as e:
                 self._logger.error(f"Failed to start component {name}: {e}")
-                raise JoyrideLifecycleError(f"Component {name} failed to start") from e
+                raise LifecycleError(f"Component {name} failed to start") from e
 
         # Start health check monitoring
         await self._start_health_monitoring()
@@ -518,7 +518,7 @@ class JoyrideLifecycleManager:
         """Stop all components in reverse dependency order.
 
         Raises:
-            JoyrideLifecycleError: If any component fails to stop
+            LifecycleError: If any component fails to stop
         """
         # Stop health monitoring
         await self._stop_health_monitoring()
@@ -532,8 +532,8 @@ class JoyrideLifecycleManager:
             component = self.components[name]
 
             if component.state not in (
-                JoyrideLifecycleState.STARTED,
-                JoyrideLifecycleState.FAILED,
+                LifecycleState.STARTED,
+                LifecycleState.FAILED,
             ):
                 self._logger.warning(
                     f"Component {name} is not in started/failed state, skipping"
@@ -559,7 +559,7 @@ class JoyrideLifecycleManager:
                 errors.append(error_msg)
 
         if errors:
-            raise JoyrideLifecycleError(
+            raise LifecycleError(
                 f"Some components failed to stop: {'; '.join(errors)}"
             )
 
@@ -573,7 +573,7 @@ class JoyrideLifecycleManager:
 
         Raises:
             ValueError: If component not found
-            JoyrideLifecycleError: If component or dependencies fail to start
+            LifecycleError: If component or dependencies fail to start
         """
         if name not in self.components:
             raise ValueError(f"Component '{name}' not found")
@@ -587,7 +587,7 @@ class JoyrideLifecycleManager:
         components_to_start = [
             comp_name
             for comp_name in components_to_start
-            if self.components[comp_name].state == JoyrideLifecycleState.STOPPED
+            if self.components[comp_name].state == LifecycleState.STOPPED
         ]
 
         self._logger.info(
@@ -602,7 +602,7 @@ class JoyrideLifecycleManager:
                 await asyncio.wait_for(component.start(), timeout=self.startup_timeout)
                 self._logger.info(f"Started component: {comp_name}")
             except Exception as e:
-                raise JoyrideLifecycleError(
+                raise LifecycleError(
                     f"Failed to start component {comp_name}"
                 ) from e
 
@@ -614,7 +614,7 @@ class JoyrideLifecycleManager:
 
         Raises:
             ValueError: If component not found
-            JoyrideLifecycleError: If component or dependents fail to stop
+            LifecycleError: If component or dependents fail to stop
         """
         if name not in self.components:
             raise ValueError(f"Component '{name}' not found")
@@ -629,7 +629,7 @@ class JoyrideLifecycleManager:
             comp_name
             for comp_name in components_to_stop
             if self.components[comp_name].state
-            in (JoyrideLifecycleState.STARTED, JoyrideLifecycleState.FAILED)
+            in (LifecycleState.STARTED, LifecycleState.FAILED)
         ]
 
         self._logger.info(
@@ -650,11 +650,11 @@ class JoyrideLifecycleManager:
                 errors.append(error_msg)
 
         if errors:
-            raise JoyrideLifecycleError(
+            raise LifecycleError(
                 f"Some components failed to stop: {'; '.join(errors)}"
             )
 
-    async def health_check_all(self) -> Dict[str, JoyrideHealthStatus]:
+    async def health_check_all(self) -> Dict[str, HealthStatus]:
         """Perform health check on all components.
 
         Returns:
@@ -671,7 +671,7 @@ class JoyrideLifecycleManager:
                 results[name] = status
             except Exception as e:
                 self._logger.warning(f"Health check failed for component {name}: {e}")
-                results[name] = JoyrideHealthStatus.UNHEALTHY
+                results[name] = HealthStatus.UNHEALTHY
 
         return results
 
@@ -741,7 +741,7 @@ class JoyrideLifecycleManager:
                 unhealthy = [
                     name
                     for name, status in health_results.items()
-                    if status == JoyrideHealthStatus.UNHEALTHY
+                    if status == HealthStatus.UNHEALTHY
                 ]
 
                 if unhealthy:

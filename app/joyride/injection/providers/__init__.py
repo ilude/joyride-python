@@ -5,32 +5,32 @@ provider types and automatic dependency resolution.
 """
 
 from .base import (
-    JoyrideCircularDependencyError,
-    JoyrideDependency,
-    JoyrideDependencyResolutionError,
-    JoyrideLifecycleType,
-    JoyrideProvider,
-    JoyrideProviderInfo,
+    CircularDependencyError,
+    Dependency,
+    DependencyResolutionError,
+    LifecycleType,
+    Provider,
+    ProviderInfo,
 )
-from .class_provider import JoyrideClassProvider
-from .factory_provider import JoyrideFactoryProvider
-from .prototype_provider import JoyridePrototypeProvider
-from .registry import JoyrideProviderRegistry
-from .singleton_provider import JoyrideSingletonProvider
+from .class_provider import ClassProvider
+from .factory_provider import FactoryProvider
+from .prototype_provider import PrototypeProvider
+from .registry import ProviderRegistry
+from .singleton_provider import SingletonProvider
 
 __all__ = [
     # Base types and exceptions
-    "JoyrideLifecycleType",
-    "JoyrideCircularDependencyError",
-    "JoyrideDependencyResolutionError",
-    "JoyrideDependency",
-    "JoyrideProviderInfo",
-    "JoyrideProvider",
+    "LifecycleType",
+    "CircularDependencyError",
+    "DependencyResolutionError",
+    "Dependency",
+    "ProviderInfo",
+    "Provider",
     # Provider implementations
-    "JoyrideSingletonProvider",
-    "JoyrideFactoryProvider",
-    "JoyridePrototypeProvider",
-    "JoyrideClassProvider",
+    "SingletonProvider",
+    "FactoryProvider",
+    "PrototypeProvider",
+    "ClassProvider",
     # Registry
-    "JoyrideProviderRegistry",
+    "ProviderRegistry",
 ]

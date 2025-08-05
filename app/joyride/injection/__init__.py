@@ -6,40 +6,41 @@ implementing configuration management, component lifecycle, and service registra
 """
 
 # Configuration system
-from .config import JoyrideConfig, JoyrideConfigLoader, JoyrideConfigValidator
+from .config import Config, ConfigLoader, ConfigValidator
 
 # Provider system
 from .providers import (  # Base types and exceptions; Provider implementations; Registry
-    JoyrideCircularDependencyError,
-    JoyrideClassProvider,
-    JoyrideDependency,
-    JoyrideDependencyResolutionError,
-    JoyrideFactoryProvider,
-    JoyrideLifecycleType,
-    JoyridePrototypeProvider,
-    JoyrideProvider,
-    JoyrideProviderInfo,
-    JoyrideProviderRegistry,
-    JoyrideSingletonProvider,
+    CircularDependencyError,
+    ClassProvider,
+    Dependency,
+    DependencyResolutionError,
+    FactoryProvider,
+    LifecycleType,
+    PrototypeProvider,
+    Provider,
+    ProviderInfo,
+    ProviderRegistry,
+    SingletonProvider,
 )
 
 __all__ = [
     # Configuration
-    "JoyrideConfig",
-    "JoyrideConfigLoader",
-    "JoyrideConfigValidator",
-    # Provider system - Base types and exceptions
-    "JoyrideLifecycleType",
-    "JoyrideCircularDependencyError",
-    "JoyrideDependencyResolutionError",
-    "JoyrideDependency",
-    "JoyrideProviderInfo",
-    "JoyrideProvider",
-    # Provider system - Implementations
-    "JoyrideSingletonProvider",
-    "JoyrideFactoryProvider",
-    "JoyridePrototypeProvider",
-    "JoyrideClassProvider",
-    # Provider system - Registry
-    "JoyrideProviderRegistry",
+    "Config",
+    "ConfigLoader",
+    "ConfigValidator",
+    # Providers
+    "Provider",
+    "ProviderRegistry",
+    "ProviderInfo",
+    "LifecycleType",
+    # Provider implementations
+    "SingletonProvider",
+    "PrototypeProvider",
+    "FactoryProvider",
+    "ClassProvider",
+    # Dependencies
+    "Dependency",
+    # Exceptions
+    "CircularDependencyError",
+    "DependencyResolutionError",
 ]

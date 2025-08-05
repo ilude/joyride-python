@@ -8,7 +8,7 @@ and event matching capabilities.
 from typing import Callable
 
 from .event import Event
-from .filter import EventFilter
+from .event_filter import EventFilter
 
 
 class EventSubscription:

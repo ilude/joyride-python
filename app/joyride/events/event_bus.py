@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from .event import Event
     from .handler import EventHandler
 
+from .event_subscription import EventSubscription
 from .registry import EventRegistry
-from .subscription import EventSubscription
 
 logger = logging.getLogger(__name__)
 
@@ -136,8 +136,8 @@ class EventBus:
             return processed_count
 
     def get_subscriptions(
-        self, event_type: Optional[Type["JoyrideEvent"]] = None
-    ) -> List["JoyrideEventSubscription"]:
+        self, event_type: Optional[Type["Event"]] = None
+    ) -> List["EventSubscription"]:
         """
         Get all subscriptions, optionally filtered by event type.
 
@@ -151,7 +151,7 @@ class EventBus:
             return self._registry.get_subscriptions(event_type)
 
     def clear_subscriptions(
-        self, event_type: Optional[Type["JoyrideEvent"]] = None
+        self, event_type: Optional[Type["Event"]] = None
     ) -> int:
         """
         Clear subscriptions, optionally filtered by event type.

@@ -13,22 +13,22 @@ from .events import *
 
 __all__ = [
     # Event system classes
-    "JoyrideEvent",
-    "JoyrideEventHandler",
-    "JoyrideEventProducer",
-    "JoyrideEventBus",
+    "Event",
+    "EventHandler",
+    "EventProducer",
+    "EventBus",
     # Registry system
-    "JoyrideEventFilter",
-    "JoyrideEventRegistry",
-    "JoyrideEventSubscription",
-    "get_joyride_registry",
-    "reset_joyride_registry",
+    "EventFilter",
+    "EventRegistry",
+    "EventSubscription",
+    "get_event_registry",
+    "reset_event_registry",
     # Event types
-    "JoyrideContainerEvent",
-    "JoyrideDNSEvent",
-    "JoyrideErrorEvent",
-    "JoyrideFileEvent",
-    "JoyrideHealthEvent",
-    "JoyrideNodeEvent",
-    "JoyrideSystemEvent",
+    "ContainerEvent",
+    "DNSEvent",
+    "ErrorEvent",
+    "FileEvent",
+    "HealthEvent",
+    "NodeEvent",
+    "SystemEvent",
 ]

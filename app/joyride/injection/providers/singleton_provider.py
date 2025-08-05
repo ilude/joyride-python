@@ -3,24 +3,24 @@
 from typing import TYPE_CHECKING, Callable, List, Optional
 
 from .base import (
-    JoyrideDependency,
-    JoyrideDependencyResolutionError,
-    JoyrideProvider,
+    Dependency,
+    DependencyResolutionError,
+    Provider,
     T,
 )
 
 if TYPE_CHECKING:
-    from .registry import JoyrideProviderRegistry
+    from .registry import ProviderRegistry
 
 
-class JoyrideSingletonProvider(JoyrideProvider[T]):
+class SingletonProvider(Provider[T]):
     """Provider that creates and maintains a single instance (singleton pattern)."""
 
     def __init__(
         self,
         name: str,
         factory: Callable[..., T],
-        dependencies: Optional[List[JoyrideDependency]] = None,
+        dependencies: Optional[List[Dependency]] = None,
     ):
         """Initialize singleton provider."""
         super().__init__(name)
@@ -32,7 +32,7 @@ class JoyrideSingletonProvider(JoyrideProvider[T]):
         self._instance: Optional[T] = None
         self._created = False
 
-    def create(self, container: "JoyrideProviderRegistry", **kwargs) -> T:
+    def create(self, container: "ProviderRegistry", **kwargs) -> T:
         """Create or return the singleton instance."""
         with self._lock:
             if self._created and self._instance is not None:
@@ -46,14 +46,14 @@ class JoyrideSingletonProvider(JoyrideProvider[T]):
                 elif dep.required:
                     try:
                         resolved_deps[dep.name] = container.get(dep.name)
-                    except JoyrideDependencyResolutionError:
-                        raise JoyrideDependencyResolutionError(
+                    except DependencyResolutionError:
+                        raise DependencyResolutionError(
                             f"Cannot resolve required dependency '{dep.name}' for singleton {self.name}"
                         )
                 else:
                     try:
                         resolved_deps[dep.name] = container.get(dep.name)
-                    except JoyrideDependencyResolutionError:
+                    except DependencyResolutionError:
                         if dep.default_value is not None:
                             resolved_deps[dep.name] = dep.default_value
 
@@ -63,7 +63,7 @@ class JoyrideSingletonProvider(JoyrideProvider[T]):
 
             return self._instance
 
-    def can_create(self, container: "JoyrideProviderRegistry") -> bool:
+    def can_create(self, container: "ProviderRegistry") -> bool:
         """Check if singleton can be created."""
         if self._created:
             return True
@@ -74,7 +74,7 @@ class JoyrideSingletonProvider(JoyrideProvider[T]):
 
         return True
 
-    def get_dependencies(self) -> List[JoyrideDependency]:
+    def get_dependencies(self) -> List[Dependency]:
         """Get dependencies for this provider."""
         return self._dependencies.copy()
 

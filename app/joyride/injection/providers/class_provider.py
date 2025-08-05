@@ -4,25 +4,25 @@ import inspect
 from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
 from .base import (
-    JoyrideDependency,
-    JoyrideDependencyResolutionError,
-    JoyrideLifecycleType,
-    JoyrideProvider,
+    Dependency,
+    DependencyResolutionError,
+    LifecycleType,
+    Provider,
     T,
 )
 
 if TYPE_CHECKING:
-    from .registry import JoyrideProviderRegistry
+    from .registry import ProviderRegistry
 
 
-class JoyrideClassProvider(JoyrideProvider[T]):
+class ClassProvider(Provider[T]):
     """Provider that creates instances from a class with automatic dependency injection."""
 
     def __init__(
         self,
         name: str,
         cls: Type[T],
-        lifecycle: JoyrideLifecycleType = JoyrideLifecycleType.FACTORY,
+        lifecycle: LifecycleType = LifecycleType.FACTORY,
     ):
         """Initialize class provider."""
         super().__init__(name)
@@ -38,7 +38,7 @@ class JoyrideClassProvider(JoyrideProvider[T]):
         self._instance: Optional[T] = None
         self._created = False
 
-    def _analyze_dependencies(self) -> List[JoyrideDependency]:
+    def _analyze_dependencies(self) -> List[Dependency]:
         """Analyze class constructor to determine dependencies."""
         dependencies = []
 
@@ -68,7 +68,7 @@ class JoyrideClassProvider(JoyrideProvider[T]):
             default_value = param.default if not required else None
 
             dependencies.append(
-                JoyrideDependency(
+                Dependency(
                     name=param_name,
                     type_hint=type_hint,
                     required=required,
@@ -78,10 +78,10 @@ class JoyrideClassProvider(JoyrideProvider[T]):
 
         return dependencies
 
-    def create(self, container: "JoyrideProviderRegistry", **kwargs) -> T:
+    def create(self, container: "ProviderRegistry", **kwargs) -> T:
         """Create instance using class constructor."""
         with self._lock:
-            if self._lifecycle == JoyrideLifecycleType.SINGLETON and self._created:
+            if self._lifecycle == LifecycleType.SINGLETON and self._created:
                 return self._instance
 
             # Resolve dependencies
@@ -92,29 +92,29 @@ class JoyrideClassProvider(JoyrideProvider[T]):
                 elif dep.required:
                     try:
                         resolved_deps[dep.name] = container.get(dep.name)
-                    except JoyrideDependencyResolutionError:
-                        raise JoyrideDependencyResolutionError(
+                    except DependencyResolutionError:
+                        raise DependencyResolutionError(
                             f"Cannot resolve required dependency '{dep.name}' for class {self._cls.__name__}"
                         )
                 else:
                     try:
                         resolved_deps[dep.name] = container.get(dep.name)
-                    except JoyrideDependencyResolutionError:
+                    except DependencyResolutionError:
                         if dep.default_value is not None:
                             resolved_deps[dep.name] = dep.default_value
 
             # Create instance
             instance = self._cls(**resolved_deps)
 
-            if self._lifecycle == JoyrideLifecycleType.SINGLETON:
+            if self._lifecycle == LifecycleType.SINGLETON:
                 self._instance = instance
                 self._created = True
 
             return instance
 
-    def can_create(self, container: "JoyrideProviderRegistry") -> bool:
+    def can_create(self, container: "ProviderRegistry") -> bool:
         """Check if class can be instantiated."""
-        if self._lifecycle == JoyrideLifecycleType.SINGLETON and self._created:
+        if self._lifecycle == LifecycleType.SINGLETON and self._created:
             return True
 
         for dep in self._dependencies:
@@ -123,6 +123,6 @@ class JoyrideClassProvider(JoyrideProvider[T]):
 
         return True
 
-    def get_dependencies(self) -> List[JoyrideDependency]:
+    def get_dependencies(self) -> List[Dependency]:
         """Get dependencies for this provider."""
         return self._dependencies.copy()

@@ -14,22 +14,22 @@ from unittest.mock import patch
 import pytest
 
 from app.joyride.injection.config import (
-    JoyrideConfig,
-    JoyrideConfigLoader,
-    JoyrideConfigSchema,
-    JoyrideConfigSource,
-    JoyrideConfigValidator,
+    Config,
+    ConfigLoader,
+    ConfigSchema,
+    ConfigSource,
+    ConfigValidator,
     create_config,
 )
 
 
-class TestJoyrideConfigSource:
+class TestConfigSource:
     """Test configuration source functionality."""
 
     def test_config_source_creation(self):
         """Test creating a configuration source."""
         data = {"key": "value"}
-        source = JoyrideConfigSource(
+        source = ConfigSource(
             name="test", priority=10, data=data, source_type="test"
         )
 
@@ -42,7 +42,7 @@ class TestJoyrideConfigSource:
     def test_config_source_with_metadata(self):
         """Test configuration source with metadata."""
         metadata = {"version": "1.0", "author": "test"}
-        source = JoyrideConfigSource(
+        source = ConfigSource(
             name="test",
             priority=10,
             data={"key": "value"},
@@ -56,23 +56,23 @@ class TestJoyrideConfigSource:
         """Test configuration source validation."""
         # Invalid data type
         with pytest.raises(ValueError, match="Configuration data must be a dictionary"):
-            JoyrideConfigSource(
+            ConfigSource(
                 name="test", priority=10, data="not a dict", source_type="test"
             )
 
         # Invalid priority type
         with pytest.raises(ValueError, match="Priority must be an integer"):
-            JoyrideConfigSource(
+            ConfigSource(
                 name="test", priority="not an int", data={}, source_type="test"
             )
 
 
-class TestJoyrideConfigSchema:
+class TestConfigSchema:
     """Test configuration schema functionality."""
 
     def test_schema_creation(self):
         """Test creating a configuration schema."""
-        schema = JoyrideConfigSchema(
+        schema = ConfigSchema(
             required_keys=["required_key"],
             optional_keys=["optional_key"],
             key_types={"required_key": str},
@@ -86,7 +86,7 @@ class TestJoyrideConfigSchema:
 
     def test_key_validation_type_checking(self):
         """Test key validation with type checking."""
-        schema = JoyrideConfigSchema(key_types={"port": int, "host": str})
+        schema = ConfigSchema(key_types={"port": int, "host": str})
 
         # Valid types
         assert schema.validate_key("port", 8080) is True
@@ -101,7 +101,7 @@ class TestJoyrideConfigSchema:
 
     def test_key_validation_custom_validators(self):
         """Test key validation with custom validators."""
-        schema = JoyrideConfigSchema(
+        schema = ConfigSchema(
             validators={"port": lambda x: 1 <= x <= 65535, "name": lambda x: len(x) > 0}
         )
 
@@ -118,7 +118,7 @@ class TestJoyrideConfigSchema:
 
     def test_schema_validation_required_keys(self):
         """Test schema validation for required keys."""
-        schema = JoyrideConfigSchema(required_keys=["host", "port"])
+        schema = ConfigSchema(required_keys=["host", "port"])
 
         # Valid configuration
         config = {"host": "localhost", "port": 8080}
@@ -133,7 +133,7 @@ class TestJoyrideConfigSchema:
 
     def test_schema_validation_unknown_keys(self):
         """Test schema validation for unknown keys."""
-        schema = JoyrideConfigSchema(required_keys=["host"], optional_keys=["port"])
+        schema = ConfigSchema(required_keys=["host"], optional_keys=["port"])
 
         # Valid configuration
         config = {"host": "localhost", "port": 8080}
@@ -146,11 +146,11 @@ class TestJoyrideConfigSchema:
 
     def test_schema_validation_nested(self):
         """Test schema validation for nested configurations."""
-        nested_schema = JoyrideConfigSchema(
+        nested_schema = ConfigSchema(
             required_keys=["enabled"], key_types={"enabled": bool}
         )
 
-        schema = JoyrideConfigSchema(
+        schema = ConfigSchema(
             required_keys=["service"], nested_schemas={"service": nested_schema}
         )
 
@@ -171,21 +171,21 @@ class TestJoyrideConfigSchema:
             schema.validate(config)
 
 
-class TestJoyrideConfigLoader:
+class TestConfigLoader:
     """Test configuration loader functionality."""
 
     def test_loader_creation(self):
         """Test creating a configuration loader."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
         assert loader.sources == []
         assert loader._env_prefix == "JOYRIDE_"
 
     def test_add_source(self):
         """Test adding configuration sources."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
 
-        source1 = JoyrideConfigSource("test1", 10, {}, "test")
-        source2 = JoyrideConfigSource("test2", 20, {}, "test")
+        source1 = ConfigSource("test1", 10, {}, "test")
+        source2 = ConfigSource("test2", 20, {}, "test")
 
         loader.add_source(source1)
         loader.add_source(source2)
@@ -197,10 +197,10 @@ class TestJoyrideConfigLoader:
 
     def test_add_source_validation(self):
         """Test validation when adding sources."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
 
         with pytest.raises(
-            ValueError, match="Source must be a JoyrideConfigSource instance"
+            ValueError, match="Source must be a ConfigSource instance"
         ):
             loader.add_source("not a source")
 
@@ -215,7 +215,7 @@ class TestJoyrideConfigLoader:
     )
     def test_load_from_environment(self):
         """Test loading configuration from environment variables."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
         source = loader.load_from_environment()
 
         assert source.name == "environment"
@@ -233,7 +233,7 @@ class TestJoyrideConfigLoader:
     )
     def test_load_from_environment_custom_prefix(self):
         """Test loading from environment with custom prefix."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
         source = loader.load_from_environment("TEST_")
 
         assert source.data["key"] == "value"
@@ -254,7 +254,7 @@ class TestJoyrideConfigLoader:
             yaml_file = f.name
 
         try:
-            loader = JoyrideConfigLoader()
+            loader = ConfigLoader()
             source = loader.load_from_file(yaml_file, priority=75)
 
             assert source.name == f"file:{Path(yaml_file).name}"
@@ -277,7 +277,7 @@ class TestJoyrideConfigLoader:
             json_file = f.name
 
         try:
-            loader = JoyrideConfigLoader()
+            loader = ConfigLoader()
             source = loader.load_from_file(json_file, priority=75)
 
             assert source.name == f"file:{Path(json_file).name}"
@@ -290,7 +290,7 @@ class TestJoyrideConfigLoader:
 
     def test_load_from_nonexistent_file(self):
         """Test loading from non-existent file."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
 
         with pytest.raises(FileNotFoundError, match="Configuration file not found"):
             loader.load_from_file("/nonexistent/config.yaml")
@@ -302,7 +302,7 @@ class TestJoyrideConfigLoader:
             txt_file = f.name
 
         try:
-            loader = JoyrideConfigLoader()
+            loader = ConfigLoader()
             with pytest.raises(ValueError, match="Unsupported file format"):
                 loader.load_from_file(txt_file)
         finally:
@@ -310,7 +310,7 @@ class TestJoyrideConfigLoader:
 
     def test_load_defaults(self):
         """Test loading default configuration."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
         source = loader.load_defaults()
 
         assert source.name == "defaults"
@@ -325,17 +325,17 @@ class TestJoyrideConfigLoader:
 
     def test_merge_sources(self):
         """Test merging configuration sources."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
 
         # Add sources with different priorities
-        defaults = JoyrideConfigSource(
+        defaults = ConfigSource(
             "defaults",
             0,
             {"dns": {"port": 53, "host": "0.0.0.0"}, "logging": {"level": "INFO"}},
             "default",
         )
 
-        file_config = JoyrideConfigSource(
+        file_config = ConfigSource(
             "file",
             50,
             {
@@ -345,7 +345,7 @@ class TestJoyrideConfigLoader:
             "file",
         )
 
-        env_config = JoyrideConfigSource(
+        env_config = ConfigSource(
             "env", 100, {"logging": {"level": "DEBUG"}}, "env"  # Override logging level
         )
 
@@ -363,7 +363,7 @@ class TestJoyrideConfigLoader:
 
     def test_parse_env_value_types(self):
         """Test parsing environment variable values to correct types."""
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
 
         # Boolean values
         assert loader._parse_env_value("true") is True
@@ -385,18 +385,18 @@ class TestJoyrideConfigLoader:
         assert loader._parse_env_value("plain_string") == "plain_string"
 
 
-class TestJoyrideConfigValidator:
+class TestConfigValidator:
     """Test configuration validator functionality."""
 
     def test_validator_creation(self):
         """Test creating a configuration validator."""
-        schema = JoyrideConfigSchema()
-        validator = JoyrideConfigValidator(schema)
+        schema = ConfigSchema()
+        validator = ConfigValidator(schema)
         assert validator.schema == schema
 
     def test_validator_default_schema(self):
         """Test validator with default schema."""
-        validator = JoyrideConfigValidator()
+        validator = ConfigValidator()
         assert validator.schema is not None
 
         # Test with valid DNS configuration
@@ -410,11 +410,11 @@ class TestJoyrideConfigValidator:
 
     def test_validator_custom_schema(self):
         """Test validator with custom schema."""
-        schema = JoyrideConfigSchema(
+        schema = ConfigSchema(
             required_keys=["service"], key_types={"service": str}
         )
 
-        validator = JoyrideConfigValidator(schema)
+        validator = ConfigValidator(schema)
 
         # Valid configuration
         config = {"service": "dns"}
@@ -426,13 +426,13 @@ class TestJoyrideConfigValidator:
             validator.validate(config)
 
 
-class TestJoyrideConfig:
+class TestConfig:
     """Test main configuration class functionality."""
 
     def test_config_creation(self):
         """Test creating a configuration instance."""
         data = {"dns": {"port": 8053, "host": "localhost"}}
-        config = JoyrideConfig(data=data)
+        config = Config(data=data)
 
         assert config.data == data
         assert config.sources == []
@@ -440,10 +440,10 @@ class TestJoyrideConfig:
 
     def test_config_with_validation(self):
         """Test configuration with schema validation."""
-        schema = JoyrideConfigSchema(
+        schema = ConfigSchema(
             required_keys=["dns"],
             nested_schemas={
-                "dns": JoyrideConfigSchema(
+                "dns": ConfigSchema(
                     required_keys=["port", "host"], key_types={"port": int, "host": str}
                 )
             },
@@ -451,13 +451,13 @@ class TestJoyrideConfig:
 
         # Valid configuration
         data = {"dns": {"port": 8053, "host": "localhost"}}
-        config = JoyrideConfig(data=data, schema=schema)
+        config = Config(data=data, schema=schema)
         assert config.data == data
 
         # Invalid configuration
         data = {"dns": {"port": "invalid", "host": "localhost"}}
         with pytest.raises(ValueError):
-            JoyrideConfig(data=data, schema=schema)
+            Config(data=data, schema=schema)
 
     def test_config_get_method(self):
         """Test getting configuration values."""
@@ -465,7 +465,7 @@ class TestJoyrideConfig:
             "dns": {"port": 8053, "host": "localhost"},
             "logging": {"level": "DEBUG"},
         }
-        config = JoyrideConfig(data=data)
+        config = Config(data=data)
 
         # Simple key access
         assert config.get("dns.port") == 8053
@@ -479,7 +479,7 @@ class TestJoyrideConfig:
 
     def test_config_set_method(self):
         """Test setting configuration values."""
-        config = JoyrideConfig(data={})
+        config = Config(data={})
 
         # Set nested values
         config.set("dns.port", 8053)
@@ -492,7 +492,7 @@ class TestJoyrideConfig:
 
     def test_config_update_method(self):
         """Test updating configuration."""
-        config = JoyrideConfig(data={"dns": {"port": 53}})
+        config = Config(data={"dns": {"port": 53}})
 
         updates = {"dns": {"host": "localhost"}, "logging": {"level": "DEBUG"}}
         config.update(updates)
@@ -504,7 +504,7 @@ class TestJoyrideConfig:
     def test_config_dictionary_access(self):
         """Test dictionary-style access."""
         data = {"dns": {"port": 8053, "host": "localhost"}}
-        config = JoyrideConfig(data=data)
+        config = Config(data=data)
 
         # Get
         assert config["dns.port"] == 8053
@@ -574,7 +574,7 @@ class TestCreateConfig:
 
     def test_create_config_with_schema(self):
         """Test creating configuration with validation schema."""
-        schema = JoyrideConfigSchema(
+        schema = ConfigSchema(
             required_keys=["dns"],
             optional_keys=[
                 "docker",
@@ -584,7 +584,7 @@ class TestCreateConfig:
                 "events",
             ],  # Allow other default keys
             nested_schemas={
-                "dns": JoyrideConfigSchema(
+                "dns": ConfigSchema(
                     required_keys=["port"],
                     optional_keys=[
                         "host",

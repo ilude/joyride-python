@@ -8,12 +8,12 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Generic, List, Type, TypeVar
 
 if TYPE_CHECKING:
-    from .registry import JoyrideProviderRegistry
+    from .registry import ProviderRegistry
 
 T = TypeVar("T")
 
 
-class JoyrideLifecycleType(Enum):
+class LifecycleType(Enum):
     """Lifecycle types for component management."""
 
     SINGLETON = "singleton"
@@ -21,20 +21,20 @@ class JoyrideLifecycleType(Enum):
     PROTOTYPE = "prototype"
 
 
-class JoyrideCircularDependencyError(Exception):
+class CircularDependencyError(Exception):
     """Raised when circular dependencies are detected."""
 
     pass
 
 
-class JoyrideDependencyResolutionError(Exception):
+class DependencyResolutionError(Exception):
     """Raised when dependency resolution fails."""
 
     pass
 
 
 @dataclass
-class JoyrideDependency:
+class Dependency:
     """Dependency specification for component injection."""
 
     name: str
@@ -57,13 +57,13 @@ class JoyrideDependency:
 
 
 @dataclass
-class JoyrideProviderInfo:
+class ProviderInfo:
     """Information about a registered provider."""
 
     name: str
-    provider: "JoyrideProvider[Any]"
-    lifecycle: JoyrideLifecycleType
-    dependencies: List[JoyrideDependency] = field(default_factory=list)
+    provider: "Provider[Any]"
+    lifecycle: LifecycleType
+    dependencies: List[Dependency] = field(default_factory=list)
     created_instances: List[weakref.ReferenceType] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -71,13 +71,13 @@ class JoyrideProviderInfo:
         """Validate provider info after initialization."""
         if not isinstance(self.name, str) or not self.name:
             raise ValueError("Provider name must be a non-empty string")
-        if not isinstance(self.provider, JoyrideProvider):
-            raise ValueError("Provider must be a JoyrideProvider instance")
-        if not isinstance(self.lifecycle, JoyrideLifecycleType):
-            raise ValueError("Lifecycle must be a JoyrideLifecycleType")
+        if not isinstance(self.provider, Provider):
+            raise ValueError("Provider must be a Provider instance")
+        if not isinstance(self.lifecycle, LifecycleType):
+            raise ValueError("Lifecycle must be a LifecycleType")
 
 
-class JoyrideProvider(ABC, Generic[T]):
+class Provider(ABC, Generic[T]):
     """Abstract base class for all component providers."""
 
     def __init__(self, name: str):
@@ -88,17 +88,17 @@ class JoyrideProvider(ABC, Generic[T]):
         self._lock = threading.RLock()
 
     @abstractmethod
-    def create(self, container: "JoyrideProviderRegistry", **kwargs) -> T:
+    def create(self, container: "ProviderRegistry", **kwargs) -> T:
         """Create and return an instance of the managed component."""
         pass
 
     @abstractmethod
-    def can_create(self, container: "JoyrideProviderRegistry") -> bool:
+    def can_create(self, container: "ProviderRegistry") -> bool:
         """Check if the provider can create instances in the current context."""
         pass
 
     @abstractmethod
-    def get_dependencies(self) -> List[JoyrideDependency]:
+    def get_dependencies(self) -> List[Dependency]:
         """Get the dependencies required by this provider."""
         pass
 

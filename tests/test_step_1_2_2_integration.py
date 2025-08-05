@@ -5,30 +5,30 @@ It replaces the inline Python scripts with proper test cases.
 """
 import pytest
 
-from app.joyride.injection import JoyrideConfig as InjectionJoyrideConfig
+from app.joyride.injection import Config as InjectionConfig
 from app.joyride.injection import (
-    JoyrideProvider as InjectionJoyrideProvider,  # Test that injection module exports work
+    Provider as InjectionProvider,  # Test that injection module exports work
 )
 from app.joyride.injection.config import (
-    JoyrideConfig,
-    JoyrideConfigLoader,
-    JoyrideConfigSchema,
-    JoyrideConfigSource,
-    JoyrideConfigValidator,
+    Config,
+    ConfigLoader,
+    ConfigSchema,
+    ConfigSource,
+    ConfigValidator,
     create_config,
 )
 from app.joyride.injection.providers import (
-    JoyrideCircularDependencyError,
-    JoyrideClassProvider,
-    JoyrideDependency,
-    JoyrideDependencyResolutionError,
-    JoyrideFactoryProvider,
-    JoyrideLifecycleType,
-    JoyridePrototypeProvider,
-    JoyrideProvider,
-    JoyrideProviderInfo,
-    JoyrideProviderRegistry,
-    JoyrideSingletonProvider,
+    CircularDependencyError,
+    ClassProvider,
+    Dependency,
+    DependencyResolutionError,
+    FactoryProvider,
+    LifecycleType,
+    PrototypeProvider,
+    Provider,
+    ProviderInfo,
+    ProviderRegistry,
+    SingletonProvider,
 )
 
 
@@ -38,42 +38,42 @@ class TestStep122ModularImports:
     def test_provider_imports_available(self):
         """Test that all provider classes can be imported."""
         # Base types
-        assert JoyrideProvider is not None
-        assert JoyrideDependency is not None
-        assert JoyrideProviderInfo is not None
-        assert JoyrideLifecycleType is not None
+        assert Provider is not None
+        assert Dependency is not None
+        assert ProviderInfo is not None
+        assert LifecycleType is not None
 
         # Provider implementations
-        assert JoyrideSingletonProvider is not None
-        assert JoyrideFactoryProvider is not None
-        assert JoyridePrototypeProvider is not None
-        assert JoyrideClassProvider is not None
+        assert SingletonProvider is not None
+        assert FactoryProvider is not None
+        assert PrototypeProvider is not None
+        assert ClassProvider is not None
 
         # Registry
-        assert JoyrideProviderRegistry is not None
+        assert ProviderRegistry is not None
 
         # Exceptions
-        assert JoyrideCircularDependencyError is not None
-        assert JoyrideDependencyResolutionError is not None
+        assert CircularDependencyError is not None
+        assert DependencyResolutionError is not None
 
     def test_config_imports_available(self):
         """Test that all configuration classes can be imported."""
-        assert JoyrideConfigSource is not None
-        assert JoyrideConfigSchema is not None
-        assert JoyrideConfigLoader is not None
-        assert JoyrideConfigValidator is not None
-        assert JoyrideConfig is not None
+        assert ConfigSource is not None
+        assert ConfigSchema is not None
+        assert ConfigLoader is not None
+        assert ConfigValidator is not None
+        assert Config is not None
         assert create_config is not None
 
     def test_injection_module_exports(self):
         """Test that injection module properly exports both config and provider systems."""
         # Should be able to import from injection module
-        assert InjectionJoyrideProvider is not None
-        assert InjectionJoyrideConfig is not None
+        assert InjectionProvider is not None
+        assert InjectionConfig is not None
 
         # Should be the same classes
-        assert InjectionJoyrideProvider is JoyrideProvider
-        assert InjectionJoyrideConfig is JoyrideConfig
+        assert InjectionProvider is Provider
+        assert InjectionConfig is Config
 
 
 class TestStep122ProviderFunctionality:
@@ -81,7 +81,7 @@ class TestStep122ProviderFunctionality:
 
     def test_registry_creation_and_registration(self):
         """Test that provider registry works correctly."""
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
         assert registry is not None
         assert registry.get_provider_count() == 0
 
@@ -98,7 +98,7 @@ class TestStep122ProviderFunctionality:
 
     def test_instance_creation_and_retrieval(self):
         """Test that instances can be created and retrieved."""
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
 
         class TestService:
             def __init__(self, name: str = "test"):
@@ -118,7 +118,7 @@ class TestStep122ProviderFunctionality:
 
     def test_multiple_provider_types(self):
         """Test that all provider types work."""
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
 
         class TestService:
             def __init__(self, name: str = "test"):
@@ -160,12 +160,12 @@ class TestStep122ProviderFunctionality:
 
     def test_lifecycle_types_enum(self):
         """Test that lifecycle type enum works correctly."""
-        assert JoyrideLifecycleType.SINGLETON.value == "singleton"
-        assert JoyrideLifecycleType.FACTORY.value == "factory"
-        assert JoyrideLifecycleType.PROTOTYPE.value == "prototype"
+        assert LifecycleType.SINGLETON.value == "singleton"
+        assert LifecycleType.FACTORY.value == "factory"
+        assert LifecycleType.PROTOTYPE.value == "prototype"
 
         # Test all enum values are accessible
-        all_types = [t.value for t in JoyrideLifecycleType]
+        all_types = [t.value for t in LifecycleType]
         assert "singleton" in all_types
         assert "factory" in all_types
         assert "prototype" in all_types
@@ -178,16 +178,16 @@ class TestStep122ConfigurationFunctionality:
         """Test that configuration can be created."""
         config = create_config(include_defaults=True)
         assert config is not None
-        assert isinstance(config, JoyrideConfig)
+        assert isinstance(config, Config)
 
     def test_config_with_custom_data(self):
         """Test configuration with custom data."""
         # Create config loader and add custom data
-        loader = JoyrideConfigLoader()
+        loader = ConfigLoader()
         loader.add_source(loader.load_defaults())
 
         # Add custom data source with correct parameters
-        custom_source = JoyrideConfigSource(
+        custom_source = ConfigSource(
             name="test_source",
             priority=100,
             data={"test_key": "test_value"},
@@ -197,19 +197,19 @@ class TestStep122ConfigurationFunctionality:
 
         # Create config
         merged_data = loader.merge_sources()
-        config = JoyrideConfig(data=merged_data, sources=loader.sources.copy())
+        config = Config(data=merged_data, sources=loader.sources.copy())
 
         assert config.get("test_key") == "test_value"
 
     def test_config_schema_validation(self):
         """Test that configuration schema validation works."""
-        # Create a proper JoyrideConfigSchema
-        schema = JoyrideConfigSchema()
+        # Create a proper ConfigSchema
+        schema = ConfigSchema()
         schema.required_keys = ["required_key"]
         schema.optional_keys = ["optional_key"]
         schema.key_types = {"required_key": str, "optional_key": int}
 
-        validator = JoyrideConfigValidator(schema)
+        validator = ConfigValidator(schema)
 
         # Test validation with valid data
         valid_data = {"required_key": "value", "optional_key": 42}
@@ -230,11 +230,11 @@ class TestStep122FullIntegration:
         config = create_config(include_defaults=True)
 
         # Create registry
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
 
         # Register a service that might use config
         class ConfigurableService:
-            def __init__(self, config: JoyrideConfig = None):
+            def __init__(self, config: Config = None):
                 self.config = config
                 self.name = "configurable"
 
@@ -289,7 +289,7 @@ class TestStep122PerformanceAndReliability:
         import threading
         import time
 
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
 
         class TestService:
             def __init__(self, name: str = "test"):
@@ -331,7 +331,7 @@ class TestStep122PerformanceAndReliability:
 
     def test_large_number_of_providers(self):
         """Test registry performance with many providers."""
-        registry = JoyrideProviderRegistry()
+        registry = ProviderRegistry()
 
         class TestService:
             def __init__(self, name: str):
