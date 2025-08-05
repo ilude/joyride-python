@@ -335,14 +335,14 @@ _services_initialized = False
 def initialize_services() -> None:
     """Initialize DNS server, Docker monitor, and DNS sync manager."""
     global _services_initialized
-    
+
     if _services_initialized:
         logger.warning("Services already initialized, skipping...")
         return
 
     try:
         dns_server.start()
-        
+
         # Start Docker monitor but defer processing existing containers
         docker_monitor.start(process_existing=False)
 
@@ -396,14 +396,17 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
 
     # Initialize swimmies library components
-    logger.info(f"Starting Joyride in {app.config["ENVIRONMENT"]} with swimmies library v{swimmies.__version__}")
+    environment = app.config["ENVIRONMENT"]
+    logger.info(
+        f"Starting Joyride in {environment} with swimmies library v{swimmies.__version__}"
+    )
     GossipNode("joyride-main")  # Initialize gossip node for future distributed features
 
     # Initialize services only when running as main and not in testing mode
     testing_mode = (
         app.config.get("TESTING", False) or os.getenv("TESTING", "").lower() == "true"
     )
-    
+
     # Flask reloader sets WERKZEUG_RUN_MAIN=true in the reloaded process
     is_reloaded_process = os.getenv("WERKZEUG_RUN_MAIN") == "true"
 
@@ -415,9 +418,13 @@ def main():
         initialize_services()
 
     # Start the Flask application
-    logger.info(f"Starting Joyride DNS service on {app.config['HOST']}:{app.config['PORT']}")
+    logger.info(
+        f"Starting Joyride DNS service on {app.config['HOST']}:{app.config['PORT']}"
+    )
     try:
-        app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
+        app.run(
+            host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"]
+        )
     except Exception as e:
         logger.error(f"Failed to start Flask application: {e}")
         raise

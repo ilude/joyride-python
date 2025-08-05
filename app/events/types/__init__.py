@@ -15,7 +15,7 @@ from .system import JoyrideSystemEvent
 
 __all__ = [
     "JoyrideContainerEvent",
-    "JoyrideDNSEvent", 
+    "JoyrideDNSEvent",
     "JoyrideErrorEvent",
     "JoyrideFileEvent",
     "JoyrideHealthEvent",

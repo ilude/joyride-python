@@ -160,7 +160,11 @@ class DNSSyncManager:
         logger.info("DNS sync manager stopped")
 
     def add_dns_record(
-        self, hostname: str, ip_address: str, record_type: str = "A", local_only: bool = False
+        self,
+        hostname: str,
+        ip_address: str,
+        record_type: str = "A",
+        local_only: bool = False,
     ) -> None:
         """
         Add a DNS record and synchronize it across all nodes.

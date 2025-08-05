@@ -8,7 +8,7 @@ from ..core.event_base import JoyrideEvent
 
 class JoyrideSystemEvent(JoyrideEvent):
     """Application lifecycle events."""
-    
+
     def __init__(
         self,
         event_type: str,
@@ -20,11 +20,11 @@ class JoyrideSystemEvent(JoyrideEvent):
         configuration: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        timestamp: Optional[datetime] = None
+        timestamp: Optional[datetime] = None,
     ):
         """
         Initialize system event.
-        
+
         Args:
             event_type: Type of system event
             source: Source component generating the event
@@ -38,42 +38,44 @@ class JoyrideSystemEvent(JoyrideEvent):
             timestamp: Event timestamp
         """
         event_data = data or {}
-        event_data.update({
-            "component": component,
-            "operation": operation,
-            "status": status,
-            "error_message": error_message,
-            "configuration": configuration or {}
-        })
-        
+        event_data.update(
+            {
+                "component": component,
+                "operation": operation,
+                "status": status,
+                "error_message": error_message,
+                "configuration": configuration or {},
+            }
+        )
+
         super().__init__(
             event_type=event_type,
             source=source,
             data=event_data,
             metadata=metadata,
-            timestamp=timestamp
+            timestamp=timestamp,
         )
-    
+
     @property
     def component(self) -> str:
         """Get component name."""
         return self.data["component"]
-    
+
     @property
     def operation(self) -> str:
         """Get operation."""
         return self.data["operation"]
-    
+
     @property
     def status(self) -> str:
         """Get status."""
         return self.data["status"]
-    
+
     @property
     def error_message(self) -> Optional[str]:
         """Get error message."""
         return self.data["error_message"]
-    
+
     @property
     def configuration(self) -> Dict[str, Any]:
         """Get configuration."""
@@ -82,12 +84,12 @@ class JoyrideSystemEvent(JoyrideEvent):
     def _validate(self) -> None:
         """Validate system event data."""
         super()._validate()
-        
+
         if not self.component:
             raise ValueError("Component name cannot be empty")
-        
+
         if not self.operation:
             raise ValueError("Operation cannot be empty")
-        
+
         if not self.status:
             raise ValueError("Status cannot be empty")

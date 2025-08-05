@@ -8,7 +8,7 @@ from ..core.event_base import JoyrideEvent
 
 class JoyrideContainerEvent(JoyrideEvent):
     """Docker container lifecycle events."""
-    
+
     def __init__(
         self,
         event_type: str,
@@ -22,11 +22,11 @@ class JoyrideContainerEvent(JoyrideEvent):
         status: Optional[str] = None,
         data: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        timestamp: Optional[datetime] = None
+        timestamp: Optional[datetime] = None,
     ):
         """
         Initialize container event.
-        
+
         Args:
             event_type: Type of container event
             source: Source component generating the event
@@ -42,54 +42,56 @@ class JoyrideContainerEvent(JoyrideEvent):
             timestamp: Event timestamp
         """
         event_data = data or {}
-        event_data.update({
-            "container_id": container_id,
-            "container_name": container_name,
-            "image": image,
-            "labels": labels or {},
-            "networks": networks or {},
-            "ports": ports or {},
-            "status": status
-        })
-        
+        event_data.update(
+            {
+                "container_id": container_id,
+                "container_name": container_name,
+                "image": image,
+                "labels": labels or {},
+                "networks": networks or {},
+                "ports": ports or {},
+                "status": status,
+            }
+        )
+
         super().__init__(
             event_type=event_type,
             source=source,
             data=event_data,
             metadata=metadata,
-            timestamp=timestamp
+            timestamp=timestamp,
         )
-    
+
     @property
     def container_id(self) -> str:
         """Get container ID."""
         return self.data["container_id"]
-    
+
     @property
     def container_name(self) -> str:
         """Get container name."""
         return self.data["container_name"]
-    
+
     @property
     def image(self) -> str:
         """Get container image."""
         return self.data["image"]
-    
+
     @property
     def labels(self) -> Dict[str, str]:
         """Get container labels."""
         return self.data["labels"]
-    
+
     @property
     def networks(self) -> Dict[str, Any]:
         """Get container networks."""
         return self.data["networks"]
-    
+
     @property
     def ports(self) -> Dict[str, Any]:
         """Get container ports."""
         return self.data["ports"]
-    
+
     @property
     def status(self) -> Optional[str]:
         """Get container status."""
@@ -98,12 +100,12 @@ class JoyrideContainerEvent(JoyrideEvent):
     def _validate(self) -> None:
         """Validate container event data."""
         super()._validate()
-        
+
         if not self.container_id:
             raise ValueError("Container ID cannot be empty")
-        
+
         if not self.container_name:
             raise ValueError("Container name cannot be empty")
-        
+
         if not self.image:
             raise ValueError("Container image cannot be empty")

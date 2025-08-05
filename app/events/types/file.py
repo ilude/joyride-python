@@ -8,7 +8,7 @@ from ..core.event_base import JoyrideEvent
 
 class JoyrideFileEvent(JoyrideEvent):
     """Hosts file change events."""
-    
+
     def __init__(
         self,
         event_type: str,
@@ -20,11 +20,11 @@ class JoyrideFileEvent(JoyrideEvent):
         file_mtime: Optional[datetime] = None,
         data: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        timestamp: Optional[datetime] = None
+        timestamp: Optional[datetime] = None,
     ):
         """
         Initialize file event.
-        
+
         Args:
             event_type: Type of file event
             source: Source component generating the event
@@ -38,42 +38,44 @@ class JoyrideFileEvent(JoyrideEvent):
             timestamp: Event timestamp
         """
         event_data = data or {}
-        event_data.update({
-            "file_path": file_path,
-            "operation": operation,
-            "records": records or [],
-            "file_size": file_size,
-            "file_mtime": file_mtime
-        })
-        
+        event_data.update(
+            {
+                "file_path": file_path,
+                "operation": operation,
+                "records": records or [],
+                "file_size": file_size,
+                "file_mtime": file_mtime,
+            }
+        )
+
         super().__init__(
             event_type=event_type,
             source=source,
             data=event_data,
             metadata=metadata,
-            timestamp=timestamp
+            timestamp=timestamp,
         )
-    
+
     @property
     def file_path(self) -> str:
         """Get file path."""
         return self.data["file_path"]
-    
+
     @property
     def operation(self) -> str:
         """Get file operation."""
         return self.data["operation"]
-    
+
     @property
     def records(self) -> List[Dict[str, str]]:
         """Get DNS records."""
         return self.data["records"]
-    
+
     @property
     def file_size(self) -> Optional[int]:
         """Get file size."""
         return self.data["file_size"]
-    
+
     @property
     def file_mtime(self) -> Optional[datetime]:
         """Get file modification time."""
@@ -82,13 +84,13 @@ class JoyrideFileEvent(JoyrideEvent):
     def _validate(self) -> None:
         """Validate file event data."""
         super()._validate()
-        
+
         if not self.file_path:
             raise ValueError("File path cannot be empty")
-        
+
         if not self.operation:
             raise ValueError("File operation cannot be empty")
-        
+
         # Validate file size if provided
         if self.file_size is not None and self.file_size < 0:
             raise ValueError("File size must be non-negative")

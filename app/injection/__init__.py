@@ -8,7 +8,7 @@ implementing configuration management, component lifecycle, and service registra
 # Configuration system
 from .config import JoyrideConfig, JoyrideConfigLoader, JoyrideConfigValidator
 
-# Provider system  
+# Provider system
 from .providers import (  # Base types and exceptions; Provider implementations; Registry
     JoyrideCircularDependencyError,
     JoyrideClassProvider,
@@ -26,23 +26,20 @@ from .providers import (  # Base types and exceptions; Provider implementations;
 __all__ = [
     # Configuration
     "JoyrideConfig",
-    "JoyrideConfigLoader", 
+    "JoyrideConfigLoader",
     "JoyrideConfigValidator",
-    
     # Provider system - Base types and exceptions
     "JoyrideLifecycleType",
     "JoyrideCircularDependencyError",
     "JoyrideDependencyResolutionError",
-    "JoyrideDependency", 
+    "JoyrideDependency",
     "JoyrideProviderInfo",
     "JoyrideProvider",
-    
     # Provider system - Implementations
     "JoyrideSingletonProvider",
     "JoyrideFactoryProvider",
     "JoyridePrototypeProvider",
-    "JoyrideClassProvider", 
-    
+    "JoyrideClassProvider",
     # Provider system - Registry
     "JoyrideProviderRegistry",
 ]

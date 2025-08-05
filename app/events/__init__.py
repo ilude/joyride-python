@@ -14,7 +14,7 @@ from .bus import JoyrideEventBus
 # Core event system
 from .core import JoyrideEvent, JoyrideEventHandler, JoyrideEventProducer
 
-# Registry system  
+# Registry system
 from .registry import JoyrideEventFilter, JoyrideEventRegistry, JoyrideEventSubscription
 
 # Event types
@@ -34,12 +34,10 @@ __all__ = [
     "JoyrideEventHandler",
     "JoyrideEventProducer",
     "JoyrideEventBus",
-    
     # Registry system
     "JoyrideEventFilter",
-    "JoyrideEventRegistry", 
+    "JoyrideEventRegistry",
     "JoyrideEventSubscription",
-    
     # Event types
     "JoyrideContainerEvent",
     "JoyrideDNSEvent",

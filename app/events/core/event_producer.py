@@ -16,15 +16,15 @@ if TYPE_CHECKING:
 class JoyrideEventProducer(ABC):
     """
     Abstract base class for components that produce events in the Joyride DNS Service.
-    
+
     Implements the Observer pattern by allowing producers to publish events
     to the event bus. Provides lifecycle management and error handling
     capabilities for robust event production.
-    
+
     All event producers must implement start(), stop(), and publish() methods
     to ensure consistent behavior across the system.
     """
-    
+
     def __init__(self, name: str):
         """
         Initialize the event producer.
@@ -40,12 +40,12 @@ class JoyrideEventProducer(ABC):
     def name(self) -> str:
         """Name of this producer."""
         return self._name
-    
+
     @property
     def is_running(self) -> bool:
         """Whether the producer is currently running."""
         return self._running
-    
+
     @property
     def event_bus(self) -> Optional["JoyrideEventBus"]:
         """Event bus this producer is connected to."""
@@ -64,47 +64,47 @@ class JoyrideEventProducer(ABC):
     async def start(self) -> None:
         """
         Start the event producer.
-        
+
         This method should initialize any resources needed for event production
         and begin monitoring for events. Must be idempotent.
-        
+
         Raises:
             RuntimeError: If producer fails to start
         """
         pass
-    
+
     @abstractmethod
     async def stop(self) -> None:
         """
         Stop the event producer.
-        
+
         This method should cleanly shutdown the producer and release any
         resources. Must be idempotent and not raise exceptions.
         """
         pass
-    
+
     def publish(self, event: "JoyrideEvent") -> None:
         """
         Publish an event to the event bus.
-        
+
         Args:
             event: Event to publish
-            
+
         Raises:
             RuntimeError: If no event bus is configured
             ValueError: If event is invalid
         """
         if not self._event_bus:
             raise RuntimeError(f"No event bus configured for producer {self.name}")
-        
+
         # Import here to avoid circular imports
         from .event_base import JoyrideEvent
-        
+
         if not isinstance(event, JoyrideEvent):
             raise ValueError("event must be an instance of JoyrideEvent")
-        
+
         self._event_bus.publish(event)
-    
+
     def __str__(self) -> str:
         """String representation of the producer."""
         status = "running" if self.is_running else "stopped"

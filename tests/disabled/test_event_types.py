@@ -6,11 +6,18 @@ and provide the expected properties and functionality.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict
 
 import pytest
 
-from app.events.types import (JoyrideJoyrideContainerEvent, JoyrideJoyrideDNSEvent, JoyrideJoyrideErrorEvent, JoyrideJoyrideFileEvent, JoyrideJoyrideHealthEvent, JoyrideJoyrideNodeEvent, JoyrideJoyrideSystemEvent, Joyride)
+from app.events.types import (
+    JoyrideContainerEvent,
+    JoyrideDNSEvent,
+    JoyrideErrorEvent,
+    JoyrideFileEvent,
+    JoyrideHealthEvent,
+    JoyrideNodeEvent,
+    JoyrideSystemEvent,
+)
 
 
 class TestDNSEvent:
@@ -21,9 +28,9 @@ class TestDNSEvent:
         event = JoyrideDNSEvent(
             event_type="dns.record.added",
             source="test.source",
-            record_name="test.example.com"
+            record_name="test.example.com",
         )
-        
+
         assert event.event_type == "dns.record.added"
         assert event.source == "test.source"
         assert event.record_name == "test.example.com"
@@ -35,7 +42,7 @@ class TestDNSEvent:
         """Test creating DNS event with all parameters."""
         timestamp = datetime.now(timezone.utc)
         metadata = {"priority": "high"}
-        
+
         event = JoyrideDNSEvent(
             event_type="dns.record.updated",
             source="dns.handler",
@@ -45,9 +52,9 @@ class TestDNSEvent:
             ttl=600,
             data={"zone": "example.com"},
             metadata=metadata,
-            timestamp=timestamp
+            timestamp=timestamp,
         )
-        
+
         assert event.event_type == "dns.record.updated"
         assert event.source == "dns.handler"
         assert event.record_name == "api.example.com"
@@ -66,15 +73,15 @@ class TestDNSEvent:
             record_name="old.example.com",
             record_type="CNAME",
             record_value="new.example.com",
-            ttl=1800
+            ttl=1800,
         )
-        
+
         # Test property access
         assert event.record_name == "old.example.com"
         assert event.record_type == "CNAME"
         assert event.record_value == "new.example.com"
         assert event.ttl == 1800
-        
+
         # Test that properties come from data
         assert event.data["record_name"] == "old.example.com"
         assert event.data["record_type"] == "CNAME"
@@ -85,9 +92,7 @@ class TestDNSEvent:
         """Test DNS event validation with empty record name."""
         with pytest.raises(ValueError, match="DNS record name cannot be empty"):
             JoyrideDNSEvent(
-                event_type="dns.record.added",
-                source="test.source",
-                record_name=""
+                event_type="dns.record.added", source="test.source", record_name=""
             )
 
     def test_dns_event_validation_empty_record_type(self):
@@ -97,7 +102,7 @@ class TestDNSEvent:
                 event_type="dns.record.added",
                 source="test.source",
                 record_name="test.com",
-                record_type=""
+                record_type="",
             )
 
     def test_dns_event_validation_negative_ttl(self):
@@ -107,7 +112,7 @@ class TestDNSEvent:
                 event_type="dns.record.added",
                 source="test.source",
                 record_name="test.com",
-                ttl=-1
+                ttl=-1,
             )
 
 
@@ -121,9 +126,9 @@ class TestContainerEvent:
             source="docker.monitor",
             container_id="abc123",
             container_name="test-container",
-            image="nginx:latest"
+            image="nginx:latest",
         )
-        
+
         assert event.event_type == "container.started"
         assert event.source == "docker.monitor"
         assert event.container_id == "abc123"
@@ -139,7 +144,7 @@ class TestContainerEvent:
         labels = {"env": "production", "service": "web"}
         networks = {"bridge": {"ip": "172.17.0.2"}}
         ports = {"80/tcp": [{"HostPort": "8080"}]}
-        
+
         event = JoyrideContainerEvent(
             event_type="container.discovered",
             source="docker.scanner",
@@ -150,9 +155,9 @@ class TestContainerEvent:
             networks=networks,
             ports=ports,
             status="running",
-            data={"uptime": "2 days"}
+            data={"uptime": "2 days"},
         )
-        
+
         assert event.container_id == "def456"
         assert event.container_name == "web-server"
         assert event.image == "nginx:1.21"
@@ -170,15 +175,15 @@ class TestContainerEvent:
             container_id="ghi789",
             container_name="db-container",
             image="postgres:13",
-            status="exited"
+            status="exited",
         )
-        
+
         # Test property access
         assert event.container_id == "ghi789"
         assert event.container_name == "db-container"
         assert event.image == "postgres:13"
         assert event.status == "exited"
-        
+
         # Test that properties come from data
         assert event.data["container_id"] == "ghi789"
         assert event.data["container_name"] == "db-container"
@@ -193,7 +198,7 @@ class TestContainerEvent:
                 source="docker.monitor",
                 container_id="",
                 container_name="test",
-                image="nginx"
+                image="nginx",
             )
 
     def test_container_event_validation_empty_container_name(self):
@@ -204,7 +209,7 @@ class TestContainerEvent:
                 source="docker.monitor",
                 container_id="abc123",
                 container_name="",
-                image="nginx"
+                image="nginx",
             )
 
     def test_container_event_validation_empty_image(self):
@@ -215,7 +220,7 @@ class TestContainerEvent:
                 source="docker.monitor",
                 container_id="abc123",
                 container_name="test",
-                image=""
+                image="",
             )
 
 
@@ -230,9 +235,9 @@ class TestNodeEvent:
             node_id="node-001",
             node_address="192.168.1.10",
             node_port=7946,
-            node_state="alive"
+            node_state="alive",
         )
-        
+
         assert event.event_type == "node.joined"
         assert event.source == "swim.protocol"
         assert event.node_id == "node-001"
@@ -245,7 +250,7 @@ class TestNodeEvent:
     def test_node_event_creation_full(self):
         """Test creating node event with all parameters."""
         node_metadata = {"version": "1.0.0", "region": "us-west-2"}
-        
+
         event = JoyrideNodeEvent(
             event_type="node.suspected",
             source="swim.failure.detector",
@@ -255,9 +260,9 @@ class TestNodeEvent:
             node_state="suspected",
             cluster_size=5,
             node_metadata=node_metadata,
-            data={"suspicion_count": 3}
+            data={"suspicion_count": 3},
         )
-        
+
         assert event.node_id == "node-002"
         assert event.node_address == "192.168.1.11"
         assert event.node_port == 7946
@@ -275,16 +280,16 @@ class TestNodeEvent:
             node_address="192.168.1.12",
             node_port=7946,
             node_state="failed",
-            cluster_size=4
+            cluster_size=4,
         )
-        
+
         # Test property access
         assert event.node_id == "node-003"
         assert event.node_address == "192.168.1.12"
         assert event.node_port == 7946
         assert event.node_state == "failed"
         assert event.cluster_size == 4
-        
+
         # Test that properties come from data
         assert event.data["node_id"] == "node-003"
         assert event.data["node_address"] == "192.168.1.12"
@@ -302,9 +307,9 @@ class TestFileEvent:
             event_type="file.changed",
             source="hosts.monitor",
             file_path="/etc/hosts",
-            operation="modified"
+            operation="modified",
         )
-        
+
         assert event.event_type == "file.changed"
         assert event.source == "hosts.monitor"
         assert event.file_path == "/etc/hosts"
@@ -317,10 +322,10 @@ class TestFileEvent:
         """Test creating file event with all parameters."""
         records = [
             {"hostname": "api.local", "ip": "192.168.1.100"},
-            {"hostname": "db.local", "ip": "192.168.1.101"}
+            {"hostname": "db.local", "ip": "192.168.1.101"},
         ]
         file_mtime = datetime.now(timezone.utc)
-        
+
         event = JoyrideFileEvent(
             event_type="file.scanned",
             source="hosts.scanner",
@@ -329,9 +334,9 @@ class TestFileEvent:
             records=records,
             file_size=1024,
             file_mtime=file_mtime,
-            data={"encoding": "utf-8"}
+            data={"encoding": "utf-8"},
         )
-        
+
         assert event.file_path == "/opt/hosts/services.txt"
         assert event.operation == "scanned"
         assert event.records == records
@@ -342,22 +347,22 @@ class TestFileEvent:
     def test_file_event_properties(self):
         """Test file event property access."""
         records = [{"hostname": "test.local", "ip": "127.0.0.1"}]
-        
+
         event = JoyrideFileEvent(
             event_type="file.created",
             source="hosts.watcher",
             file_path="/tmp/test_hosts",
             operation="created",
             records=records,
-            file_size=256
+            file_size=256,
         )
-        
+
         # Test property access
         assert event.file_path == "/tmp/test_hosts"
         assert event.operation == "created"
         assert event.records == records
         assert event.file_size == 256
-        
+
         # Test that properties come from data
         assert event.data["file_path"] == "/tmp/test_hosts"
         assert event.data["operation"] == "created"
@@ -375,9 +380,9 @@ class TestSystemEvent:
             source="bootstrap.runner",
             component="dns.server",
             operation="start",
-            status="success"
+            status="success",
         )
-        
+
         assert event.event_type == "system.component.started"
         assert event.source == "bootstrap.runner"
         assert event.component == "dns.server"
@@ -389,7 +394,7 @@ class TestSystemEvent:
     def test_system_event_creation_full(self):
         """Test creating system event with all parameters."""
         configuration = {"port": 53, "bind_address": "0.0.0.0"}
-        
+
         event = JoyrideSystemEvent(
             event_type="system.component.failed",
             source="health.monitor",
@@ -398,9 +403,9 @@ class TestSystemEvent:
             status="failed",
             error_message="Connection refused",
             configuration=configuration,
-            data={"retry_count": 3}
+            data={"retry_count": 3},
         )
-        
+
         assert event.component == "docker.monitor"
         assert event.operation == "health_check"
         assert event.status == "failed"
@@ -415,14 +420,14 @@ class TestSystemEvent:
             source="config.watcher",
             component="event.bus",
             operation="reload",
-            status="success"
+            status="success",
         )
-        
+
         # Test property access
         assert event.component == "event.bus"
         assert event.operation == "reload"
         assert event.status == "success"
-        
+
         # Test that properties come from data
         assert event.data["component"] == "event.bus"
         assert event.data["operation"] == "reload"
@@ -438,9 +443,9 @@ class TestErrorEvent:
             event_type="error.network.timeout",
             source="docker.client",
             error_type="NetworkTimeout",
-            error_message="Connection timed out after 30 seconds"
+            error_message="Connection timed out after 30 seconds",
         )
-        
+
         assert event.event_type == "error.network.timeout"
         assert event.source == "docker.client"
         assert event.error_type == "NetworkTimeout"
@@ -454,7 +459,7 @@ class TestErrorEvent:
         """Test creating error event with all parameters."""
         context = {"host": "localhost", "port": 2376}
         stack_trace = "Traceback (most recent call last):\n  File..."
-        
+
         event = JoyrideErrorEvent(
             event_type="error.api.connection",
             source="swim.client",
@@ -464,9 +469,9 @@ class TestErrorEvent:
             stack_trace=stack_trace,
             context=context,
             severity="critical",
-            data={"attempt": 5}
+            data={"attempt": 5},
         )
-        
+
         assert event.error_type == "ConnectionError"
         assert event.error_message == "Failed to connect to SWIM node"
         assert event.error_code == "CONN_001"
@@ -482,14 +487,14 @@ class TestErrorEvent:
             source="dns.validator",
             error_type="ValidationError",
             error_message="Invalid hostname format",
-            severity="warning"
+            severity="warning",
         )
-        
+
         # Test property access
         assert event.error_type == "ValidationError"
         assert event.error_message == "Invalid hostname format"
         assert event.severity == "warning"
-        
+
         # Test that properties come from data
         assert event.data["error_type"] == "ValidationError"
         assert event.data["error_message"] == "Invalid hostname format"
@@ -502,7 +507,7 @@ class TestErrorEvent:
                 event_type="error.test",
                 source="test.source",
                 error_type="",
-                error_message="Test error"
+                error_message="Test error",
             )
 
     def test_error_event_validation_empty_error_message(self):
@@ -512,7 +517,7 @@ class TestErrorEvent:
                 event_type="error.test",
                 source="test.source",
                 error_type="TestError",
-                error_message=""
+                error_message="",
             )
 
     def test_error_event_validation_invalid_severity(self):
@@ -523,7 +528,7 @@ class TestErrorEvent:
                 source="test.source",
                 error_type="TestError",
                 error_message="Test error",
-                severity="invalid"
+                severity="invalid",
             )
 
 
@@ -538,9 +543,9 @@ class TestHealthEvent:
             component="dns.server",
             health_status="healthy",
             check_name="dns_query_test",
-            check_result=True
+            check_result=True,
         )
-        
+
         assert event.event_type == "health.check.passed"
         assert event.source == "health.monitor"
         assert event.component == "dns.server"
@@ -554,7 +559,7 @@ class TestHealthEvent:
     def test_health_event_creation_full(self):
         """Test creating health event with all parameters."""
         metrics = {"response_time": 0.05, "queries_per_second": 150}
-        
+
         event = JoyrideHealthEvent(
             event_type="health.check.failed",
             source="health.monitor",
@@ -565,9 +570,9 @@ class TestHealthEvent:
             check_message="Docker API unreachable",
             check_duration=5.0,
             metrics=metrics,
-            data={"error_count": 3}
+            data={"error_count": 3},
         )
-        
+
         assert event.component == "docker.monitor"
         assert event.health_status == "unhealthy"
         assert event.check_name == "docker_api_check"
@@ -586,16 +591,16 @@ class TestHealthEvent:
             health_status="degraded",
             check_name="cluster_connectivity",
             check_result=False,
-            check_duration=2.5
+            check_duration=2.5,
         )
-        
+
         # Test property access
         assert event.component == "swim.cluster"
         assert event.health_status == "degraded"
         assert event.check_name == "cluster_connectivity"
         assert event.check_result is False
         assert event.check_duration == 2.5
-        
+
         # Test that properties come from data
         assert event.data["component"] == "swim.cluster"
         assert event.data["health_status"] == "degraded"
@@ -618,8 +623,10 @@ class TestEventTypeInheritance:
         file_event = JoyrideFileEvent("test", "test", "/test", "modified")
         system_event = JoyrideSystemEvent("test", "test", "comp", "start", "success")
         error_event = JoyrideErrorEvent("test", "test", "Error", "Test error")
-        health_event = JoyrideHealthEvent("test", "test", "comp", "healthy", "test", True)
-        
+        health_event = JoyrideHealthEvent(
+            "test", "test", "comp", "healthy", "test", True
+        )
+
         # Verify inheritance
         assert isinstance(dns_event, JoyrideEvent)
         assert isinstance(container_event, JoyrideEvent)
@@ -640,16 +647,16 @@ class TestEventTypeInheritance:
             JoyrideErrorEvent("error.test", "test", "Error", "Test error"),
             JoyrideHealthEvent("health.test", "test", "comp", "healthy", "test", True),
         ]
-        
+
         for event in events:
             # All events should have these base properties
-            assert hasattr(event, 'event_id')
-            assert hasattr(event, 'event_type')
-            assert hasattr(event, 'source')
-            assert hasattr(event, 'timestamp')
-            assert hasattr(event, 'data')
-            assert hasattr(event, 'metadata')
-            
+            assert hasattr(event, "event_id")
+            assert hasattr(event, "event_type")
+            assert hasattr(event, "source")
+            assert hasattr(event, "timestamp")
+            assert hasattr(event, "data")
+            assert hasattr(event, "metadata")
+
             # Verify they're accessible
             assert event.event_id is not None
             assert event.event_type is not None
@@ -669,13 +676,13 @@ class TestEventTypeInheritance:
             JoyrideErrorEvent("error.test", "test", "Error", "Test error"),
             JoyrideHealthEvent("health.test", "test", "comp", "healthy", "test", True),
         ]
-        
+
         for event in events:
             event_dict = event.to_dict()
             assert isinstance(event_dict, dict)
-            assert 'event_id' in event_dict
-            assert 'event_type' in event_dict
-            assert 'source' in event_dict
-            assert 'timestamp' in event_dict
-            assert 'data' in event_dict
-            assert 'metadata' in event_dict
+            assert "event_id" in event_dict
+            assert "event_type" in event_dict
+            assert "source" in event_dict
+            assert "timestamp" in event_dict
+            assert "data" in event_dict
+            assert "metadata" in event_dict

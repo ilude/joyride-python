@@ -8,7 +8,7 @@ from ..core.event_base import JoyrideEvent
 
 class JoyrideDNSEvent(JoyrideEvent):
     """Base class for DNS-related events."""
-    
+
     def __init__(
         self,
         event_type: str,
@@ -19,11 +19,11 @@ class JoyrideDNSEvent(JoyrideEvent):
         ttl: int = 300,
         data: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        timestamp: Optional[datetime] = None
+        timestamp: Optional[datetime] = None,
     ):
         """
         Initialize DNS event.
-        
+
         Args:
             event_type: Type of DNS event
             source: Source component generating the event
@@ -36,36 +36,38 @@ class JoyrideDNSEvent(JoyrideEvent):
             timestamp: Event timestamp
         """
         event_data = data or {}
-        event_data.update({
-            "record_name": record_name,
-            "record_type": record_type,
-            "record_value": record_value,
-            "ttl": ttl
-        })
-        
+        event_data.update(
+            {
+                "record_name": record_name,
+                "record_type": record_type,
+                "record_value": record_value,
+                "ttl": ttl,
+            }
+        )
+
         super().__init__(
             event_type=event_type,
             source=source,
             data=event_data,
             metadata=metadata,
-            timestamp=timestamp
+            timestamp=timestamp,
         )
-    
+
     @property
     def record_name(self) -> str:
         """Get DNS record name."""
         return self.data["record_name"]
-    
+
     @property
     def record_type(self) -> str:
         """Get DNS record type."""
         return self.data["record_type"]
-    
+
     @property
     def record_value(self) -> Optional[str]:
         """Get DNS record value."""
         return self.data["record_value"]
-    
+
     @property
     def ttl(self) -> int:
         """Get DNS record TTL."""
@@ -74,13 +76,13 @@ class JoyrideDNSEvent(JoyrideEvent):
     def _validate(self) -> None:
         """Validate DNS event data."""
         super()._validate()
-        
+
         if not self.record_name:
             raise ValueError("DNS record name cannot be empty")
-        
+
         if not self.record_type:
             raise ValueError("DNS record type cannot be empty")
-        
+
         # Validate TTL is positive
         if self.ttl < 0:
             raise ValueError("DNS record TTL must be non-negative")
