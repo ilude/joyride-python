@@ -9,11 +9,12 @@ import threading
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Type
 
 if TYPE_CHECKING:
+    from .event_handler import EventHandler
     from .event import Event
-    from .handler import EventHandler
+    from .event_registry import EventRegistry
 
+from .event_registry import EventRegistry
 from .event_subscription import EventSubscription
-from .registry import EventRegistry
 
 logger = logging.getLogger(__name__)
 

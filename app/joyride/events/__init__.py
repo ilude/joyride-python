@@ -16,10 +16,10 @@ from .event_bus import EventBus
 
 # Registry system
 from .event_filter import EventFilter
+from .event_handler import EventHandler
+from .event_producer import EventProducer
+from .event_registry import EventRegistry, get_event_registry, reset_event_registry
 from .event_subscription import EventSubscription
-from .handler import EventHandler
-from .producer import EventProducer
-from .registry import EventRegistry, get_event_registry, reset_event_registry
 
 # Event types
 from .types import (

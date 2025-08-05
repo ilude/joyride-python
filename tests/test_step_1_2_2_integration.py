@@ -273,7 +273,7 @@ class TestStep122FullIntegration:
             "factory_provider.py",
             "prototype_provider.py",
             "class_provider.py",
-            "registry.py",
+            "provider_registry.py",
         ]
 
         for filename in expected_files:

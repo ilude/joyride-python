@@ -15,7 +15,7 @@ from .base import (
 from .class_provider import ClassProvider
 from .factory_provider import FactoryProvider
 from .prototype_provider import PrototypeProvider
-from .registry import ProviderRegistry
+from .provider_registry import ProviderRegistry
 from .singleton_provider import SingletonProvider
 
 __all__ = [

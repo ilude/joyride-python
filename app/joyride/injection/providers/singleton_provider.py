@@ -2,15 +2,10 @@
 
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from .base import (
-    Dependency,
-    DependencyResolutionError,
-    Provider,
-    T,
-)
+from .base import Dependency, DependencyResolutionError, Provider, T
 
 if TYPE_CHECKING:
-    from .registry import ProviderRegistry
+    from .provider_registry import ProviderRegistry
 
 
 class SingletonProvider(Provider[T]):

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List
 from .base import Dependency, Provider, T
 
 if TYPE_CHECKING:
-    from .registry import ProviderRegistry
+    from .provider_registry import ProviderRegistry
 
 
 class PrototypeProvider(Provider[T]):

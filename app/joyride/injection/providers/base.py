@@ -8,7 +8,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Generic, List, Type, TypeVar
 
 if TYPE_CHECKING:
-    from .registry import ProviderRegistry
+    from .provider_registry import ProviderRegistry
 
 T = TypeVar("T")
 
