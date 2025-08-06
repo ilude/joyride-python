@@ -19,6 +19,9 @@ from .event_filter import EventFilter
 from .event_handler import EventHandler
 from .event_producer import EventProducer
 from .event_registry import EventRegistry, get_event_registry, reset_event_registry
+
+# Event schemas
+from .event_schemas import EventSchema, SchemaFactory, SchemaField, SchemaValidator
 from .event_subscription import EventSubscription
 
 # Field descriptors
@@ -29,6 +32,15 @@ from .fields import (
     IntField,
     OptionalField,
     StringField,
+)
+from .schemas import (
+    ContainerEventSchema,
+    DNSEventSchema,
+    ErrorEventSchema,
+    FileEventSchema,
+    HealthEventSchema,
+    NodeEventSchema,
+    SystemEventSchema,
 )
 
 # Event types
@@ -89,6 +101,18 @@ __all__ = [
     "NON_EMPTY_STRING_VALIDATOR",
     "HOSTNAME_VALIDATOR",
     "IPV4_VALIDATOR",
+    # Event schemas
+    "EventSchema",
+    "SchemaField",
+    "SchemaFactory",
+    "SchemaValidator",
+    "ContainerEventSchema",
+    "DNSEventSchema",
+    "ErrorEventSchema",
+    "FileEventSchema",
+    "HealthEventSchema",
+    "NodeEventSchema",
+    "SystemEventSchema",
     # Registry system
     "EventFilter",
     "EventRegistry",
