@@ -13,6 +13,7 @@
 - **Never recreate deleted files** - If a file was previously created by Copilot and later deleted by the user, assume the deletion was intentional
 - **Only create new files** when explicitly requested or necessary for a specific user-requested task
 - **Respect project structure decisions** - User controls what files should exist in the codebase
+- Whenever the user requests creation of a markdown file for planning, analysis, or working state related activities, store those files in the `.chat_planning` directory.
 
 ### Terminology & Acronyms
 - **DRY**: When the user says "DRY", they mean "Don't Repeat Yourself" - the coding best practice of avoiding code duplication by extracting common functionality into reusable components, functions, or modules
@@ -37,7 +38,7 @@
 ## Development Workflow
 
 ### Git Practices
-- **Commit Messages**: Use conventional commits format
+- **Commit Messages**: Use conventional commits format, keep messages concise, avoid long explanations and focus on what was changed. do not use emojis.
 - **Branch Strategy**: Feature branches
 - **Semantic Versioning**: Follow semver for releases
 
@@ -184,3 +185,5 @@ git add swimmies && git commit -m "chore: update swimmies to latest"
 - Keep swimmies library changes independent from joyride changes
 
 This document should evolve with the project. Update it when architectural decisions change or new patterns emerge.
+
+

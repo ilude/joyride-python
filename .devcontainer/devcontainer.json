@@ -25,6 +25,10 @@
         "ms-vscode.vscode-docker"
       ],
       "settings": {
+        "dev.containers.copyGitConfig": false,
+        "dev.containers.gitCredentialHelperConfigLocation": "system",
+        "workbench.editor.restoreViewState": false,
+        "workbench.startupEditor": "none",
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.linting.enabled": true,
         "python.linting.flake8Enabled": true,

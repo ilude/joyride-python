@@ -69,6 +69,9 @@ RUN --mount=type=cache,target=/var/cache/apk \
     jq \
     linux-headers \
     make \
+    nodejs \
+    npm \
+    yarn \
     openssh-client \
     py3-pip \
     py3-setuptools \
