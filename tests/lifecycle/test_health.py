@@ -1,10 +1,15 @@
 """Test health monitoring."""
 
 import asyncio
+
 import pytest
+
+from app.joyride.injection.lifecycle.component import (
+    ComponentState,
+    HealthCheckableComponent,
+)
 from app.joyride.injection.lifecycle.health import HealthMonitor
 from app.joyride.injection.lifecycle.registry import ComponentRegistry
-from app.joyride.injection.lifecycle.component import HealthCheckableComponent, ComponentState
 from app.joyride.injection.lifecycle.types import HealthStatus
 
 

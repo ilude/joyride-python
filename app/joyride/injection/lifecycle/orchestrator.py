@@ -1,10 +1,11 @@
 """Lifecycle orchestrator for startup/shutdown coordination."""
 
 from typing import List, Optional
-from .registry import ComponentRegistry
+
 from .component import Component
-from .types import LifecycleError
 from .interfaces import Logger
+from .registry import ComponentRegistry
+from .types import LifecycleError
 
 
 class LifecycleOrchestrator:

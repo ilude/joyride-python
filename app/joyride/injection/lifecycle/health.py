@@ -2,9 +2,10 @@
 
 import asyncio
 from typing import Dict, List, Optional
+
+from .interfaces import Logger
 from .registry import ComponentRegistry
 from .types import HealthStatus
-from .interfaces import Logger
 
 
 class HealthMonitor:

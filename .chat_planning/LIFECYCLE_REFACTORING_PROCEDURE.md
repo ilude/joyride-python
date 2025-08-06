@@ -1152,7 +1152,7 @@ If `make test` passes successfully, update this document to mark Step 5 as compl
 import asyncio
 from typing import Any, Optional
 from ..providers import ProviderBase, ProviderRegistry
-from .component import HealthCheckableComponent
+from .component import HealthCheckableComponent, ComponentState
 from .types import HealthStatus
 from .interfaces import Logger
 
@@ -1171,6 +1171,315 @@ class ProviderComponent(HealthCheckableComponent):
         self._provider = provider
         self._provider_registry = provider_registry
         self.instance: Optional[Any] = None
+    
+    async def _do_start(self) -> None:
+        """Start the provider."""
+        # Create instance through provider
+        self.instance = self._provider.create(self._provider_registry)
+        
+        # Call start method if it exists
+        if hasattr(self.instance, "start"):
+            if asyncio.iscoroutinefunction(self.instance.start):
+                await self.instance.start()
+            else:
+                self.instance.start()
+    
+    async def _do_stop(self) -> None:
+        """Stop the provider."""
+        # Call stop method if it exists
+        if self.instance and hasattr(self.instance, "stop"):
+            if asyncio.iscoroutinefunction(self.instance.stop):
+                await self.instance.stop()
+            else:
+                self.instance.stop()
+        
+        self.instance = None
+    
+    async def health_check(self) -> HealthStatus:
+        """Check provider health."""
+        # Use parent health check if not started
+        if not self.instance:
+            if self.state == ComponentState.CREATED:
+                return HealthStatus.UNKNOWN
+            elif self.state == ComponentState.FAILED:
+                return HealthStatus.UNHEALTHY
+            else:
+                return HealthStatus.UNKNOWN
+        
+        # Call provider health check if available
+        if hasattr(self.instance, "health_check"):
+            try:
+                if asyncio.iscoroutinefunction(self.instance.health_check):
+                    result = await self.instance.health_check()
+                else:
+                    result = self.instance.health_check()
+                
+                # Convert result to HealthStatus
+                return self._convert_health_status(result)
+            
+            except Exception as e:
+                if self._logger:
+                    self._logger.warning(f"Health check failed for {self.name}: {e}")
+                return HealthStatus.UNHEALTHY
+        
+        # Default to healthy if no health check method and instance exists
+        return HealthStatus.HEALTHY
+    
+    def _convert_health_status(self, result: Any) -> HealthStatus:
+        """Convert health check result to HealthStatus."""
+        if isinstance(result, HealthStatus):
+            return result
+        elif isinstance(result, bool):
+            return HealthStatus.HEALTHY if result else HealthStatus.UNHEALTHY
+        elif isinstance(result, str):
+            mapping = {
+                "healthy": HealthStatus.HEALTHY,
+                "degraded": HealthStatus.DEGRADED,
+                "unhealthy": HealthStatus.UNHEALTHY,
+                "ok": HealthStatus.HEALTHY,
+                "good": HealthStatus.HEALTHY,
+                "bad": HealthStatus.UNHEALTHY,
+                "error": HealthStatus.UNHEALTHY,
+            }
+            return mapping.get(result.lower(), HealthStatus.UNKNOWN)
+        else:
+            return HealthStatus.UNKNOWN
+```
+
+**File: `tests/lifecycle/test_provider_adapter.py`**
+
+```python
+"""Test provider adapter."""
+
+import pytest
+from app.joyride.injection.lifecycle.provider_adapter import ProviderComponent
+from app.joyride.injection.lifecycle.types import HealthStatus
+from app.joyride.injection.providers import ProviderBase, ProviderRegistry
+
+
+class MockInstance:
+    """Mock instance for testing."""
+    
+    def __init__(self):
+        self.started = False
+        self.stopped = False
+        self.health_result = True
+    
+    def start(self):
+        self.started = True
+    
+    def stop(self):
+        self.stopped = True
+    
+    def health_check(self):
+        return self.health_result
+
+
+class MockAsyncInstance:
+    """Mock async instance for testing."""
+    
+    def __init__(self):
+        self.started = False
+        self.stopped = False
+        self.health_result = HealthStatus.HEALTHY
+    
+    async def start(self):
+        self.started = True
+    
+    async def stop(self):
+        self.stopped = True
+    
+    async def health_check(self):
+        return self.health_result
+
+
+class MockProvider(ProviderBase):
+    """Mock provider for testing."""
+    
+    def create(self, registry: ProviderRegistry) -> MockInstance:
+        return MockInstance()
+
+
+class MockAsyncProvider(ProviderBase):
+    """Mock async provider for testing."""
+    
+    def create(self, registry: ProviderRegistry) -> MockAsyncInstance:
+        return MockAsyncInstance()
+
+
+@pytest.mark.asyncio
+async def test_provider_component_basic():
+    """Test basic provider component functionality."""
+    provider = MockProvider()
+    registry = ProviderRegistry()
+    
+    component = ProviderComponent("test", provider, registry)
+    
+    assert component.instance is None
+    assert component.is_created()
+    
+    # Start component
+    await component.start()
+    
+    assert component.instance is not None
+    assert component.instance.started is True
+    assert component.is_started()
+    
+    # Stop component
+    await component.stop()
+    
+    assert component.instance is None
+    assert component.is_stopped()
+
+
+@pytest.mark.asyncio
+async def test_provider_component_async():
+    """Test provider component with async instance."""
+    provider = MockAsyncProvider()
+    registry = ProviderRegistry()
+    
+    component = ProviderComponent("test_async", provider, registry)
+    
+    # Start component
+    await component.start()
+    
+    assert component.instance is not None
+    assert component.instance.started is True
+    assert component.is_started()
+    
+    # Stop component
+    await component.stop()
+    
+    assert component.instance is None
+    assert component.is_stopped()
+
+
+@pytest.mark.asyncio
+async def test_provider_component_health():
+    """Test provider component health checking."""
+    provider = MockProvider()
+    registry = ProviderRegistry()
+    
+    component = ProviderComponent("test", provider, registry)
+    
+    # Health check when not started
+    health = await component.health_check()
+    assert health == HealthStatus.UNKNOWN
+    
+    # Start and check health
+    await component.start()
+    health = await component.health_check()
+    assert health == HealthStatus.HEALTHY
+    
+    # Change instance health
+    component.instance.health_result = False
+    health = await component.health_check()
+    assert health == HealthStatus.UNHEALTHY
+    
+    # Test string health results
+    component.instance.health_result = "healthy"
+    health = await component.health_check()
+    assert health == HealthStatus.HEALTHY
+    
+    component.instance.health_result = "unhealthy"
+    health = await component.health_check()
+    assert health == HealthStatus.UNHEALTHY
+    
+    # Test HealthStatus enum directly
+    component.instance.health_result = HealthStatus.DEGRADED
+    health = await component.health_check()
+    assert health == HealthStatus.DEGRADED
+
+
+@pytest.mark.asyncio
+async def test_provider_component_health_exception():
+    """Test provider component health check exceptions."""
+    class FailingInstance:
+        def health_check(self):
+            raise RuntimeError("Health check failed")
+    
+    class FailingProvider(ProviderBase):
+        def create(self, registry: ProviderRegistry) -> FailingInstance:
+            return FailingInstance()
+    
+    provider = FailingProvider()
+    registry = ProviderRegistry()
+    component = ProviderComponent("failing", provider, registry)
+    
+    await component.start()
+    health = await component.health_check()
+    assert health == HealthStatus.UNHEALTHY
+
+
+class MockInstanceNoMethods:
+    """Mock instance without start/stop/health methods."""
+    pass
+
+
+class MockProviderNoMethods(ProviderBase):
+    """Mock provider that creates instance without methods."""
+    
+    def create(self, registry: ProviderRegistry) -> MockInstanceNoMethods:
+        return MockInstanceNoMethods()
+
+
+@pytest.mark.asyncio
+async def test_provider_component_no_methods():
+    """Test provider component with instance that has no special methods."""
+    provider = MockProviderNoMethods()
+    registry = ProviderRegistry()
+    
+    component = ProviderComponent("test", provider, registry)
+    
+    # Should work fine without start/stop methods
+    await component.start()
+    assert component.instance is not None
+    assert component.is_started()
+    
+    # Health should default to healthy when instance exists but no health check
+    health = await component.health_check()
+    assert health == HealthStatus.HEALTHY
+    
+    await component.stop()
+    assert component.instance is None
+    assert component.is_stopped()
+
+
+@pytest.mark.asyncio
+async def test_provider_component_health_conversion():
+    """Test health status conversion from various types."""
+    provider = MockProvider()
+    registry = ProviderRegistry()
+    component = ProviderComponent("test", provider, registry)
+    
+    await component.start()
+    
+    # Test various return types
+    test_cases = [
+        (True, HealthStatus.HEALTHY),
+        (False, HealthStatus.UNHEALTHY),
+        ("healthy", HealthStatus.HEALTHY),
+        ("HEALTHY", HealthStatus.HEALTHY),
+        ("unhealthy", HealthStatus.UNHEALTHY),
+        ("degraded", HealthStatus.DEGRADED),
+        ("ok", HealthStatus.HEALTHY),
+        ("bad", HealthStatus.UNHEALTHY),
+        ("unknown_string", HealthStatus.UNKNOWN),
+        (42, HealthStatus.UNKNOWN),  # Numeric
+        (None, HealthStatus.UNKNOWN),  # None
+        (HealthStatus.DEGRADED, HealthStatus.DEGRADED),  # Direct enum
+    ]
+    
+    for test_input, expected in test_cases:
+        component.instance.health_result = test_input
+        health = await component.health_check()
+        assert health == expected, f"Failed for input {test_input}"
+```
+
+**Run Test**: `uv run pytest tests/lifecycle/test_provider_adapter.py -v` should pass
+
+#### 6.1 Mark Step Complete
+If `make test` passes successfully, update this document to mark Step 6 as completed by changing `⬜ Step 6` to `✅ Step 6` and adding "- COMPLETED" to the title.
     
     async def _do_start(self) -> None:
         """Start the provider."""

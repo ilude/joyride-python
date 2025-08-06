@@ -1,9 +1,10 @@
 """Test lifecycle orchestrator."""
 
 import pytest
+
+from app.joyride.injection.lifecycle.component import StartableComponent
 from app.joyride.injection.lifecycle.orchestrator import LifecycleOrchestrator
 from app.joyride.injection.lifecycle.registry import ComponentRegistry
-from app.joyride.injection.lifecycle.component import StartableComponent
 from app.joyride.injection.lifecycle.types import LifecycleError
 
 
