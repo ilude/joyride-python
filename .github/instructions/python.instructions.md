@@ -12,6 +12,14 @@ applyTo: "**/*.py"
 - **Use Pydantic** for data validation and serialization whenever possible
 - Use isort with Black profile for imports
 
+### Naming Conventions
+- **CRITICAL: Avoid Test Name Conflicts** - Never name classes with "Test" prefix unless they are actual pytest test classes
+- Use descriptive names: `MockComponent`, `HelperClass`, `UtilityFunction` instead of `TestComponent`
+- Class names: PascalCase (`UserService`, `DatabaseConnection`)
+- Function/variable names: snake_case (`get_user_data`, `connection_pool`)
+- Constants: UPPER_SNAKE_CASE (`MAX_RETRIES`, `DEFAULT_TIMEOUT`)
+- Private methods: leading underscore (`_internal_method`)
+
 ### Type Safety
 - Prefer Pydantic models over plain dictionaries for structured data
 - Use generic types (`list[str]`, `dict[str, Any]`) over legacy forms

@@ -16,6 +16,11 @@
 - **Respect project structure decisions** - User controls what files should exist in the codebase
 - **Store planning, analysis, and working-state markdown files in `.chat_planning`** - when such a markdown file is requested
 
+### Testing and Quality Requirements
+- **CRITICAL: Warnings Are Errors** - All warnings during testing must be treated as errors and fixed before any work is considered complete
+- **Zero Tolerance for Warnings** - `make test` must run completely clean with no warnings or deprecation messages
+- **Modern Standards** - Always use current language syntax and avoid deprecated features
+
 ### Terminology & Acronyms
 - **DRY**: When the user says "DRY", they mean "Don't Repeat Yourself" - the coding best practice of avoiding code duplication by extracting common functionality into reusable components, functions, or modules
 
