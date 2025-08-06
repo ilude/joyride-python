@@ -66,7 +66,7 @@ class EventHandler(ABC):
         pass
 
     @abstractmethod
-    async def handle(self, event: "Event") -> None:
+    def handle(self, event: "Event") -> None:
         """
         Handle the given event.
 

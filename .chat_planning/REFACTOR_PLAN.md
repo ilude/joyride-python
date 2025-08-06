@@ -206,76 +206,26 @@ app/joyride/injection/                 # ✅ IMPLEMENTED
   - [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.1.3**: Pydantic integration for data validation
-  - [ ] Convert event data dictionaries to Pydantic models
-  - [ ] Add validation for DNS record data (hostnames, IP addresses)
-  - [ ] Implement configuration validation with Pydantic schemas
-  - [ ] Replace plain Dict usage with typed Pydantic models
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
-
-- [ ] **Step 2.1.4**: Documentation and type safety
-  - [ ] Ensure all functions and classes have proper docstrings following PEP 257
-  - [ ] Add comprehensive type hints for all parameters and return values
-  - [ ] Update inline comments to explain "WHY" not "WHAT"
-  - [ ] Generate and review API documentation
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
-
-- [ ] **Step 2.1.5**: Test suite activation and cleanup
-  - [ ] Evaluate the test in `tests/disabled/` and determine if they are still needed, if not remove them and skip the remaining steps in this section
-  - [ ] Move tests from `tests/disabled/` to active test suite
-  - [ ] Fix any failing tests and ensure 100% pass rate
-  - [ ] Ensure test coverage meets >90% requirement
-  - [ ] Update test naming to avoid "Test" prefix conflicts
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
-
-#### 2.2 Code Quality and Composition Refactoring
-**Implementation Steps:**
-- [ ] **Step 2.2.1**: Apply comprehensive code formatting
-  - [ ] Run Black formatter on all Python files
-  - [ ] Run isort for consistent import ordering
-  - [ ] Apply consistent code style across entire codebase
-  - [ ] Update pyproject.toml with Black and isort configuration
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
-
-- [ ] **Step 2.2.2**: Comprehensive linting and static analysis
-  - [ ] Run flake8 linter and fix all issues
-  - [ ] Apply mypy for type checking and fix type issues
-  - [ ] Run bandit for security scanning
-  - [ ] Address all linting warnings and errors
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
-
-- [ ] **Step 2.2.3**: Documentation cleanup
-  - [ ] Ensure all functions and classes have proper docstrings
-  - [ ] Update type hints for consistency
-  - [ ] Review and update inline comments
-  - [ ] Generate and review API documentation
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
-
 #### 2.3 Composition Over Inheritance Refactoring
 **Objective**: Reduce code duplication and improve maintainability using composition patterns
 
 **Implementation Steps:**
-- [ ] **Step 2.3.1**: Create field descriptor system
-  - [ ] Implement `EventField` descriptors for property access
-  - [ ] Replace repetitive `@property` methods with declarative fields
-  - [ ] Add type validation and default value support
-  - [ ] **Test**: Create `tests/test_field_descriptors.py`
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+- [x] **Step 2.3.1**: Create field descriptor system
+  - [x] Implement `EventField` descriptors for property access
+  - [x] Replace repetitive `@property` methods with declarative fields
+  - [x] Add type validation and default value support
+  - [x] **Test**: Create `tests/test_field_descriptors.py`
+  - [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.3.2**: Implement validation mixins
-  - [ ] Create `StringValidator`, `NumericValidator`, `ChoiceValidator` classes
-  - [ ] Extract common validation patterns into reusable components
-  - [ ] Replace repetitive validation code with mixin calls
-  - [ ] **Test**: Create `tests/test_validation_mixins.py`
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+- [x] **Step 2.3.2**: Implement validation mixins
+  - [x] Create `StringValidator`, `NumericValidator`, `ChoiceValidator` classes
+  - [x] Extract common validation patterns into reusable components
+  - [x] Replace repetitive validation code with mixin calls
+  - [x] **Test**: Create `tests/test_validation_mixins.py`
+  - [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [x] Mark this section's steps complete once all tests are passing
+  - [x] commit these changes in a single git command line run. Message should be `step 2.3.2`
 
 - [ ] **Step 2.3.3**: Event schema composition
   - [ ] Create `EventSchema` class for declarative event definitions
@@ -284,6 +234,7 @@ app/joyride/injection/                 # ✅ IMPLEMENTED
   - [ ] **Test**: Create `tests/test_event_schemas.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step <step_number>`
 
 - [ ] **Step 2.3.4**: Event factory pattern
   - [ ] Implement `EventFactory` for consistent event creation
@@ -292,6 +243,7 @@ app/joyride/injection/                 # ✅ IMPLEMENTED
   - [ ] **Test**: Create `tests/test_event_factory.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step <step_number>`
 
 **Benefits Expected:**
 - **DRY Principle**: Eliminate ~200+ lines of repetitive property/validation code
@@ -299,38 +251,20 @@ app/joyride/injection/                 # ✅ IMPLEMENTED
 - **Maintainability**: Changes to validation logic propagate automatically
 - **Extensibility**: Easy to add new field types and validation rules
 
-### Phase 3: Event Producers (Sources) - 🚧 NEEDS IMPLEMENTATION
-
-**UPDATED REQUIREMENTS:**
-- Must follow Python coding standards with Pydantic models
-- Use ENUMs for lifecycle events as specified
-- Implement proper type hints and comprehensive docstrings
-- Apply Black formatting and consistent code style
-
-#### 3.1 Docker Event Producer
-**File Structure:**
-```
-app/producers/
-├── __init__.py
-├── base.py          # Base producer class
-├── docker.py        # Docker event producer
-└── docker_events.py # Docker-specific event types
-```
+### Phase 3: Event Producers (Sources) 
 
 **Implementation Steps:**
-- [ ] **Step 3.1.1**: Create `app/producers/base.py`
-  - [ ] Implement `BaseEventProducer` abstract class
-  - [ ] Add common producer functionality (event bus integration, lifecycle)
-  - [ ] Include error handling and retry logic
-  - [ ] **Test**: Create `tests/test_producers_base.py` with mock producer tests
+- [ ] **Step 3.1.1**: Create `app/producers/event_producer.py`
+  - [ ] Implement `EventProducer` abstract class
+  - [ ] Add common producer functionality (event bus integration, lifecycle) with error handling
+  - [ ] **Test**: Create `tests/test_event_producer.py` with mock producer tests
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
 
 - [ ] **Step 3.1.2**: Create `app/producers/docker_events.py`
-  - [ ] Define Docker-specific event ENUMs and classes with **Pydantic models**:
+  - [ ] Define Docker-specific event ENUMs and classes:
     - [ ] `DockerEventType` ENUM: `STARTED`, `STOPPED`, `DISCOVERED`
     - [ ] `DockerContainerEvent` class using the ENUM for event_type
-    - [ ] **Pydantic models** for container metadata validation
     - [ ] **Strong type hints** for all parameters and return values
   - [ ] Include container metadata (name, labels, network info)
   - [ ] **Test**: Create `tests/test_docker_events.py` with event creation tests
