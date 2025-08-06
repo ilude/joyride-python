@@ -8,12 +8,13 @@
 - **Let code and file changes speak for themselves** - no need to describe what was done
 - **Only explain when user asks "explain", "why", or "how"**
 - **Respect file deletions** - If a previously created file is deleted, assume it was intentional and do NOT recreate it
+- **Use context7:** Copilot is always allowed and should `use context7` to confirm functionality of software
 
 ### File Management Policy
 - **Never recreate deleted files** - If a file was previously created by Copilot and later deleted by the user, assume the deletion was intentional
 - **Only create new files** when explicitly requested or necessary for a specific user-requested task
 - **Respect project structure decisions** - User controls what files should exist in the codebase
-- Whenever the user requests creation of a markdown file for planning, analysis, or working state related activities, store those files in the `.chat_planning` directory.
+- **Store planning, analysis, and working-state markdown files in `.chat_planning`** - when such a markdown file is requested
 
 ### Terminology & Acronyms
 - **DRY**: When the user says "DRY", they mean "Don't Repeat Yourself" - the coding best practice of avoiding code duplication by extracting common functionality into reusable components, functions, or modules
@@ -185,5 +186,7 @@ git add swimmies && git commit -m "chore: update swimmies to latest"
 - Keep swimmies library changes independent from joyride changes
 
 This document should evolve with the project. Update it when architectural decisions change or new patterns emerge.
+
+
 
 
