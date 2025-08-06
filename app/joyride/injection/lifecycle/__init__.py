@@ -1,26 +1,28 @@
-# Core types
-# Interfaces
-from .interfaces import HealthCheckable, Logger, Startable, Stoppable
-from .types import (
-    ComponentNotFoundError,
-    HealthStatus,
-    InvalidStateTransitionError,
-    LifecycleError,
-    LifecycleState,
+# Core types and interfaces
+# Components
+from .component import (
+    Component,
+    ComponentState,
+    HealthCheckableComponent,
+    StartableComponent,
 )
+from .health import HealthMonitor
+from .interfaces import HealthCheckable, Logger, Startable, Stoppable
+from .orchestrator import LifecycleOrchestrator
 
-# Backward compatibility aliases (until migration is complete)
-LifecycleComponent = None  # TODO: Implement in Step 2
-LifecycleDependencyError = LifecycleError
-LifecycleManager = None  # TODO: Implement in Step 4
+# Provider integration
+from .provider_adapter import ProviderComponent
+
+# Services
+from .registry import ComponentRegistry
+from .types import ComponentNotFoundError, HealthStatus, LifecycleError
 
 __all__ = [
     # Types
-    "LifecycleState",
+    "ComponentState",
     "HealthStatus",
     "LifecycleError",
     "ComponentNotFoundError",
-    "InvalidStateTransitionError",
     
     # Interfaces
     "Startable",
@@ -28,8 +30,27 @@ __all__ = [
     "HealthCheckable",
     "Logger",
     
-    # Backward compatibility
-    "LifecycleComponent",
-    "LifecycleDependencyError",
-    "LifecycleManager",
+    # Components
+    "Component",
+    "StartableComponent",
+    "HealthCheckableComponent",
+    "ProviderComponent",
+    
+    # Services
+    "ComponentRegistry",
+    "LifecycleOrchestrator",
+    "HealthMonitor",
 ]
+
+
+def create_lifecycle_system(logger=None):
+    """Create a complete lifecycle management system.
+    
+    Returns:
+        Tuple of (registry, orchestrator, health_monitor)
+    """
+    registry = ComponentRegistry(logger)
+    orchestrator = LifecycleOrchestrator(registry, logger)
+    health_monitor = HealthMonitor(registry, logger=logger)
+    
+    return registry, orchestrator, health_monitor

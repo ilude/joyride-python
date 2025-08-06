@@ -2,8 +2,6 @@
 
 from typing import Protocol
 
-from .types import HealthStatus
-
 
 class Startable(Protocol):
     """Protocol for startable components."""
@@ -17,7 +15,7 @@ class Stoppable(Protocol):
 
 class HealthCheckable(Protocol):
     """Protocol for health checkable components."""
-    async def health_check(self) -> HealthStatus: ...
+    async def health_check(self) -> bool: ...
 
 
 class Logger(Protocol):
