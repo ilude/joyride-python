@@ -10,7 +10,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from app.joyride.events import JoyrideEvent, JoyrideEventHandler, JoyrideEventProducer
+from app.joyride.events import (JoyrideEvent, JoyrideEventHandler,
+                                JoyrideEventProducer)
 
 
 class ConcreteEvent(JoyrideEvent):

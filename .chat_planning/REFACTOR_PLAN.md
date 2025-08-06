@@ -16,6 +16,31 @@ app/main.py                 # Central orchestrator with tight coupling
 └── [callback-based coupling]
 ```
 
+### Current Implementation Status (Updated August 2025)
+
+**✅ COMPLETED:**
+1. **Event System Foundation** - Fully implemented in `app/joyride/events/`
+   - Event base classes with proper naming (Event, not JoyrideEvent)
+   - Event types: ContainerEvent, DNSEvent, FileEvent, NodeEvent, SystemEvent, ErrorEvent, HealthEvent
+   - EventBus, EventRegistry, EventHandler, EventProducer abstractions
+   - Thread-safe event distribution and subscription management
+
+2. **Dependency Injection System** - Fully implemented in `app/joyride/injection/`
+   - Provider pattern with multiple lifecycle types (Singleton, Factory, Prototype, Class)
+   - Configuration management with hierarchical loading
+   - Component lifecycle management with health monitoring
+   - Circular dependency detection and resolution
+
+**🚧 PARTIALLY IMPLEMENTED:**
+1. **Event Producers** - Need to be created using ENUMs for lifecycle events
+2. **Event Handlers** - Need concrete implementations
+3. **Integration** - Event system exists but not integrated with existing services
+
+**❌ NAMING CONVENTION ISSUES IDENTIFIED:**
+- Current code uses generic names (Event, EventHandler) instead of Joyride-prefixed names
+- This conflicts with Python coding standards requiring unique, descriptive names
+- Some test files are in `tests/disabled/` indicating incomplete implementation
+
 ### Current Problems
 1. **Tight Coupling**: Direct callback dependencies between components
 2. **Circular Dependencies**: Already experienced with DNS sync callbacks
@@ -23,6 +48,25 @@ app/main.py                 # Central orchestrator with tight coupling
 4. **Hard-coded Dependencies**: Services directly reference each other
 5. **Testing Complexity**: Difficult to test components in isolation
 6. **Extension Difficulty**: Adding new event sources/handlers requires code changes
+
+### Python Coding Standards Compliance Issues Identified
+1. **Naming Convention Violations**: 
+   - Current event system uses generic names (Event, EventHandler) instead of descriptive, project-specific names
+   - Violates Python instruction: "Use descriptive names" and "Avoid Test Name Conflicts"
+   - Should use domain-specific naming like JoyrideEvent, JoyrideEventHandler
+
+2. **Type Safety Issues**:
+   - Missing comprehensive type hints in some legacy components
+   - Need Pydantic models for structured data validation
+   - Event data should use Pydantic models instead of plain dictionaries
+
+3. **Documentation Gaps**:
+   - Some modules lack proper docstrings following PEP 257
+   - Missing function-level documentation for complex business logic
+
+4. **Code Quality Violations**:
+   - Some test files are disabled, indicating incomplete implementation
+   - Need to apply Black formatting and isort consistently across all files
 
 ## Target Architecture: Event Coordinator Pattern
 
@@ -67,107 +111,200 @@ EventCoordinator (Central Hub)
 #### 1.1 Event System Core
 **File Structure:**
 ```
-app/events/
-├── __init__.py
-├── base.py           # Event base class and interfaces
-├── bus.py           # EventBus implementation
-├── types.py         # Concrete event type definitions
-└── registry.py      # Event type registry
+app/joyride/events/                    # ✅ IMPLEMENTED
+├── __init__.py                        # ✅ Event system exports
+├── event.py                           # ✅ Event base class  
+├── event_bus.py                       # ✅ EventBus implementation
+├── event_handler.py                   # ✅ Handler interface
+├── event_producer.py                  # ✅ Producer interface
+├── event_registry.py                 # ✅ Registry with subscriptions
+├── event_filter.py                   # ✅ Event filtering
+├── event_subscription.py             # ✅ Subscription management
+└── types/                             # ✅ Event type definitions
+    ├── __init__.py
+    ├── container_event.py             # ✅ Docker container events
+    ├── dns_event.py                   # ✅ DNS record events
+    ├── file_event.py                  # ✅ Hosts file events
+    ├── node_event.py                  # ✅ SWIM cluster events
+    ├── system_event.py                # ✅ System lifecycle events
+    ├── error_event.py                 # ✅ Error condition events
+    └── health_event.py                # ✅ Health status events
 ```
 
-**Implementation Steps:**
-- [x] **Step 1.1.1**: Create `app/events/core/` structure
-  - [x] Define `JoyrideEvent` abstract base class with timestamp, event_id, event_type
-  - [x] Define `JoyrideEventProducer` interface with `start()`, `stop()`, `publish()` methods
-  - [x] Define `JoyrideEventHandler` interface with `handle()`, `can_handle()` methods
-  - [x] Add type hints and documentation
-  - [x] **Test**: Create `tests/test_events_base.py` with unit tests for interfaces
+**Implementation Status:**
+- ✅ **Step 1.1.1**: Event system core COMPLETED
+- ✅ **Step 1.1.2**: Event types COMPLETED  
+- ✅ **Step 1.1.3**: Event registry COMPLETED
+- ✅ **Step 1.1.4**: Event bus COMPLETED
+- ✅ **Step 1.1.5**: Integration testing COMPLETED
 
-- [x] **Step 1.1.2**: Create `app/events/types/` structure
-  - [x] Implement concrete event classes inheriting from `JoyrideEvent`:
-    - [x] `JoyrideDNSEvent` (base for DNS-related events)
-    - [x] `JoyrideContainerEvent` (Docker container lifecycle)
-    - [x] `JoyrideNodeEvent` (SWIM cluster membership)
-    - [x] `JoyrideFileEvent` (hosts file changes)
-    - [x] `JoyrideSystemEvent` (application lifecycle)
-    - [x] `JoyrideErrorEvent` (error conditions)
-    - [x] `JoyrideHealthEvent` (health status changes)
-  - [x] Add event-specific data fields and validation
-  - [x] **Test**: Create `tests/test_event_types.py` with creation and serialization tests
-
-- [x] **Step 1.1.3**: Create `app/events/registry/` structure
-  - [x] Implement event type registration system
-  - [x] Add event filtering and subscription logic
-  - [x] Support wildcard and pattern-based subscriptions
-  - [x] **Test**: Create `tests/test_event_registry.py` with subscription/filtering tests
-
-- [x] **Step 1.1.4**: Create `app/events/bus.py`
-  - [x] Implement `JoyrideEventBus` with publish/subscribe pattern
-  - [x] Add thread-safe event distribution
-  - [x] Support synchronous and asynchronous handlers
-  - [x] Include error handling and statistics
-  - [x] **Test**: All registry tests updated for new Joyride classes
-
-- [x] **Step 1.1.5**: Integration testing and refactoring
-  - [x] **Test**: Updated `tests/test_event_registry.py` for new naming conventions
-  - [x] Test complete event flow: producer → bus → handler
-  - [x] Test error scenarios and recovery
-  - [x] Systematic refactoring to avoid naming conflicts with stdlib/third-party libraries
+**🚨 CRITICAL UPDATES NEEDED:**
+- **Pydantic Integration**: Event data should use Pydantic models for validation
+- **Type Hints**: Ensure all methods have proper type annotations
+- **Documentation**: Add comprehensive docstrings following PEP 257
+- **Test Activation**: Move tests from `tests/disabled/` to active test suite
 
 #### 1.2 Dependency Injection System
 **File Structure:**
 ```
-app/injection/
-├── __init__.py
-├── config.py        # Configuration management
-├── lifecycle.py     # Component lifecycle management
-└── providers/       # Provider system (modular)
+app/joyride/injection/                 # ✅ IMPLEMENTED
+├── __init__.py                        # ✅ DI system exports
+├── config.py                          # ✅ Hierarchical configuration
+├── providers/                         # ✅ Provider pattern implementation
+│   ├── __init__.py
+│   ├── provider_base.py               # ✅ Base provider types
+│   ├── provider_registry.py          # ✅ Main DI registry
+│   ├── singleton_provider.py         # ✅ Singleton lifecycle
+│   ├── factory_provider.py           # ✅ Factory lifecycle
+│   ├── prototype_provider.py         # ✅ Prototype lifecycle
+│   └── class_provider.py             # ✅ Class-based provider
+└── lifecycle/                         # ✅ Component lifecycle management
     ├── __init__.py
-    ├── base.py      # Base types and interfaces
-    ├── registry.py  # Main DI registry (serves as injector)
-    ├── singleton_provider.py
-    ├── factory_provider.py
-    ├── prototype_provider.py
-    └── class_provider.py
+    ├── component.py                   # ✅ Component base classes
+    ├── registry.py                    # ✅ Component registry
+    ├── orchestrator.py               # ✅ Startup/shutdown coordination
+    ├── health.py                     # ✅ Health monitoring
+    ├── interfaces.py                 # ✅ Protocol definitions
+    ├── types.py                      # ✅ Type definitions
+    └── provider_adapter.py           # ✅ Provider-lifecycle integration
 ```
 
+**Implementation Status:**
+- ✅ **Step 1.2.1**: Configuration management COMPLETED
+- ✅ **Step 1.2.2**: Provider pattern COMPLETED  
+- ✅ **Step 1.2.3**: Lifecycle management COMPLETED
+- ✅ **Step 1.2.4**: DI registry COMPLETED
+- ✅ **Step 1.2.5**: Integration testing COMPLETED
+
+**🚨 COMPLIANCE UPDATES NEEDED:**
+- **Pydantic Configuration**: Replace Dict-based config with Pydantic models
+- **Type Safety**: Ensure all provider methods have complete type annotations
+- **Documentation**: Add comprehensive docstrings for all public methods
+- **Error Handling**: Implement specific exception types with meaningful messages
+
+### Phase 2: Code Quality and Composition Refactoring
+
+#### 2.1 Python Coding Standards Compliance
+
 **Implementation Steps:**
-- [x] **Step 1.2.1**: Create `app/injection/config.py`
-  - [x] Implement hierarchical configuration system
-  - [x] Support environment variables, YAML/JSON files, defaults
-  - [x] Add configuration validation with schema
-  - [x] Support dynamic configuration updates
-  - [x] **Test**: Create `tests/test_injection_config.py` with various config sources
+- [x] **Step 2.1.1**: Apply comprehensive code formatting and style
+  - [x] Run Black formatter on all Python files: `uv run black app/ tests/`
+  - [x] Run isort for consistent import ordering: `uv run isort app/ tests/`
+  - [x] Apply consistent code style across entire codebase
+  - [x] Update pyproject.toml with Black and isort configuration
+  - [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [x] Mark this section's steps complete once all tests are passing
 
-- [x] **Step 1.2.2**: Create `app/injection/providers.py`
-  - [x] Implement provider pattern for component factories
-  - [x] Support singleton, factory, and prototype lifecycles
-  - [x] Add dependency resolution and circular dependency detection
-  - [x] **Test**: Create `tests/test_injection_providers.py` with dependency scenarios
+- [ ] **Step 2.1.2**: Comprehensive linting and static analysis
+  - [ ] Run flake8 linter and fix all issues: `uv run flake8 app/ tests/`
+  - [ ] Apply mypy for type checking and fix type issues
+  - [ ] Run bandit for security scanning
+  - [ ] Address all linting warnings and errors - **ZERO TOLERANCE FOR WARNINGS**
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [x] **Step 1.2.3**: Create `app/injection/lifecycle.py`
-  - [x] Implement component lifecycle management (start/stop ordering)
-  - [x] Add graceful shutdown handling
-  - [x] Support health checks for components
-  - [x] **Test**: Create `tests/test_injection_lifecycle.py` with startup/shutdown tests
+- [ ] **Step 2.1.3**: Pydantic integration for data validation
+  - [ ] Convert event data dictionaries to Pydantic models
+  - [ ] Add validation for DNS record data (hostnames, IP addresses)
+  - [ ] Implement configuration validation with Pydantic schemas
+  - [ ] Replace plain Dict usage with typed Pydantic models
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [x] **Step 1.2.4**: Create `app/injection/injector.py`
-  - [x] Main DI injector combining all features (implemented as `JoyrideProviderRegistry`)
-  - [x] Component registration and resolution
-  - [x] Configuration-driven component creation
-  - [x] **Test**: Integration testing covered in `tests/test_step_1_2_2_integration.py`
-  - **Note**: Functionality implemented through `JoyrideProviderRegistry` class in `providers/registry.py` rather than separate `injector.py` file
+- [ ] **Step 2.1.4**: Documentation and type safety
+  - [ ] Ensure all functions and classes have proper docstrings following PEP 257
+  - [ ] Add comprehensive type hints for all parameters and return values
+  - [ ] Update inline comments to explain "WHY" not "WHAT"
+  - [ ] Generate and review API documentation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [x] **Step 1.2.5**: Injection system integration testing
-  - [x] **Test**: Full integration testing completed in `tests/test_step_1_2_2_integration.py`
-  - [x] Test complex dependency graphs
-  - [x] Test configuration changes and component reloading
-  - [x] Performance tests with many components
-  - **Note**: Integration testing demonstrates full DI system functionality through existing test suite
+- [ ] **Step 2.1.5**: Test suite activation and cleanup
+  - [ ] Evaluate the test in `tests/disabled/` and determine if they are still needed, if not remove them and skip the remaining steps in this section
+  - [ ] Move tests from `tests/disabled/` to active test suite
+  - [ ] Fix any failing tests and ensure 100% pass rate
+  - [ ] Ensure test coverage meets >90% requirement
+  - [ ] Update test naming to avoid "Test" prefix conflicts
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-### Phase 2: Event Producers (Sources)
+#### 2.2 Code Quality and Composition Refactoring
+**Implementation Steps:**
+- [ ] **Step 2.2.1**: Apply comprehensive code formatting
+  - [ ] Run Black formatter on all Python files
+  - [ ] Run isort for consistent import ordering
+  - [ ] Apply consistent code style across entire codebase
+  - [ ] Update pyproject.toml with Black and isort configuration
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 2.1 Docker Event Producer
+- [ ] **Step 2.2.2**: Comprehensive linting and static analysis
+  - [ ] Run flake8 linter and fix all issues
+  - [ ] Apply mypy for type checking and fix type issues
+  - [ ] Run bandit for security scanning
+  - [ ] Address all linting warnings and errors
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
+
+- [ ] **Step 2.2.3**: Documentation cleanup
+  - [ ] Ensure all functions and classes have proper docstrings
+  - [ ] Update type hints for consistency
+  - [ ] Review and update inline comments
+  - [ ] Generate and review API documentation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
+
+#### 2.3 Composition Over Inheritance Refactoring
+**Objective**: Reduce code duplication and improve maintainability using composition patterns
+
+**Implementation Steps:**
+- [ ] **Step 2.3.1**: Create field descriptor system
+  - [ ] Implement `EventField` descriptors for property access
+  - [ ] Replace repetitive `@property` methods with declarative fields
+  - [ ] Add type validation and default value support
+  - [ ] **Test**: Create `tests/test_field_descriptors.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
+
+- [ ] **Step 2.3.2**: Implement validation mixins
+  - [ ] Create `StringValidator`, `NumericValidator`, `ChoiceValidator` classes
+  - [ ] Extract common validation patterns into reusable components
+  - [ ] Replace repetitive validation code with mixin calls
+  - [ ] **Test**: Create `tests/test_validation_mixins.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
+
+- [ ] **Step 2.3.3**: Event schema composition
+  - [ ] Create `EventSchema` class for declarative event definitions
+  - [ ] Define schemas for each event type using field descriptors
+  - [ ] Implement schema-based validation and data handling
+  - [ ] **Test**: Create `tests/test_event_schemas.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
+
+- [ ] **Step 2.3.4**: Event factory pattern
+  - [ ] Implement `EventFactory` for consistent event creation
+  - [ ] Simplify event `__init__` methods using factory pattern
+  - [ ] Add factory-based event creation methods
+  - [ ] **Test**: Create `tests/test_event_factory.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
+
+**Benefits Expected:**
+- **DRY Principle**: Eliminate ~200+ lines of repetitive property/validation code
+- **Consistency**: All events follow identical patterns automatically
+- **Maintainability**: Changes to validation logic propagate automatically
+- **Extensibility**: Easy to add new field types and validation rules
+
+### Phase 3: Event Producers (Sources) - 🚧 NEEDS IMPLEMENTATION
+
+**UPDATED REQUIREMENTS:**
+- Must follow Python coding standards with Pydantic models
+- Use ENUMs for lifecycle events as specified
+- Implement proper type hints and comprehensive docstrings
+- Apply Black formatting and consistent code style
+
+#### 3.1 Docker Event Producer
 **File Structure:**
 ```
 app/producers/
@@ -178,34 +315,43 @@ app/producers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 2.1.1**: Create `app/producers/base.py`
+- [ ] **Step 3.1.1**: Create `app/producers/base.py`
   - [ ] Implement `BaseEventProducer` abstract class
   - [ ] Add common producer functionality (event bus integration, lifecycle)
   - [ ] Include error handling and retry logic
   - [ ] **Test**: Create `tests/test_producers_base.py` with mock producer tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.1.2**: Create `app/producers/docker_events.py`
-  - [ ] Define Docker-specific event classes:
-    - [ ] `ContainerStarted` (action: start)
-    - [ ] `ContainerStopped` (actions: stop, die)
-    - [ ] `ContainerDiscovered` (existing containers on startup)
+- [ ] **Step 3.1.2**: Create `app/producers/docker_events.py`
+  - [ ] Define Docker-specific event ENUMs and classes with **Pydantic models**:
+    - [ ] `DockerEventType` ENUM: `STARTED`, `STOPPED`, `DISCOVERED`
+    - [ ] `DockerContainerEvent` class using the ENUM for event_type
+    - [ ] **Pydantic models** for container metadata validation
+    - [ ] **Strong type hints** for all parameters and return values
   - [ ] Include container metadata (name, labels, network info)
   - [ ] **Test**: Create `tests/test_docker_events.py` with event creation tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.1.3**: Create `app/producers/docker.py`
+- [ ] **Step 3.1.3**: Create `app/producers/docker.py`
   - [ ] Implement `DockerEventProducer` class
   - [ ] Docker socket connection and event streaming
   - [ ] Container filtering based on labels/configuration
   - [ ] Support deferred container processing
   - [ ] **Test**: Create `tests/test_docker_producer.py` with Docker API mocking
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.1.4**: Docker producer integration testing
+- [ ] **Step 3.1.4**: Docker producer integration testing
   - [ ] **Test**: Create `tests/test_docker_integration.py`
   - [ ] Test with real Docker containers (using test containers)
   - [ ] Test reconnection and error recovery
   - [ ] Performance tests with many containers
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 2.2 SWIM Event Producer  
+#### 3.2 SWIM Event Producer  
 **File Structure:**
 ```
 app/producers/
@@ -214,33 +360,35 @@ app/producers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 2.2.1**: Create `app/producers/swim_events.py`
-  - [ ] Define SWIM-specific event classes:
-    - [ ] `NodeDiscovered` (UDP broadcast discovery)
-    - [ ] `NodeJoined` (SWIM cluster membership)
-    - [ ] `NodeLeft` (graceful departure)
-    - [ ] `NodeFailed` (failure detection)
-    - [ ] `NodeSuspected` (potential failure state)
-    - [ ] `DNSRecordSynced` (distributed record updates)
-    - [ ] `SyncForced` (manual synchronization trigger)
-    - [ ] `ClusterStateChanged` (membership changes)
+- [ ] **Step 3.2.1**: Create `app/producers/swim_events.py`
+  - [ ] Define SWIM-specific event ENUMs and classes with **Pydantic models**:
+    - [ ] `SwimEventType` ENUM: `NODE_DISCOVERED`, `NODE_JOINED`, `NODE_LEFT`, `NODE_FAILED`, `NODE_SUSPECTED`, `DNS_RECORD_SYNCED`, `SYNC_FORCED`, `CLUSTER_STATE_CHANGED`
+    - [ ] `SwimNodeEvent` class using the ENUM for event_type
+    - [ ] `SwimSyncEvent` class for DNS synchronization events
+    - [ ] **Pydantic models** for node metadata and cluster state validation
   - [ ] Include node metadata and cluster state
   - [ ] **Test**: Create `tests/test_swim_events.py` with event validation tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.2.2**: Create `app/producers/swim.py`
+- [ ] **Step 3.2.2**: Create `app/producers/swim.py`
   - [ ] Implement `SwimEventProducer` class
   - [ ] Integration with existing swimmies library
   - [ ] Configure SWIM settings from DI container
   - [ ] Handle SWIM protocol state changes
   - [ ] **Test**: Create `tests/test_swim_producer.py` with swimmies library mocking
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.2.3**: SWIM producer integration testing
+- [ ] **Step 3.2.3**: SWIM producer integration testing
   - [ ] **Test**: Create `tests/test_swim_integration.py`
   - [ ] Test with multiple SWIM nodes
   - [ ] Test network partitions and recovery
   - [ ] Test DNS record synchronization events
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 2.3 Hosts File Event Producer
+#### 3.3 Hosts File Event Producer
 **File Structure:**
 ```
 app/producers/
@@ -249,32 +397,35 @@ app/producers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 2.3.1**: Create `app/producers/hosts_events.py`
-  - [ ] Define file-specific event classes:
-    - [ ] `FileChanged` (detected file modification)
-    - [ ] `RecordAdded` (new hostname mapping)
-    - [ ] `RecordUpdated` (IP address change for existing hostname)
-    - [ ] `RecordRemoved` (hostname removed from files)
-    - [ ] `FileCreated` (new hosts file added)
-    - [ ] `FileDeleted` (hosts file removed)
-    - [ ] `DirectoryScanned` (initial directory scan)
+- [ ] **Step 3.3.1**: Create `app/producers/hosts_events.py`
+  - [ ] Define file-specific event ENUMs and classes with **Pydantic models**:
+    - [ ] `HostsEventType` ENUM: `FILE_CHANGED`, `RECORD_ADDED`, `RECORD_UPDATED`, `RECORD_REMOVED`, `FILE_CREATED`, `FILE_DELETED`, `DIRECTORY_SCANNED`
+    - [ ] `HostsFileEvent` class using the ENUM for event_type
+    - [ ] `HostsRecordEvent` class for DNS record changes
+    - [ ] **Pydantic models** for file paths, timestamps, and record details validation
   - [ ] Include file paths, timestamps, and record details
   - [ ] **Test**: Create `tests/test_hosts_events.py` with event data validation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.3.2**: Create `app/producers/hosts.py`
+- [ ] **Step 3.3.2**: Create `app/producers/hosts.py`
   - [ ] Implement `HostsFileEventProducer` class
   - [ ] File watching with configurable polling intervals
   - [ ] Support multiple hosts directories
   - [ ] File parsing and change detection logic
   - [ ] **Test**: Create `tests/test_hosts_producer.py` with filesystem mocking
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.3.3**: Hosts producer integration testing
+- [ ] **Step 3.3.3**: Hosts producer integration testing
   - [ ] **Test**: Create `tests/test_hosts_integration.py`
   - [ ] Test with real file system changes
   - [ ] Test with large hosts files and many directories
   - [ ] Test file permission and access error handling
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 2.4 System Event Producer
+#### 3.4 System Event Producer
 **File Structure:**
 ```
 app/producers/
@@ -283,35 +434,38 @@ app/producers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 2.4.1**: Create `app/producers/system_events.py`
-  - [ ] Define system lifecycle event classes:
-    - [ ] `ServiceStarting` (component initialization beginning)
-    - [ ] `ServiceStarted` (component successfully started)
-    - [ ] `ServiceStopping` (graceful shutdown initiated)
-    - [ ] `ServiceStopped` (component fully stopped)
-    - [ ] `ServiceFailed` (component startup/runtime failure)
-    - [ ] `ConfigurationChanged` (dynamic config updates)
-    - [ ] `HealthCheckFailed` (component health issues)
-    - [ ] `HealthCheckRecovered` (component recovery)
+- [ ] **Step 3.4.1**: Create `app/producers/system_events.py`
+  - [ ] Define system lifecycle event ENUMs and classes with **Pydantic models**:
+    - [ ] `SystemEventType` ENUM: `SERVICE_STARTING`, `SERVICE_STARTED`, `SERVICE_STOPPING`, `SERVICE_STOPPED`, `SERVICE_FAILED`, `CONFIGURATION_CHANGED`, `HEALTH_CHECK_FAILED`, `HEALTH_CHECK_RECOVERED`
+    - [ ] `ServiceLifecycleEvent` class using the ENUM for event_type
+    - [ ] `ConfigurationEvent` class for config changes
+    - [ ] `HealthCheckEvent` class for health status changes
+    - [ ] **Pydantic models** for service names, error details, configuration changes validation
   - [ ] Include service names, error details, configuration changes
   - [ ] **Test**: Create `tests/test_system_events.py` with event creation tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.4.2**: Create `app/producers/system.py`
+- [ ] **Step 3.4.2**: Create `app/producers/system.py`
   - [ ] Implement `SystemEventProducer` class
   - [ ] Integration with DI injection system lifecycle
   - [ ] Health check monitoring and reporting
   - [ ] Configuration change detection
   - [ ] **Test**: Create `tests/test_system_producer.py` with lifecycle simulation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 2.4.3**: System producer integration testing
+- [ ] **Step 3.4.3**: System producer integration testing
   - [ ] **Test**: Create `tests/test_system_integration.py`
   - [ ] Test real component lifecycle events
   - [ ] Test configuration reload scenarios
   - [ ] Test health check failure and recovery
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-### Phase 3: Event Handlers (Consumers)
+### Phase 4: Event Handlers (Consumers)
 
-#### 3.1 DNS Record Handler
+#### 4.1 DNS Record Handler
 **File Structure:**
 ```
 app/handlers/
@@ -325,39 +479,49 @@ app/handlers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 3.1.1**: Create `app/handlers/base.py`
+- [ ] **Step 4.1.1**: Create `app/handlers/base.py`
   - [ ] Implement `BaseEventHandler` abstract class
   - [ ] Add common handler functionality (event filtering, error handling)
   - [ ] Include metrics collection and logging
   - [ ] **Test**: Create `tests/test_handlers_base.py` with mock handler tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.1.2**: Create `app/handlers/dns_backends/memory.py`
+- [ ] **Step 4.1.2**: Create `app/handlers/dns_backends/memory.py`
   - [ ] Implement in-memory DNS record storage
   - [ ] Support A, AAAA, CNAME record types
   - [ ] Include TTL and metadata management
   - [ ] Thread-safe operations
   - [ ] **Test**: Create `tests/test_dns_memory_backend.py` with record operations
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.1.3**: Create `app/handlers/dns_backends/dnslib.py`
+- [ ] **Step 4.1.3**: Create `app/handlers/dns_backends/dnslib.py`
   - [ ] Implement dnslib-based DNS backend
   - [ ] Integration with existing DNS server
   - [ ] Support existing DNS record format
   - [ ] **Test**: Create `tests/test_dns_dnslib_backend.py` with dnslib integration
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.1.4**: Create `app/handlers/dns_record.py`
+- [ ] **Step 4.1.4**: Create `app/handlers/dns_record.py`
   - [ ] Implement `DNSRecordHandler` class
   - [ ] Subscribe to Container, Node, and File events
   - [ ] DNS record addition/removal logic
   - [ ] Duplicate record prevention
   - [ ] **Test**: Create `tests/test_dns_record_handler.py` with event handling tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.1.5**: DNS handler integration testing
+- [ ] **Step 4.1.5**: DNS handler integration testing
   - [ ] **Test**: Create `tests/test_dns_handler_integration.py`
   - [ ] Test complete event-to-DNS-record flow
   - [ ] Test with multiple backends
   - [ ] Performance tests with many records
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 3.2 Sync Handler
+#### 4.2 Sync Handler
 **File Structure:**
 ```
 app/handlers/
@@ -369,30 +533,38 @@ app/handlers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 3.2.1**: Create `app/handlers/sync_strategies/timestamp.py`
+- [ ] **Step 4.2.1**: Create `app/handlers/sync_strategies/timestamp.py`
   - [ ] Implement timestamp-based conflict resolution
   - [ ] Handle clock skew and network delays
   - [ ] **Test**: Create `tests/test_sync_timestamp.py` with conflict scenarios
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.2.2**: Create `app/handlers/sync_strategies/priority.py`
+- [ ] **Step 4.2.2**: Create `app/handlers/sync_strategies/priority.py`
   - [ ] Implement priority-based conflict resolution
   - [ ] Support node priorities and record sources
   - [ ] **Test**: Create `tests/test_sync_priority.py` with priority conflicts
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.2.3**: Create `app/handlers/sync.py`
+- [ ] **Step 4.2.3**: Create `app/handlers/sync.py`
   - [ ] Implement `SyncHandler` class
   - [ ] Handle Node and DNSRecordSynced events
   - [ ] Prevent circular sync calls with local_only pattern
   - [ ] Support configurable sync policies
   - [ ] **Test**: Create `tests/test_sync_handler.py` with sync logic tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.2.4**: Sync handler integration testing
+- [ ] **Step 4.2.4**: Sync handler integration testing
   - [ ] **Test**: Create `tests/test_sync_integration.py`
   - [ ] Test distributed sync scenarios
   - [ ] Test conflict resolution strategies
   - [ ] Test circular dependency prevention
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 3.3 Logging and Monitoring Handlers
+#### 4.3 Logging and Monitoring Handlers
 **File Structure:**
 ```
 app/handlers/
@@ -402,32 +574,40 @@ app/handlers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 3.3.1**: Create `app/handlers/logging.py`
+- [ ] **Step 4.3.1**: Create `app/handlers/logging.py`
   - [ ] Implement `LoggingHandler` class
   - [ ] Structured logging for all event types
   - [ ] Configurable log levels and outputs
   - [ ] Event correlation and tracing
   - [ ] **Test**: Create `tests/test_logging_handler.py` with log output validation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.3.2**: Create `app/handlers/metrics.py`
+- [ ] **Step 4.3.2**: Create `app/handlers/metrics.py`
   - [ ] Implement `MetricsHandler` class
   - [ ] Event counts, timing, and error metrics
   - [ ] Support Prometheus-style metrics
   - [ ] **Test**: Create `tests/test_metrics_handler.py` with metrics collection
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.3.3**: Create `app/handlers/health.py`
+- [ ] **Step 4.3.3**: Create `app/handlers/health.py`
   - [ ] Implement `HealthHandler` class
   - [ ] Monitor component health events
   - [ ] Aggregate system health status
   - [ ] **Test**: Create `tests/test_health_handler.py` with health scenarios
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.3.4**: Monitoring handlers integration testing
+- [ ] **Step 4.3.4**: Monitoring handlers integration testing
   - [ ] **Test**: Create `tests/test_monitoring_integration.py`
   - [ ] Test with high event volume
   - [ ] Test metrics accuracy and performance
   - [ ] Test health status aggregation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 3.4 Validation and Error Handlers
+#### 4.4 Validation and Error Handlers
 **File Structure:**
 ```
 app/handlers/
@@ -437,36 +617,44 @@ app/handlers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 3.4.1**: Create `app/handlers/validation.py`
+- [ ] **Step 4.4.1**: Create `app/handlers/validation.py`
   - [ ] Implement `ValidationHandler` class
   - [ ] DNS hostname and IP address validation
   - [ ] Configuration validation
   - [ ] Input sanitization
   - [ ] **Test**: Create `tests/test_validation_handler.py` with validation cases
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.4.2**: Create `app/handlers/error.py`
+- [ ] **Step 4.4.2**: Create `app/handlers/error.py`
   - [ ] Implement `ErrorHandler` class
   - [ ] Centralized error management
   - [ ] Retry logic for transient failures
   - [ ] Circuit breaker patterns
   - [ ] **Test**: Create `tests/test_error_handler.py` with error scenarios
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.4.3**: Create `app/handlers/audit.py`
+- [ ] **Step 4.4.3**: Create `app/handlers/audit.py`
   - [ ] Implement `AuditHandler` class
   - [ ] Event audit logging
   - [ ] Security event tracking
   - [ ] Configuration change auditing
   - [ ] **Test**: Create `tests/test_audit_handler.py` with audit trail validation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.4.4**: Validation/Error handlers integration testing
+- [ ] **Step 4.4.4**: Validation/Error handlers integration testing
   - [ ] **Test**: Create `tests/test_validation_error_integration.py`
   - [ ] Test error handling pipeline
   - [ ] Test validation with real data
   - [ ] Test audit trail completeness
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-### Phase 4: Configuration and Initialization
+### Phase 5: Configuration and Initialization
 
-#### 4.1 Configuration System
+#### 5.1 Configuration System
 **File Structure:**
 ```
 app/config/
@@ -478,38 +666,48 @@ app/config/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 4.1.1**: Create `app/config/schema.py`
+- [ ] **Step 5.1.1**: Create `app/config/schema.py`
   - [ ] Define configuration schema using Pydantic or similar
   - [ ] Schema for each component (Docker, SWIM, DNS, etc.)
   - [ ] Environment variable mapping
   - [ ] Default values and validation rules
   - [ ] **Test**: Create `tests/test_config_schema.py` with schema validation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 4.1.2**: Create `app/config/loader.py`
+- [ ] **Step 5.1.2**: Create `app/config/loader.py`
   - [ ] Implement hierarchical configuration loading
   - [ ] Support YAML, JSON, environment variables
   - [ ] Configuration merging and precedence rules
   - [ ] **Test**: Create `tests/test_config_loader.py` with various sources
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 4.1.3**: Create `app/config/validator.py`
+- [ ] **Step 5.1.3**: Create `app/config/validator.py`
   - [ ] Configuration validation against schema
   - [ ] Cross-component validation rules
   - [ ] Runtime configuration checks
   - [ ] **Test**: Create `tests/test_config_validator.py` with validation cases
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 4.1.4**: Create `app/config/watcher.py`
+- [ ] **Step 5.1.4**: Create `app/config/watcher.py`
   - [ ] Dynamic configuration update detection
   - [ ] Configuration reload triggers
   - [ ] Component notification system
   - [ ] **Test**: Create `tests/test_config_watcher.py` with file watching
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 4.1.5**: Configuration system integration testing
+- [ ] **Step 5.1.5**: Configuration system integration testing
   - [ ] **Test**: Create `tests/test_config_integration.py`
   - [ ] Test complete configuration lifecycle
   - [ ] Test dynamic updates and component reloading
   - [ ] Test configuration error handling
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 4.2 Application Bootstrapping
+#### 5.2 Application Bootstrapping
 **File Structure:**
 ```
 app/bootstrap/
@@ -520,35 +718,43 @@ app/bootstrap/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 4.2.1**: Create `app/bootstrap/factory.py`
+- [ ] **Step 5.2.1**: Create `app/bootstrap/factory.py`
   - [ ] Component factory using DI injection system
   - [ ] Configuration-driven component creation
   - [ ] Dependency graph resolution
   - [ ] **Test**: Create `tests/test_bootstrap_factory.py` with component creation
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 4.2.2**: Create `app/bootstrap/application.py`
+- [ ] **Step 5.2.2**: Create `app/bootstrap/application.py`
   - [ ] Main application class coordinating all components
   - [ ] Graceful startup and shutdown handling
   - [ ] Component lifecycle management
   - [ ] Error handling and recovery
   - [ ] **Test**: Create `tests/test_bootstrap_application.py` with lifecycle tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 4.2.3**: Create `app/bootstrap/runner.py`
+- [ ] **Step 5.2.3**: Create `app/bootstrap/runner.py`
   - [ ] Application entry point
   - [ ] Command-line argument parsing
   - [ ] Different deployment modes (development, production)
   - [ ] Signal handling and graceful shutdown
   - [ ] **Test**: Create `tests/test_bootstrap_runner.py` with execution scenarios
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 4.2.4**: Bootstrap integration testing
+- [ ] **Step 5.2.4**: Bootstrap integration testing
   - [ ] **Test**: Create `tests/test_bootstrap_integration.py`
   - [ ] Test complete application startup
   - [ ] Test graceful shutdown scenarios
   - [ ] Test error recovery and restart
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-### Phase 5: Testing and Validation
+### Phase 6: Testing and Validation
 
-#### 5.1 Unit Testing
+#### 6.1 Unit Testing
 **Testing Strategy:**
 - **Isolation**: Each module tested independently with mocks
 - **Coverage**: Minimum 90% code coverage for all modules
@@ -556,25 +762,31 @@ app/bootstrap/
 - **Automation**: All tests run in CI/CD pipeline
 
 **Implementation Steps:**
-- [ ] **Step 5.1.1**: Complete unit test coverage
+- [ ] **Step 6.1.1**: Complete unit test coverage
   - [ ] Verify all components have comprehensive unit tests
   - [ ] Add missing test cases for edge conditions
   - [ ] Mock all external dependencies (Docker API, file system, network)
   - [ ] **Test**: Run `uv run pytest tests/unit/ --cov=app --cov-report=html`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.1.2**: Test data and fixtures
+- [ ] **Step 6.1.2**: Test data and fixtures
   - [ ] Create reusable test fixtures for common scenarios
   - [ ] Mock Docker containers with various configurations
   - [ ] Sample configuration files for different environments
   - [ ] **Test**: Create `tests/fixtures/` with reusable test data
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.1.3**: Performance unit tests
+- [ ] **Step 6.1.3**: Performance unit tests
   - [ ] Test component performance under load
   - [ ] Memory usage validation
   - [ ] Event processing latency tests
   - [ ] **Test**: Create `tests/performance/` with benchmark tests
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 5.2 Integration Testing
+#### 6.2 Integration Testing
 **Testing Strategy:**
 - **Component Integration**: Test component interactions
 - **End-to-End Flows**: Test complete event workflows
@@ -582,38 +794,48 @@ app/bootstrap/
 - **Distributed Scenarios**: Test SWIM cluster behaviors
 
 **Implementation Steps:**
-- [ ] **Step 5.2.1**: Component integration tests
+- [ ] **Step 6.2.1**: Component integration tests
   - [ ] **Test**: Event flow from producers through bus to handlers
   - [ ] **Test**: DI injection system with real component dependencies
   - [ ] **Test**: Configuration system with dynamic updates
   - [ ] Create `tests/integration/test_component_integration.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.2.2**: End-to-end integration tests
+- [ ] **Step 6.2.2**: End-to-end integration tests
   - [ ] **Test**: Complete Docker container → DNS record flow
   - [ ] **Test**: Hosts file changes → DNS record updates
   - [ ] **Test**: SWIM cluster events → DNS synchronization
   - [ ] Create `tests/integration/test_end_to_end.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.2.3**: External system integration tests
+- [ ] **Step 6.2.3**: External system integration tests
   - [ ] **Test**: Real Docker API integration using testcontainers
   - [ ] **Test**: File system monitoring with real files
   - [ ] **Test**: Network operations and error handling
   - [ ] Create `tests/integration/test_external_systems.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.2.4**: Distributed system integration tests
+- [ ] **Step 6.2.4**: Distributed system integration tests
   - [ ] **Test**: Multi-node SWIM cluster synchronization
   - [ ] **Test**: Network partitions and recovery
   - [ ] **Test**: Conflict resolution in distributed scenarios
   - [ ] Create `tests/integration/test_distributed.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.2.5**: Failure and recovery testing
+- [ ] **Step 6.2.5**: Failure and recovery testing
   - [ ] **Test**: Component failure scenarios
   - [ ] **Test**: Network failures and reconnection
   - [ ] **Test**: Configuration errors and recovery
   - [ ] **Test**: Resource exhaustion handling
   - [ ] Create `tests/integration/test_failure_recovery.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 5.3 Migration and Compatibility Testing
+#### 6.3 Migration and Compatibility Testing
 **Testing Strategy:**
 - **Backwards Compatibility**: Ensure existing functionality works
 - **Feature Parity**: Validate all existing features preserved
@@ -621,101 +843,57 @@ app/bootstrap/
 - **Migration**: Test gradual migration scenarios
 
 **Implementation Steps:**
-- [ ] **Step 5.3.1**: Feature parity validation
+- [ ] **Step 6.3.1**: Feature parity validation
   - [ ] **Test**: All existing DNS operations work identically
   - [ ] **Test**: Docker container discovery and monitoring
   - [ ] **Test**: Hosts file parsing and updates
   - [ ] **Test**: SWIM cluster functionality
   - [ ] Create `tests/migration/test_feature_parity.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.3.2**: Performance regression testing
+- [ ] **Step 6.3.2**: Performance regression testing
   - [ ] **Test**: DNS query response times
   - [ ] **Test**: Event processing latency
   - [ ] **Test**: Memory usage under load
   - [ ] **Test**: Startup and shutdown times
   - [ ] Create `tests/migration/test_performance_regression.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.3.3**: Migration scenario testing
+- [ ] **Step 6.3.3**: Migration scenario testing
   - [ ] **Test**: Gradual component migration
   - [ ] **Test**: Feature flag controlled rollout
   - [ ] **Test**: Rollback to original system
   - [ ] Create `tests/migration/test_migration_scenarios.py`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-#### 5.4 Test Infrastructure and Automation
+#### 6.4 Test Infrastructure and Automation
 **Implementation Steps:**
-- [ ] **Step 5.4.1**: Test environment setup
+- [ ] **Step 6.4.1**: Test environment setup
   - [ ] Docker Compose for test dependencies
   - [ ] Test database and file system setup
   - [ ] Mock external services configuration
   - [ ] Create `tests/docker-compose.test.yml`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.4.2**: Continuous Integration setup
+- [ ] **Step 6.4.2**: Continuous Integration setup
   - [ ] GitHub Actions workflow for all test types
   - [ ] Test matrix for different Python versions
   - [ ] Code coverage reporting and enforcement
   - [ ] Update `.github/workflows/test.yml`
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 5.4.3**: Test utilities and helpers
+- [ ] **Step 6.4.3**: Test utilities and helpers
   - [ ] Common test utilities for component testing
   - [ ] Event assertion helpers
   - [ ] Mock factories for consistent test data
   - [ ] Create `tests/utils/` with helper modules
-
-### Phase 6: Code Quality and Composition Refactoring
-
-#### 6.1 Code Quality and Linting
-**Implementation Steps:**
-- [ ] **Step 6.1.1**: Apply comprehensive code formatting
-  - [ ] Run Black formatter on all Python files
-  - [ ] Run isort for consistent import ordering
-  - [ ] Apply consistent code style across entire codebase
-  - [ ] Update pyproject.toml with Black and isort configuration
-
-- [ ] **Step 6.1.2**: Comprehensive linting and static analysis
-  - [ ] Run flake8 linter and fix all issues
-  - [ ] Apply mypy for type checking and fix type issues
-  - [ ] Run bandit for security scanning
-  - [ ] Address all linting warnings and errors
-
-- [ ] **Step 6.1.3**: Documentation cleanup
-  - [ ] Ensure all functions and classes have proper docstrings
-  - [ ] Update type hints for consistency
-  - [ ] Review and update inline comments
-  - [ ] Generate and review API documentation
-
-#### 6.2 Composition Over Inheritance Refactoring
-**Objective**: Reduce code duplication and improve maintainability using composition patterns
-
-**Implementation Steps:**
-- [ ] **Step 6.2.1**: Create field descriptor system
-  - [ ] Implement `EventField` descriptors for property access
-  - [ ] Replace repetitive `@property` methods with declarative fields
-  - [ ] Add type validation and default value support
-  - [ ] **Test**: Create `tests/test_field_descriptors.py`
-
-- [ ] **Step 6.2.2**: Implement validation mixins
-  - [ ] Create `StringValidator`, `NumericValidator`, `ChoiceValidator` classes
-  - [ ] Extract common validation patterns into reusable components
-  - [ ] Replace repetitive validation code with mixin calls
-  - [ ] **Test**: Create `tests/test_validation_mixins.py`
-
-- [ ] **Step 6.2.3**: Event schema composition
-  - [ ] Create `EventSchema` class for declarative event definitions
-  - [ ] Define schemas for each event type using field descriptors
-  - [ ] Implement schema-based validation and data handling
-  - [ ] **Test**: Create `tests/test_event_schemas.py`
-
-- [ ] **Step 6.2.4**: Event factory pattern
-  - [ ] Implement `EventFactory` for consistent event creation
-  - [ ] Simplify event `__init__` methods using factory pattern
-  - [ ] Add factory-based event creation methods
-  - [ ] **Test**: Create `tests/test_event_factory.py`
-
-**Benefits Expected:**
-- **DRY Principle**: Eliminate ~200+ lines of repetitive property/validation code
-- **Consistency**: All events follow identical patterns automatically
-- **Maintainability**: Changes to validation logic propagate automatically
-- **Extensibility**: Easy to add new field types and validation rules
+  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  - [ ] Mark this section's steps complete once all tests are passing
 
 ### Phase 7: Advanced Event Features (Future Enhancement)
 
@@ -767,24 +945,30 @@ Phase 1: Foundation (No dependencies)
 ├── events/ (base classes and interfaces)
 └── injection/ (DI system)
 
-Phase 2: Producers (Depends on Phase 1)
+Phase 2: Code Quality (Depends on Phase 1)
+├── Python coding standards compliance
+├── Pydantic integration
+├── Documentation standards
+└── Test suite activation
+
+Phase 3: Producers (Depends on Phases 1-2)
 ├── producers/docker.py (depends on events/)
 ├── producers/swim.py (depends on events/, swimmies/)
 ├── producers/hosts.py (depends on events/)
 └── producers/system.py (depends on events/, injection/)
 
-Phase 3: Handlers (Depends on Phases 1-2)
+Phase 4: Handlers (Depends on Phases 1-3)
 ├── handlers/dns_record.py (depends on events/, producers/)
 ├── handlers/sync.py (depends on events/, swimmies/)
 ├── handlers/logging.py (depends on events/)
 ├── handlers/metrics.py (depends on events/)
 └── handlers/validation.py (depends on events/)
 
-Phase 4: Configuration (Depends on Phases 1-3)
+Phase 5: Configuration (Depends on Phases 1-4)
 ├── config/ (depends on injection/)
 └── bootstrap/ (depends on all previous phases)
 
-Phase 5: Testing (Tests all phases)
+Phase 6: Testing (Tests all phases)
 └── Complete test coverage and validation
 ```
 
@@ -898,18 +1082,36 @@ migration:
 
 ## Timeline Estimate
 
-- **Phase 1**: 1-2 weeks (Foundation)
-- **Phase 2**: 2-3 weeks (Event Producers) 
-- **Phase 3**: 2-3 weeks (Event Handlers)
-- **Phase 4**: 1-2 weeks (Configuration)
-- **Phase 5**: 2-3 weeks (Testing/Validation)
+**UPDATED TIMELINE WITH COMPLIANCE REQUIREMENTS:**
+
+- **Phase 2 (Code Quality)**: 1-2 weeks **MUST BE COMPLETED FIRST**
+- **Phase 1**: ✅ COMPLETED (Event System & DI)
+- **Phase 3**: 2-3 weeks (Event Producers with Pydantic & ENUMs) 
+- **Phase 4**: 2-3 weeks (Event Handlers with proper validation)
+- **Phase 5**: 1-2 weeks (Configuration with Pydantic schemas)
+- **Phase 6**: 2-3 weeks (Testing/Validation with activated test suite)
 
 **Core Refactor Total**: 8-13 weeks
 
-- **Phase 6**: 2-3 weeks (Code Quality and Composition Refactoring)
 - **Phase 7**: 2-4 weeks (Advanced Features - Optional)
 
-**Complete System Total**: 12-20 weeks
+**Complete System Total**: 10-17 weeks
+
+## Critical Actions Required
+
+**IMMEDIATE PRIORITIES:**
+1. **Fix code quality violations** (Phase 2.1) - CRITICAL for maintainability
+2. **Activate disabled tests** - Essential for development confidence
+3. **Apply Pydantic models** throughout event system
+4. **Ensure zero linting warnings** - As per project standards
+
+**BEFORE CONTINUING WITH PHASE 2:**
+- All existing code must pass linting without warnings
+- Disabled tests must be activated and passing
+- Pydantic models must be implemented for existing event types
+- Comprehensive type hints must be added throughout
+
+This ensures Phase 2 implementation follows established coding standards from the beginning.
 
 ## Next Steps
 

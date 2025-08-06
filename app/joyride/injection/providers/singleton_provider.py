@@ -2,7 +2,8 @@
 
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from .provider_base import Dependency, DependencyResolutionError, ProviderBase, T
+from .provider_base import (Dependency, DependencyResolutionError,
+                            ProviderBase, T)
 
 if TYPE_CHECKING:
     from .provider_registry import ProviderRegistry

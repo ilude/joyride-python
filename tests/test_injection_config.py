@@ -13,14 +13,9 @@ from unittest.mock import patch
 
 import pytest
 
-from app.joyride.injection.config import (
-    Config,
-    ConfigLoader,
-    ConfigSchema,
-    ConfigSource,
-    ConfigValidator,
-    create_config,
-)
+from app.joyride.injection.config import (Config, ConfigLoader, ConfigSchema,
+                                          ConfigSource, ConfigValidator,
+                                          create_config)
 
 
 class TestConfigSource:

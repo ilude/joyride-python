@@ -150,9 +150,7 @@ class EventBus:
         with self._lock:
             return self._registry.get_subscriptions(event_type)
 
-    def clear_subscriptions(
-        self, event_type: Optional[Type["Event"]] = None
-    ) -> int:
+    def clear_subscriptions(self, event_type: Optional[Type["Event"]] = None) -> int:
         """
         Clear subscriptions, optionally filtered by event type.
 

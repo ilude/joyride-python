@@ -15,26 +15,14 @@ import pytest
 # Add tests/support to path for imports
 sys.path.append(str(Path(__file__).parent / "support"))
 
-from injection_helpers import (  # noqa: E402
-    ComplexService,
-    DependentService,
-    PrototypeService,
-    SimpleService,
-)
+from injection_helpers import (ComplexService, DependentService,  # noqa: E402
+                               PrototypeService, SimpleService)
 
 from app.joyride.injection.providers import (  # noqa: E402
-    CircularDependencyError,
-    ClassProvider,
-    Dependency,
-    DependencyResolutionError,
-    FactoryProvider,
-    LifecycleType,
-    PrototypeProvider,
-    ProviderBase,
-    ProviderInfo,
-    ProviderRegistry,
-    SingletonProvider,
-)
+    CircularDependencyError, ClassProvider, Dependency,
+    DependencyResolutionError, FactoryProvider, LifecycleType,
+    PrototypeProvider, ProviderBase, ProviderInfo, ProviderRegistry,
+    SingletonProvider)
 
 # Aliases for backward compatibility with existing tests
 TestService = SimpleService
