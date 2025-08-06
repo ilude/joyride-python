@@ -3,8 +3,13 @@
 import inspect
 from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
-from .provider_base import (Dependency, DependencyResolutionError,
-                            LifecycleType, ProviderBase, T)
+from .provider_base import (
+    Dependency,
+    DependencyResolutionError,
+    LifecycleType,
+    ProviderBase,
+    T,
+)
 
 if TYPE_CHECKING:
     from .provider_registry import ProviderRegistry
@@ -35,7 +40,7 @@ class ClassProvider(ProviderBase[T]):
 
     def _analyze_dependencies(self) -> List[Dependency]:
         """Analyze class constructor to determine dependencies."""
-        dependencies = []
+        dependencies: List[Dependency] = []
 
         try:
             sig = inspect.signature(self._cls.__init__)

@@ -2,10 +2,13 @@
 
 import pytest
 
-from app.joyride.injection.lifecycle import (ComponentState,
-                                             HealthCheckableComponent,
-                                             HealthStatus, StartableComponent,
-                                             create_lifecycle_system)
+from app.joyride.injection.lifecycle import (
+    ComponentState,
+    HealthCheckableComponent,
+    HealthStatus,
+    StartableComponent,
+    create_lifecycle_system,
+)
 from app.joyride.injection.lifecycle.component import ComponentStartupError
 
 
@@ -161,8 +164,7 @@ async def test_create_lifecycle_system_helper():
 
     # Verify types
     from app.joyride.injection.lifecycle.health import HealthMonitor
-    from app.joyride.injection.lifecycle.orchestrator import \
-        LifecycleOrchestrator
+    from app.joyride.injection.lifecycle.orchestrator import LifecycleOrchestrator
     from app.joyride.injection.lifecycle.registry import ComponentRegistry
 
     assert isinstance(registry, ComponentRegistry)

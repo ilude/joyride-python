@@ -3,14 +3,18 @@ Tests for component lifecycle management.
 """
 import asyncio
 import time
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from app.joyride.injection.lifecycle.component import (
-    Component, ComponentError, ComponentShutdownError, ComponentStartupError,
-    ComponentState, ComponentStateError, HealthCheckableComponent,
-    StartableComponent)
+    Component,
+    ComponentShutdownError,
+    ComponentStartupError,
+    ComponentState,
+    ComponentStateError,
+    HealthCheckableComponent,
+    StartableComponent,
+)
 
 
 class TestComponent:

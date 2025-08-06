@@ -2,8 +2,7 @@
 
 import pytest
 
-from app.joyride.injection.lifecycle.component import (Component,
-                                                       StartableComponent)
+from app.joyride.injection.lifecycle.component import Component, StartableComponent
 from app.joyride.injection.lifecycle.registry import ComponentRegistry
 from app.joyride.injection.lifecycle.types import ComponentNotFoundError
 

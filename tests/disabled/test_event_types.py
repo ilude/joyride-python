@@ -9,10 +9,15 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.joyride.events.types import (JoyrideContainerEvent, JoyrideDNSEvent,
-                                      JoyrideErrorEvent, JoyrideFileEvent,
-                                      JoyrideHealthEvent, JoyrideNodeEvent,
-                                      JoyrideSystemEvent)
+from app.joyride.events.types import (
+    JoyrideContainerEvent,
+    JoyrideDNSEvent,
+    JoyrideErrorEvent,
+    JoyrideFileEvent,
+    JoyrideHealthEvent,
+    JoyrideNodeEvent,
+    JoyrideSystemEvent,
+)
 
 
 class TestDNSEvent:

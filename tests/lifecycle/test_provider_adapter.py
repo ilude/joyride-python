@@ -6,8 +6,7 @@ import pytest
 
 from app.joyride.injection.lifecycle.component import ComponentState
 from app.joyride.injection.lifecycle.provider_adapter import ProviderComponent
-from app.joyride.injection.providers.provider_base import (Dependency,
-                                                           ProviderBase)
+from app.joyride.injection.providers.provider_base import Dependency, ProviderBase
 from app.joyride.injection.providers.provider_registry import ProviderRegistry
 
 

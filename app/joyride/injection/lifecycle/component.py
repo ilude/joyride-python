@@ -7,9 +7,8 @@ injection, and health checking capabilities.
 import asyncio
 import logging
 import time
-from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Optional, Set
 
 logger = logging.getLogger(__name__)
 

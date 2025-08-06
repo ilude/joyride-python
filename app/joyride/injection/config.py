@@ -10,7 +10,7 @@ import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 import yaml
 
@@ -43,7 +43,7 @@ class ConfigSchema:
     optional_keys: List[str] = field(default_factory=list)
     key_types: Dict[str, Type] = field(default_factory=dict)
     nested_schemas: Dict[str, "ConfigSchema"] = field(default_factory=dict)
-    validators: Dict[str, callable] = field(default_factory=dict)
+    validators: Dict[str, Callable[[Any], bool]] = field(default_factory=dict)
 
     def validate_key(self, key: str, value: Any) -> bool:
         """Validate a single configuration key."""
@@ -111,7 +111,7 @@ class ConfigLoader:
         if prefix is None:
             prefix = self._env_prefix
 
-        env_config = {}
+        env_config: Dict[str, Any] = {}
         for key, value in os.environ.items():
             if key.startswith(prefix):
                 # Convert JOYRIDE_DNS_PORT to nested structure: {"dns": {"port": value}}
@@ -198,7 +198,7 @@ class ConfigLoader:
             return {}
 
         # Start with lowest priority (defaults)
-        merged = {}
+        merged: Dict[str, Any] = {}
         for source in reversed(self.sources):  # Reverse to start with lowest priority
             merged = self._deep_merge(merged, source.data)
 

@@ -6,19 +6,30 @@ It replaces the inline Python scripts with proper test cases.
 import pytest
 
 from app.joyride.injection import Config as InjectionConfig
-from app.joyride.injection import \
-    ProviderBase as \
-    InjectionProvider  # Test that injection module exports work
-from app.joyride.injection.config import (Config, ConfigLoader, ConfigSchema,
-                                          ConfigSource, ConfigValidator,
-                                          create_config)
-from app.joyride.injection.providers import (CircularDependencyError,
-                                             ClassProvider, Dependency,
-                                             DependencyResolutionError,
-                                             FactoryProvider, LifecycleType,
-                                             PrototypeProvider, ProviderBase,
-                                             ProviderInfo, ProviderRegistry,
-                                             SingletonProvider)
+from app.joyride.injection import (
+    ProviderBase as InjectionProvider,  # Test that injection module exports work
+)
+from app.joyride.injection.config import (
+    Config,
+    ConfigLoader,
+    ConfigSchema,
+    ConfigSource,
+    ConfigValidator,
+    create_config,
+)
+from app.joyride.injection.providers import (
+    CircularDependencyError,
+    ClassProvider,
+    Dependency,
+    DependencyResolutionError,
+    FactoryProvider,
+    LifecycleType,
+    PrototypeProvider,
+    ProviderBase,
+    ProviderInfo,
+    ProviderRegistry,
+    SingletonProvider,
+)
 
 
 class TestStep122ModularImports:
