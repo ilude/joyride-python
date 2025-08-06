@@ -186,7 +186,7 @@ def test_invalid_transitions():
 #### 1.3 Mark Step Complete
 If `make test` passes successfully, update this document to mark Step 1 as completed by changing `⬜ Step 1` to `✅ Step 1` and adding "- COMPLETED" to the title.
 
-### ⬜ Step 2: Simple Component Implementation (45 minutes)
+### ✅ Step 2: Simple Component Implementation (45 minutes) - COMPLETED
 
 **Goal**: Create a working component class that can be used immediately.
 
@@ -435,7 +435,7 @@ async def test_custom_component():
 #### 2.1 Mark Step Complete
 If `make test` passes successfully, update this document to mark Step 2 as completed by changing `⬜ Step 2` to `✅ Step 2` and adding "- COMPLETED" to the title.
 
-### ⬜ Step 3: Component Registry (30 minutes)
+### ✅ Step 3: Component Registry (30 minutes) - COMPLETED
 
 **Goal**: Create a working registry for managing components.
 
@@ -492,7 +492,7 @@ class ComponentRegistry:
                 raise ComponentNotFoundError(f"Component {name} not found")
             return self._components[name]
     
-    async def get_optional(self, name: str) -> Optional[Component]:
+    async def get_optional(self, name: str) -> Optional<Component]:
         """Get component or None if not found."""
         async with self._lock:
             return self._components.get(name)

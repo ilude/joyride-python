@@ -1,7 +1,7 @@
 ---
-mode: agent
-model: GPT-4.1
-tools: ["terminal", "file", "context7"]
+mode: edit
+model: clude sonnet 4
+tools: ["terminal", "file", "context7", "code", "chat_planning", "chat", 'runTests']
 description: "Complete Step 2: Simple Component Implementation - Create working component classes that can be used immediately"
 ---
 
@@ -17,7 +17,8 @@ Refer to the [LIFECYCLE_REFACTORING_PROCEDURE.md](../.chat_planning/LIFECYCLE_RE
 
 ## STEP 2 OVERVIEW
 
-**Goal**: Create a working component class that can be used immediately.
+**Goal**: Create a working component class that can be used immediately. Please continue working until you have completed the work specified.
+DO NOT STOP TO TELL ME WHAT YOU ARE GOING TO DO!!! ** JUST DO IT!!! **
 
 **Files to create**:
 - `app/joyride/injection/lifecycle/component.py` - Base component implementation with Component, StartableComponent, and HealthCheckableComponent classes
