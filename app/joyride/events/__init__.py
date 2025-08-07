@@ -14,6 +14,9 @@ from .event import Event
 # Event bus
 from .event_bus import EventBus
 
+# Event factory
+from .event_factory import EventFactory, create_event
+
 # Registry system
 from .event_filter import EventFilter
 from .event_handler import EventHandler
@@ -113,6 +116,9 @@ __all__ = [
     "HealthEventSchema",
     "NodeEventSchema",
     "SystemEventSchema",
+    # Event factory
+    "EventFactory",
+    "create_event",
     # Registry system
     "EventFilter",
     "EventRegistry",
