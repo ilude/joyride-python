@@ -48,14 +48,14 @@ class HostsFileEventProducer(EventProducer):
 
         # Configuration
         default_hosts = ["/etc/hosts"]
-        self._hosts_file_paths = config.get("hosts_file_paths", default_hosts)
-        self._polling_interval = config.get("polling_interval", 5)
-        self._create_backups = config.get("create_backups", True)
+        self._hosts_file_paths = (config or {}).get("hosts_file_paths", default_hosts)
+        self._polling_interval = (config or {}).get("polling_interval", 5)
+        self._create_backups = (config or {}).get("create_backups", True)
         self._backup_directory = Path(
-            config.get("backup_directory", "/tmp/hosts_backups")
+            (config or {}).get("backup_directory", "/tmp/hosts_backups")
         )
-        self._max_backups = config.get("max_backups", 10)
-        self._parse_entries = config.get("parse_entries", True)
+        self._max_backups = (config or {}).get("max_backups", 10)
+        self._parse_entries = (config or {}).get("parse_entries", True)
 
         # State tracking
         self._file_states: Dict[str, Dict[str, Any]] = {}
@@ -77,6 +77,14 @@ class HostsFileEventProducer(EventProducer):
 
         # Initialize file states
         await self._initialize_file_states()
+
+    async def stop(self) -> None:
+        """Stop the event producer and clean up resources."""
+        # Call parent stop method
+        await super().stop()
+
+        # Always clean up resources, even if we weren't running
+        await self._stop_producer()
 
     async def _stop_producer(self) -> None:
         """Stop the hosts file event producer."""
@@ -115,18 +123,25 @@ class HostsFileEventProducer(EventProducer):
             try:
                 if os.path.exists(file_path):
                     stat = os.stat(file_path)
-                    checksum = await self._calculate_file_checksum(file_path)
+                    checksum = self._calculate_file_checksum(file_path)
 
-                    self._file_states[file_path] = {
-                        "exists": True,
-                        "size": stat.st_size,
-                        "mtime": stat.st_mtime,
-                        "permissions": oct(stat.st_mode)[-3:],
-                        "checksum": checksum,
-                    }
-                    self._last_checksums[file_path] = checksum
+                    if checksum is not None:
+                        self._file_states[file_path] = {
+                            "exists": True,
+                            "size": stat.st_size,
+                            "mtime": stat.st_mtime,
+                            "permissions": oct(stat.st_mode)[-3:],
+                            "checksum": checksum,
+                        }
+                        self._last_checksums[file_path] = checksum
 
-                    logger.info(f"Initialized monitoring for: {file_path}")
+                        logger.info(f"Initialized monitoring for: {file_path}")
+                    else:
+                        logger.error(f"Failed to calculate checksum for: {file_path}")
+                        self._file_states[file_path] = {
+                            "exists": False,
+                            "error": "checksum_failed",
+                        }
                 else:
                     self._file_states[file_path] = {"exists": False}
                     logger.warning(f"Hosts file does not exist: {file_path}")
@@ -140,7 +155,10 @@ class HostsFileEventProducer(EventProducer):
         try:
             current_exists = os.path.exists(file_path)
             previous_state = self._file_states.get(file_path, {})
-            previous_exists = previous_state.get("exists", False)
+            # Consider file as previously existing if we have state or a checksum for it
+            previous_exists = (
+                previous_state.get("exists", False) or file_path in self._last_checksums
+            )
 
             # Handle file creation
             if current_exists and not previous_exists:
@@ -163,30 +181,36 @@ class HostsFileEventProducer(EventProducer):
         """Handle hosts file creation."""
         try:
             stat = os.stat(file_path)
-            checksum = await self._calculate_file_checksum(file_path)
+            checksum = self._calculate_file_checksum(file_path)
 
-            # Update state
-            self._file_states[file_path] = {
-                "exists": True,
-                "size": stat.st_size,
-                "mtime": stat.st_mtime,
-                "permissions": oct(stat.st_mode)[-3:],
-                "checksum": checksum,
-            }
-            self._last_checksums[file_path] = checksum
+            if checksum is not None:
+                # Update state
+                self._file_states[file_path] = {
+                    "exists": True,
+                    "size": stat.st_size,
+                    "mtime": stat.st_mtime,
+                    "permissions": oct(stat.st_mode)[-3:],
+                    "checksum": checksum,
+                }
+                self._last_checksums[file_path] = checksum
 
-            # Publish event
-            event = HostsFileEvent(
-                hosts_event_type=HostsFileEventType.FILE_CREATED,
-                source=self._producer_name,
-                file_path=file_path,
-                file_size=stat.st_size,
-                file_permissions=oct(stat.st_mode)[-3:],
-                filesystem_event=True,
-            )
+                # Publish event
+                event = HostsFileEvent(
+                    event_type="hosts.file_created",
+                    hosts_event_type=HostsFileEventType.FILE_CREATED,
+                    source=self._producer_name,
+                    file_path=file_path,
+                    file_size=stat.st_size,
+                    file_permissions=oct(stat.st_mode)[-3:],
+                    filesystem_event=True,
+                )
 
-            await self.publish_event(event)
-            logger.info(f"Hosts file created: {file_path}")
+                self.publish_event(event)
+                logger.info(f"Hosts file created: {file_path}")
+            else:
+                logger.error(
+                    f"Failed to calculate checksum for created file: {file_path}"
+                )
 
         except Exception as e:
             logger.error(f"Error handling file creation {file_path}: {e}")
@@ -200,6 +224,7 @@ class HostsFileEventProducer(EventProducer):
 
             # Publish event
             event = HostsFileEvent(
+                event_type="hosts.file_deleted",
                 hosts_event_type=HostsFileEventType.FILE_DELETED,
                 source=self._producer_name,
                 file_path=file_path,
@@ -207,7 +232,7 @@ class HostsFileEventProducer(EventProducer):
                 filesystem_event=True,
             )
 
-            await self.publish_event(event)
+            self.publish_event(event)
             logger.warning(f"Hosts file deleted: {file_path}")
 
         except Exception as e:
@@ -217,27 +242,143 @@ class HostsFileEventProducer(EventProducer):
         """Check for file modifications."""
         try:
             current_stat = os.stat(file_path)
-            current_checksum = await self._calculate_file_checksum(file_path)
-            previous_state = self._file_states.get(file_path, {})
+            current_checksum = self._calculate_file_checksum(file_path)
             previous_checksum = self._last_checksums.get(file_path, "")
 
-            # Check if file has been modified
             if current_checksum != previous_checksum:
-                await self._handle_file_modified(
-                    file_path, previous_state, current_stat, current_checksum
+                await self._process_hosts_file_change(
+                    file_path, previous_checksum, current_checksum
                 )
+
+                # Update the checksum and state after successful processing
+                if current_checksum is not None:
+                    self._last_checksums[file_path] = current_checksum
+                    self._file_states[file_path] = {
+                        "exists": True,
+                        "size": current_stat.st_size,
+                        "mtime": current_stat.st_mtime,
+                        "permissions": oct(current_stat.st_mode)[-3:],
+                        "checksum": current_checksum,
+                    }
 
         except Exception as e:
             logger.error(f"Error checking file modification {file_path}: {e}")
+
+    async def _process_hosts_file_change(
+        self, file_path: str, old_checksum: str, new_checksum: Optional[str]
+    ) -> None:
+        """Process hosts file changes."""
+        if new_checksum is None:
+            logger.error(f"Cannot process file change without checksum: {file_path}")
+            return
+
+        try:
+            # Create backup if enabled
+            backup_path = None
+            if self._create_backups:
+                backup_path = await self._create_backup(file_path)
+
+            # Parse the file for individual entries
+            if self._parse_entries:
+                await self._parse_hosts_file(file_path)
+
+            # Publish file modification event
+            modification_event = HostsFileModificationEvent(
+                event_type="hosts.file_modified",
+                hosts_event_type=HostsFileEventType.FILE_MODIFIED,
+                source=self._producer_name,
+                file_path=file_path,
+                operation_type="modification",
+                old_checksum=old_checksum,
+                new_checksum=new_checksum,
+                backup_path=backup_path,
+                triggered_by="file_change_detection",
+                auto_generated=True,
+                operation_successful=True,
+            )
+            self.publish_event(modification_event)
+
+            logger.info(f"Processed hosts file change: {file_path}")
+
+        except Exception as e:
+            logger.error(f"Error processing hosts file change {file_path}: {e}")
+
+    async def _parse_hosts_file(self, file_path: str) -> None:
+        """Parse hosts file and publish entry events."""
+        try:
+            with open(file_path, "r") as f:
+                lines = f.readlines()
+
+            for line_num, line in enumerate(lines, 1):
+                result = self._parse_hosts_line(line, line_num)
+                if result is not None:
+                    # Publish entry event for valid entries
+                    event = HostsEntryEvent(
+                        hosts_event_type=HostsFileEventType.ENTRY_ADDED,
+                        source=self._producer_name,
+                        file_path=file_path,
+                        ip_address=result["ip_address"],
+                        hostnames=result["hostnames"],
+                        line_number=line_num,
+                        original_line=line.strip(),
+                    )
+                    self.publish_event(event)
+
+        except Exception as e:
+            logger.error(f"Error parsing hosts file {file_path}: {e}")
+
+    def _parse_hosts_line(
+        self, line: str, line_number: int
+    ) -> Optional[Dict[str, Any]]:
+        """Parse a single hosts file line."""
+        try:
+            line = line.strip()
+
+            # Skip empty lines and comments
+            if not line or line.startswith("#"):
+                return None
+
+            # Split into parts
+            parts = line.split()
+            if len(parts) < 2:
+                return None
+
+            ip_address = parts[0]
+            hostnames = parts[1:]
+
+            # Basic IP validation
+            import ipaddress
+
+            try:
+                ipaddress.ip_address(ip_address)
+            except ValueError:
+                return None
+
+            return {
+                "ip_address": ip_address,
+                "hostnames": hostnames,
+                "primary_hostname": hostnames[0] if hostnames else None,
+                "line_number": line_number,
+                "original_line": line,
+            }
+
+        except Exception as e:
+            return {"valid": False, "type": "error", "error": str(e)}
 
     async def _handle_file_modified(
         self,
         file_path: str,
         previous_state: Dict,
         current_stat: os.stat_result,
-        current_checksum: str,
+        current_checksum: Optional[str],
     ) -> None:
         """Handle hosts file modification."""
+        if current_checksum is None:
+            logger.error(
+                f"Cannot handle file modification without checksum: {file_path}"
+            )
+            return
+
         try:
             # Create backup if enabled
             backup_path = None
@@ -259,6 +400,7 @@ class HostsFileEventProducer(EventProducer):
 
             # Publish modification event
             event = HostsFileModificationEvent(
+                event_type="hosts.file_modified",
                 hosts_event_type=HostsFileEventType.FILE_MODIFIED,
                 source=self._producer_name,
                 file_path=file_path,
@@ -275,7 +417,7 @@ class HostsFileEventProducer(EventProducer):
                 backup_path=backup_path,
             )
 
-            await self.publish_event(event)
+            self.publish_event(event)
 
             # Parse and publish entry events if enabled
             if self._parse_entries:
@@ -286,7 +428,7 @@ class HostsFileEventProducer(EventProducer):
         except Exception as e:
             logger.error(f"Error handling file modification {file_path}: {e}")
 
-    async def _calculate_file_checksum(self, file_path: str) -> str:
+    def _calculate_file_checksum(self, file_path: str) -> Optional[str]:
         """Calculate MD5 checksum of file."""
         try:
             hash_md5 = hashlib.md5()
@@ -296,7 +438,7 @@ class HostsFileEventProducer(EventProducer):
             return hash_md5.hexdigest()
         except Exception as e:
             logger.error(f"Error calculating checksum for {file_path}: {e}")
-            return ""
+            return None
 
     async def _analyze_file_changes(
         self, file_path: str, previous_state: Dict
@@ -335,25 +477,28 @@ class HostsFileEventProducer(EventProducer):
             backup_name = f"{Path(file_path).name}_{timestamp}.backup"
             backup_path = self._backup_directory / backup_name
 
-            # Copy file
-            import shutil
+            # Read original file content
+            with open(file_path, "r") as f:
+                content = f.read()
 
-            shutil.copy2(file_path, backup_path)
+            # Write to backup file
+            backup_path.write_text(content)
 
             # Publish backup event
             backup_event = HostsBackupEvent(
+                event_type="hosts.backup_created",
                 hosts_event_type=HostsFileEventType.BACKUP_CREATED,
                 source=self._producer_name,
                 file_path=file_path,
                 backup_path=str(backup_path),
-                backup_size=os.path.getsize(backup_path),
+                backup_size=backup_path.stat().st_size,
                 operation_type="backup",
                 triggered_by="file_modification",
                 auto_generated=True,
                 operation_successful=True,
             )
 
-            await self.publish_event(backup_event)
+            self.publish_event(backup_event)
             return str(backup_path)
 
         except Exception as e:
@@ -410,11 +555,12 @@ class HostsFileEventProducer(EventProducer):
                             original_line=line,
                         )
 
-                        await self.publish_event(event)
+                        self.publish_event(event)
 
                 except Exception as e:
                     # Publish parse error event
                     error_event = HostsParseErrorEvent(
+                        event_type="hosts.parse_error",
                         hosts_event_type=HostsFileEventType.PARSE_ERROR,
                         source=self._producer_name,
                         file_path=file_path,
@@ -426,7 +572,7 @@ class HostsFileEventProducer(EventProducer):
                         suggested_fix="Check IP address and hostname format",
                     )
 
-                    await self.publish_event(error_event)
+                    self.publish_event(error_event)
 
         except Exception as e:
             logger.error(f"Error parsing hosts file {file_path}: {e}")
@@ -435,34 +581,12 @@ class HostsFileEventProducer(EventProducer):
         """Get set of supported hosts file event types."""
         return self._supported_event_types.copy()
 
-    async def health_check(self) -> Dict[str, Any]:
-        """Perform health check for hosts file event producer."""
-        health_data = await super().health_check()
-
-        # Add hosts file specific health information
-        hosts_health = {
-            "monitored_files": self._hosts_file_paths,
-            "polling_interval": self._polling_interval,
-            "create_backups": self._create_backups,
-            "backup_directory": str(self._backup_directory),
-            "max_backups": self._max_backups,
-            "parse_entries": self._parse_entries,
-            "file_states": {},
-        }
-
-        # Check status of each monitored file
+    async def _producer_health_check(self) -> bool:
+        """Perform hosts-specific health check."""
+        # Check if at least one monitored file exists
         for file_path in self._hosts_file_paths:
-            file_state = self._file_states.get(file_path, {})
-            hosts_health["file_states"][file_path] = {
-                "exists": file_state.get("exists", False),
-                "size": file_state.get("size"),
-                "readable": os.access(file_path, os.R_OK)
-                if os.path.exists(file_path)
-                else False,
-                "writable": os.access(file_path, os.W_OK)
-                if os.path.exists(file_path)
-                else False,
-            }
+            if Path(file_path).exists():
+                return True
 
-        health_data["hosts_file"] = hosts_health
-        return health_data
+        # All files are missing - this is an unhealthy state
+        return False

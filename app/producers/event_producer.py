@@ -8,7 +8,7 @@ for all event producers in the Joyride DNS Service.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Set
 
 from app.joyride.events.event import Event
@@ -103,7 +103,7 @@ class EventProducer(StartableComponent, ABC):
 
             self._event_bus.publish(event)
             self._event_count += 1
-            self._last_event_time = datetime.utcnow()
+            self._last_event_time = datetime.now(timezone.utc)
 
             logger.debug(
                 f"Producer {self._producer_name} published event: "

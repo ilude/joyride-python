@@ -16,7 +16,10 @@ class HostsFileEventType(str, Enum):
     ENTRY_MODIFIED = "hosts.entry.modified"
     FILE_CHANGED = "hosts.file.changed"
     FILE_MODIFIED = "hosts.file.modified"
+    FILE_CREATED = "hosts.file.created"
+    FILE_DELETED = "hosts.file.deleted"
     FILE_BACKUP = "hosts.file.backup"
+    BACKUP_CREATED = "hosts.backup.created"
     FILE_ERROR = "hosts.file.error"
     PARSE_ERROR = "hosts.parse.error"
 

@@ -167,7 +167,7 @@ class DockerEventProducer(EventProducer):
             # Create appropriate event object based on event type
             event = await self._create_event_object(docker_event_type, event_data)
             if event:
-                await self.publish_event(event)
+                self.publish_event(event)
 
         except Exception as e:
             logger.error(f"Error processing Docker event: {e}")
@@ -250,16 +250,29 @@ class DockerEventProducer(EventProducer):
             container_id = common_fields["actor_id"]
             attributes = common_fields["actor_attributes"]
 
-            # Extract container information
-            container_fields = {
-                **common_fields,
-                "container_id": container_id,
-                "container_name": attributes.get("name", ""),
-                "container_image": attributes.get("image", ""),
-                "container_labels": {
-                    k: v for k, v in attributes.items() if k.startswith("label.")
-                },
-            }
+            # Convert timestamp if needed
+            docker_timestamp = common_fields["docker_timestamp"]
+            if isinstance(docker_timestamp, (int, float)):
+                from datetime import datetime
+
+                docker_timestamp = datetime.fromtimestamp(docker_timestamp)
+
+            # Create the container event with explicit field mapping
+            container_event = DockerContainerEvent(
+                docker_event_type=common_fields["docker_event_type"],
+                source=common_fields["source"],
+                docker_event_id=common_fields["docker_event_id"],
+                docker_timestamp=docker_timestamp,
+                docker_action=common_fields["docker_action"],
+                actor_id=common_fields["actor_id"],
+                actor_type=common_fields["actor_type"],
+                container_id=container_id,
+                container_name=attributes.get("name", ""),
+                container_image=attributes.get("image", ""),
+                actor_attributes=common_fields["actor_attributes"],
+                scope=common_fields.get("scope"),
+                time_nano=common_fields.get("time_nano"),
+            )
 
             # Try to get additional container info from Docker API
             if self._docker_client and container_id:
@@ -268,13 +281,15 @@ class DockerEventProducer(EventProducer):
                         None, self._get_container_info, container_id
                     )
                     if container_info:
-                        container_fields.update(container_info)
+                        # Update container event with additional info
+                        for key, value in container_info.items():
+                            setattr(container_event, key, value)
                 except Exception as e:
                     logger.debug(
                         f"Could not get container info for {container_id}: {e}"
                     )
 
-            return DockerContainerEvent(**container_fields)
+            return container_event
 
         except Exception as e:
             logger.error(f"Error creating container event: {e}")
@@ -288,17 +303,32 @@ class DockerEventProducer(EventProducer):
             network_id = common_fields["actor_id"]
             attributes = common_fields["actor_attributes"]
 
-            network_fields = {
-                **common_fields,
-                "network_id": network_id,
-                "network_name": attributes.get("name", ""),
-                "network_driver": attributes.get("driver"),
-                "network_scope": attributes.get("scope"),
-                "connected_container_id": attributes.get("container"),
-                "endpoint_id": attributes.get("endpointID"),
-            }
+            # Convert timestamp if needed
+            docker_timestamp = common_fields["docker_timestamp"]
+            if isinstance(docker_timestamp, (int, float)):
+                from datetime import datetime
 
-            return DockerNetworkEvent(**network_fields)
+                docker_timestamp = datetime.fromtimestamp(docker_timestamp)
+
+            network_event = DockerNetworkEvent(
+                docker_event_type=common_fields["docker_event_type"],
+                source=common_fields["source"],
+                docker_event_id=common_fields["docker_event_id"],
+                docker_timestamp=docker_timestamp,
+                docker_action=common_fields["docker_action"],
+                actor_id=common_fields["actor_id"],
+                actor_type=common_fields["actor_type"],
+                network_id=network_id,
+                network_name=attributes.get("name", ""),
+                network_driver=attributes.get("driver"),
+                network_scope=attributes.get("scope"),
+                container_id=attributes.get("container"),
+                actor_attributes=common_fields["actor_attributes"],
+                scope=common_fields.get("scope"),
+                time_nano=common_fields.get("time_nano"),
+            )
+
+            return network_event
 
         except Exception as e:
             logger.error(f"Error creating network event: {e}")
@@ -312,17 +342,31 @@ class DockerEventProducer(EventProducer):
             volume_name = common_fields["actor_id"]
             attributes = common_fields["actor_attributes"]
 
-            volume_fields = {
-                **common_fields,
-                "volume_name": volume_name,
-                "volume_driver": attributes.get("driver"),
-                "volume_mountpoint": attributes.get("mountpoint"),
-                "mount_container_id": attributes.get("container"),
-                "mount_destination": attributes.get("destination"),
-                "mount_mode": attributes.get("read/write"),
-            }
+            # Convert timestamp if needed
+            docker_timestamp = common_fields["docker_timestamp"]
+            if isinstance(docker_timestamp, (int, float)):
+                from datetime import datetime
 
-            return DockerVolumeEvent(**volume_fields)
+                docker_timestamp = datetime.fromtimestamp(docker_timestamp)
+
+            volume_event = DockerVolumeEvent(
+                docker_event_type=common_fields["docker_event_type"],
+                source=common_fields["source"],
+                docker_event_id=common_fields["docker_event_id"],
+                docker_timestamp=docker_timestamp,
+                docker_action=common_fields["docker_action"],
+                actor_id=common_fields["actor_id"],
+                actor_type=common_fields["actor_type"],
+                volume_name=volume_name,
+                volume_driver=attributes.get("driver"),
+                mount_point=attributes.get("mountpoint"),
+                container_id=attributes.get("container"),
+                actor_attributes=common_fields["actor_attributes"],
+                scope=common_fields.get("scope"),
+                time_nano=common_fields.get("time_nano"),
+            )
+
+            return volume_event
 
         except Exception as e:
             logger.error(f"Error creating volume event: {e}")
@@ -336,22 +380,38 @@ class DockerEventProducer(EventProducer):
             image_id = common_fields["actor_id"]
             attributes = common_fields["actor_attributes"]
 
-            # Parse image name and tag
+            # Convert timestamp if needed
+            docker_timestamp = common_fields["docker_timestamp"]
+            if isinstance(docker_timestamp, (int, float)):
+                from datetime import datetime
+
+                docker_timestamp = datetime.fromtimestamp(docker_timestamp)
+
+            # Parse image name and tags
             image_name = attributes.get("name", "")
-            image_tag = None
+            image_tags = []
             if ":" in image_name:
-                image_name, image_tag = image_name.rsplit(":", 1)
+                name_part, tag = image_name.rsplit(":", 1)
+                image_name = name_part
+                image_tags = [tag]
 
-            image_fields = {
-                **common_fields,
-                "image_id": image_id,
-                "image_name": image_name,
-                "image_tag": image_tag,
-                "image_digest": attributes.get("digest"),
-                "repository": attributes.get("repository"),
-            }
+            image_event = DockerImageEvent(
+                docker_event_type=common_fields["docker_event_type"],
+                source=common_fields["source"],
+                docker_event_id=common_fields["docker_event_id"],
+                docker_timestamp=docker_timestamp,
+                docker_action=common_fields["docker_action"],
+                actor_id=common_fields["actor_id"],
+                actor_type=common_fields["actor_type"],
+                image_id=image_id,
+                image_name=image_name,
+                image_tags=image_tags,
+                actor_attributes=common_fields["actor_attributes"],
+                scope=common_fields.get("scope"),
+                time_nano=common_fields.get("time_nano"),
+            )
 
-            return DockerImageEvent(**image_fields)
+            return image_event
 
         except Exception as e:
             logger.error(f"Error creating image event: {e}")
@@ -360,6 +420,9 @@ class DockerEventProducer(EventProducer):
     def _get_container_info(self, container_id: str) -> Optional[Dict[str, Any]]:
         """Get additional container information from Docker API."""
         try:
+            if not self._docker_client:
+                return None
+
             container = self._docker_client.containers.get(container_id)
 
             # Extract relevant information
