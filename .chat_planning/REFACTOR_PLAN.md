@@ -618,6 +618,7 @@ app/config/
 ```
 
 **Implementation Steps:**
+- [ ] **Step 5.1.1**: Create `app/config/schema.py`
   - [ ] Define configuration schema using Pydantic or similar
   - [ ] Schema for each component (Docker, SWIM, DNS, etc.)
   - [ ] Environment variable mapping
@@ -627,6 +628,7 @@ app/config/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 5.1.1`
 
+- [ ] **Step 5.1.2**: Create `app/config/loader.py`
   - [ ] Implement hierarchical configuration loading
   - [ ] Support YAML, JSON, environment variables
   - [ ] Configuration merging and precedence rules
@@ -635,6 +637,7 @@ app/config/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 5.1.2`
 
+- [ ] **Step 5.1.3**: Create `app/config/validator.py`
   - [ ] Configuration validation against schema
   - [ ] Cross-component validation rules
   - [ ] Runtime configuration checks
@@ -643,6 +646,7 @@ app/config/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 5.1.3`
 
+- [ ] **Step 5.1.4**: Create `app/config/watcher.py`
   - [ ] Dynamic configuration update detection
   - [ ] Configuration reload triggers
   - [ ] Component notification system
@@ -651,6 +655,7 @@ app/config/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 5.1.4`
 
+- [ ] **Step 5.1.5**: Configuration system integration testing
   - [ ] **Test**: Create `tests/test_config_integration.py`
   - [ ] Test complete configuration lifecycle
   - [ ] Test dynamic updates and component reloading
@@ -670,6 +675,7 @@ app/bootstrap/
 ```
 
 **Implementation Steps:**
+- [ ] **Step 5.2.1**: Create `app/bootstrap/factory.py`
   - [ ] Component factory using DI injection system
   - [ ] Configuration-driven component creation
   - [ ] Dependency graph resolution
@@ -678,6 +684,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 5.2.1`
 
+- [ ] **Step 5.2.2**: Create `app/bootstrap/application.py`
   - [ ] Main application class coordinating all components
   - [ ] Graceful startup and shutdown handling
   - [ ] Component lifecycle management
@@ -687,6 +694,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 5.2.2`
 
+- [ ] **Step 5.2.3**: Create `app/bootstrap/runner.py`
   - [ ] Application entry point
   - [ ] Command-line argument parsing
   - [ ] Different deployment modes (development, production)
@@ -696,6 +704,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 5.2.3`
 
+- [ ] **Step 5.2.4**: Bootstrap integration testing
   - [ ] **Test**: Create `tests/test_bootstrap_integration.py`
   - [ ] Test complete application startup
   - [ ] Test graceful shutdown scenarios
@@ -714,6 +723,7 @@ app/bootstrap/
 - **Automation**: All tests run in CI/CD pipeline
 
 **Implementation Steps:**
+- [ ] **Step 6.1.1**: Complete unit test coverage
   - [ ] Verify all components have comprehensive unit tests
   - [ ] Add missing test cases for edge conditions
   - [ ] Mock all external dependencies (Docker API, file system, network)
@@ -722,6 +732,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.1.1`
 
+- [ ] **Step 6.1.2**: Test data and fixtures
   - [ ] Create reusable test fixtures for common scenarios
   - [ ] Mock Docker containers with various configurations
   - [ ] Sample configuration files for different environments
@@ -730,6 +741,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.1.2`
 
+- [ ] **Step 6.1.3**: Performance unit tests
   - [ ] Test component performance under load
   - [ ] Memory usage validation
   - [ ] Event processing latency tests
@@ -746,6 +758,7 @@ app/bootstrap/
 - **Distributed Scenarios**: Test SWIM cluster behaviors
 
 **Implementation Steps:**
+- [ ] **Step 6.2.1**: Component integration tests
   - [ ] **Test**: Event flow from producers through bus to handlers
   - [ ] **Test**: DI injection system with real component dependencies
   - [ ] **Test**: Configuration system with dynamic updates
@@ -754,6 +767,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.2.1`
 
+- [ ] **Step 6.2.2**: End-to-end integration tests
   - [ ] **Test**: Complete Docker container → DNS record flow
   - [ ] **Test**: Hosts file changes → DNS record updates
   - [ ] **Test**: SWIM cluster events → DNS synchronization
@@ -762,6 +776,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.2.2`
 
+- [ ] **Step 6.2.3**: External system integration tests
   - [ ] **Test**: Real Docker API integration using testcontainers
   - [ ] **Test**: File system monitoring with real files
   - [ ] **Test**: Network operations and error handling
@@ -770,6 +785,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.2.3`
 
+- [ ] **Step 6.2.4**: Distributed system integration tests
   - [ ] **Test**: Multi-node SWIM cluster synchronization
   - [ ] **Test**: Network partitions and recovery
   - [ ] **Test**: Conflict resolution in distributed scenarios
@@ -778,6 +794,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.2.4`
 
+- [ ] **Step 6.2.5**: Failure and recovery testing
   - [ ] **Test**: Component failure scenarios
   - [ ] **Test**: Network failures and reconnection
   - [ ] **Test**: Configuration errors and recovery
@@ -795,6 +812,7 @@ app/bootstrap/
 - **Migration**: Test gradual migration scenarios
 
 **Implementation Steps:**
+- [ ] **Step 6.3.1**: Feature parity validation
   - [ ] **Test**: All existing DNS operations work identically
   - [ ] **Test**: Docker container discovery and monitoring
   - [ ] **Test**: Hosts file parsing and updates
@@ -804,6 +822,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.3.1`
 
+- [ ] **Step 6.3.2**: Performance regression testing
   - [ ] **Test**: DNS query response times
   - [ ] **Test**: Event processing latency
   - [ ] **Test**: Memory usage under load
@@ -813,6 +832,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.3.2`
 
+- [ ] **Step 6.3.3**: Migration scenario testing
   - [ ] **Test**: Gradual component migration
   - [ ] **Test**: Feature flag controlled rollout
   - [ ] **Test**: Rollback to original system
@@ -823,6 +843,7 @@ app/bootstrap/
 
 #### 6.4 Test Infrastructure and Automation
 **Implementation Steps:**
+- [ ] **Step 6.4.1**: Test environment setup
   - [ ] Docker Compose for test dependencies
   - [ ] Test database and file system setup
   - [ ] Mock external services configuration
@@ -831,6 +852,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.4.1`
 
+- [ ] **Step 6.4.2**: Continuous Integration setup
   - [ ] GitHub Actions workflow for all test types
   - [ ] Test matrix for different Python versions
   - [ ] Code coverage reporting and enforcement
@@ -839,6 +861,7 @@ app/bootstrap/
   - [ ] Mark this section's steps complete once all tests are passing
   - [ ] commit these changes in a single git command line run. Message should be `step 6.4.2`
 
+- [ ] **Step 6.4.3**: Test utilities and helpers
   - [ ] Common test utilities for component testing
   - [ ] Event assertion helpers
   - [ ] Mock factories for consistent test data

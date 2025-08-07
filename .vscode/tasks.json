@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Run tests to check runtime errors and coverage after lint fixes",
+			"command": "make test",
+			"group": "test",
+			"isBackground": false
+		}
+	]
+}

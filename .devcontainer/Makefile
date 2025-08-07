@@ -24,21 +24,6 @@ initialize:
 uv.lock:
 	uv sync --extra devmake 
 
-# Run just unit tests (fast)
-test-unit: uv.lock
-	@echo "Running unit tests only..."
-	uv run pytest tests/test_injection_config.py tests/test_injection_providers.py tests/test_injection_lifecycle.py -v
-
-# Run integration tests
-test-integration: uv.lock
-	@echo "Running integration tests..."
-	uv run pytest tests/test_step_1_2_2_integration.py -v -s
-
-# Run tests with maximum verbosity for debugging
-test-verbose: uv.lock
-	@echo "Running tests with maximum verbosity..."
-	uv run python -W all -m pytest tests/test_injection_config.py tests/test_injection_providers.py tests/test_injection_lifecycle.py tests/test_step_1_2_2_integration.py --tb=long --capture=no -vvv
-
 # Run ALL tests (including broken ones for debugging)
 test: uv.lock
 	@echo "Running ALL tests (excluding disabled tests)..."

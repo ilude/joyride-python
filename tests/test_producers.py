@@ -14,6 +14,38 @@ from app.joyride.events import Event, EventBus
 class ConcreteEventProducer:
     """Concrete implementation of EventProducer for testing."""
 
+    @pytest.mark.asyncio
+    async def test_run_producer_main_loop(self, event_bus, config):
+        """Test SWIM producer main loop covers cluster, membership, and demo events."""
+        from app.producers.swim_producer import SWIMEventProducer
+        producer = SWIMEventProducer(event_bus, "test_swim", config)
+        producer._is_running = True
+        producer._enable_cluster_events = True
+        producer._enable_protocol_events = True
+        producer._sequence_number = 0
+        # Patch event publishing to avoid side effects
+        mock_publish_cluster_size_change_event = AsyncMock()
+        mock_publish_cluster_health_event = AsyncMock()
+        mock_publish_membership_event = AsyncMock()
+        mock_publish_demo_node_event = AsyncMock()
+        mock_publish_demo_gossip_event = AsyncMock()
+        producer._publish_cluster_size_change_event = mock_publish_cluster_size_change_event
+        producer._publish_cluster_health_event = mock_publish_cluster_health_event
+        producer._publish_membership_event = mock_publish_membership_event
+        producer._publish_demo_node_event = mock_publish_demo_node_event
+        producer._publish_demo_gossip_event = mock_publish_demo_gossip_event
+        # Patch sleep to fast-forward loop
+        with patch("asyncio.sleep", new=AsyncMock()):
+            # Run only one loop iteration
+            async def stop_after_one(*args, **kwargs):
+                producer._is_running = False
+            producer._monitor_membership_changes = AsyncMock(side_effect=stop_after_one)
+            await producer._run_producer()
+        # Assert event publishing methods were called
+        assert mock_publish_cluster_size_change_event.call_args_list
+        assert mock_publish_cluster_health_event.call_args_list
+        assert mock_publish_demo_node_event.call_args_list
+        assert mock_publish_demo_gossip_event.call_args_list
     def __init__(self, event_bus, producer_name, config=None):
         from app.producers.event_producer import EventProducer
 
@@ -220,7 +252,9 @@ class TestEventProducer:
     @pytest.mark.asyncio
     async def test_health_check_not_running(self, producer):
         """Test health check when not running."""
-        assert not await producer.health_check()
+        result = await producer.health_check()
+        assert isinstance(result, dict)
+        assert result["healthy"] is False
 
     @pytest.mark.asyncio
     async def test_health_check_high_error_rate(self, producer):
@@ -229,7 +263,9 @@ class TestEventProducer:
         producer._event_count = 10
         producer._error_count = 6  # 60% error rate
 
-        assert not await producer.health_check()
+        result = await producer.health_check()
+        assert isinstance(result, dict)
+        assert result["healthy"] is False
 
     @pytest.mark.asyncio
     async def test_health_check_healthy(self, producer):
@@ -238,7 +274,9 @@ class TestEventProducer:
         producer._event_count = 10
         producer._error_count = 2  # 20% error rate
 
-        assert await producer.health_check()
+        result = await producer.health_check()
+        assert isinstance(result, dict)
+        assert result["healthy"] is True
 
     @pytest.mark.asyncio
     async def test_health_check_no_events(self, producer):
@@ -247,7 +285,9 @@ class TestEventProducer:
         producer._event_count = 0
         producer._error_count = 0
 
-        assert await producer.health_check()
+        result = await producer.health_check()
+        assert isinstance(result, dict)
+        assert result["healthy"] is True
 
     @pytest.mark.asyncio
     async def test_health_check_exception(self, producer):
@@ -260,7 +300,10 @@ class TestEventProducer:
             "_producer_health_check",
             side_effect=Exception("Health check failed"),
         ):
-            assert not await producer.health_check()
+            result = await producer.health_check()
+            assert isinstance(result, dict)
+            assert result["healthy"] is False
+            assert "error" in result
 
     @pytest.mark.asyncio
     async def test_producer_health_check_default(self, producer):
@@ -281,6 +324,34 @@ class TestEventProducer:
         # Verify task was cancelled
         assert producer._task.done()
         assert producer._task.cancelled()
+
+    @pytest.mark.asyncio
+    async def test_monitor_cluster_state(self, event_bus, config):
+        """Test SWIM cluster state monitoring, including size and health change branches."""
+        from app.producers.swim_producer import SWIMEventProducer
+        producer = SWIMEventProducer(event_bus, "test_swim", config)
+        producer._last_cluster_size = 5
+        producer._last_cluster_health = 0.8
+        producer._get_cluster_size = AsyncMock(return_value=7)
+        producer._get_cluster_health = AsyncMock(return_value=0.95)
+        producer._publish_cluster_size_change_event = AsyncMock()
+        producer._publish_cluster_health_event = AsyncMock()
+        await producer._monitor_cluster_state()
+        # Should publish both size change and health change events
+        assert producer._publish_cluster_size_change_event.await_count == 1
+        assert producer._publish_cluster_health_event.await_count == 1
+        # Test no change branch
+        producer._last_cluster_size = 7
+        producer._last_cluster_health = 0.95
+        producer._get_cluster_size = AsyncMock(return_value=7)
+        producer._get_cluster_health = AsyncMock(return_value=0.96)
+        await producer._monitor_cluster_state()
+        # Should not publish events
+        assert producer._publish_cluster_size_change_event.await_count == 1
+        assert producer._publish_cluster_health_event.await_count == 1
+        # Test error branch
+        producer._get_cluster_size = AsyncMock(side_effect=Exception("fail"))
+        await producer._monitor_cluster_state()  # Should log error, not raise
 
 
 class TestDockerEventProducer:
@@ -504,6 +575,66 @@ class TestDockerEventProducer:
 
 
 class TestSWIMEventProducer:
+    @pytest.mark.asyncio
+    async def test_external_event_publishing_methods(self, event_bus, config):
+        """Test publish_node_join, publish_node_failure, and publish_protocol_message including error branches."""
+        from app.producers.swim_producer import SWIMEventProducer
+        producer = SWIMEventProducer(event_bus, "test_swim", config)
+        # Patch publish_event to avoid side effects
+        producer.publish_event = AsyncMock()
+
+        # Test publish_node_join
+        await producer.publish_node_join("nodeX", "10.0.0.1", 1234, {"role": "worker"})
+        assert producer.publish_event.await_count == 1
+        # Test publish_node_failure
+        await producer.publish_node_failure("nodeY", "10.0.0.2", 1235, ["nodeA"])
+        assert producer.publish_event.await_count == 2
+
+        # Test publish_protocol_message with protocol events enabled
+        producer._enable_protocol_events = True
+        await producer.publish_protocol_message("ping_sent", "nodeA", "nodeB", "corr1", 1.23)
+        assert producer.publish_event.await_count == 3
+
+        # Test publish_protocol_message with unknown message type (error branch)
+        await producer.publish_protocol_message("unknown_type", "nodeA", "nodeB")
+        # Should not increment await_count
+        assert producer.publish_event.await_count == 3
+
+        # Test publish_protocol_message with protocol events disabled (early return)
+        producer._enable_protocol_events = False
+        await producer.publish_protocol_message("ping_sent", "nodeA", "nodeB")
+        assert producer.publish_event.await_count == 3
+    @pytest.mark.asyncio
+    async def test_monitor_membership_and_demo_events(self, event_bus, config):
+        """Test SWIM membership change and demo event generation, including error branches."""
+        from app.producers.swim_producer import SWIMEventProducer
+        producer = SWIMEventProducer(event_bus, "test_swim", config)
+        # Patch _get_membership_updates to return updates
+        producer._get_membership_updates = AsyncMock(return_value=[{"node_id": "n1"}, {"node_id": "n2"}])
+        mock_publish_membership_event = AsyncMock()
+        producer._publish_membership_event = mock_publish_membership_event
+        await producer._monitor_membership_changes()
+        assert mock_publish_membership_event.await_count == 2
+
+        # Test error branch for _monitor_membership_changes
+        producer._get_membership_updates = AsyncMock(side_effect=Exception("fail"))
+        with patch.object(producer, "_publish_membership_event", AsyncMock()):
+            await producer._monitor_membership_changes()  # Should log error, not raise
+
+        # Patch demo event publishing
+        mock_publish_demo_node_event = AsyncMock()
+        mock_publish_demo_gossip_event = AsyncMock()
+        producer._publish_demo_node_event = mock_publish_demo_node_event
+        producer._publish_demo_gossip_event = mock_publish_demo_gossip_event
+        producer._sequence_number = 0
+        await producer._generate_demo_events()
+        assert mock_publish_demo_node_event.await_count == 1
+        assert mock_publish_demo_gossip_event.await_count == 1
+
+        # Test error branch for _generate_demo_events
+        producer._publish_demo_node_event = AsyncMock(side_effect=Exception("fail"))
+        producer._publish_demo_gossip_event = AsyncMock(side_effect=Exception("fail"))
+        await producer._generate_demo_events()  # Should log error, not raise
     """Test SWIM event producer."""
 
     @pytest.fixture

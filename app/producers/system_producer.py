@@ -45,6 +45,8 @@ class SystemEventProducer(EventProducer):
                 - monitor_network: Monitor network events (default: True)
                 - monitor_services: Monitor service events (default: False)
         """
+        if config is None:
+            config = {}
         super().__init__(event_bus, producer_name, config)
 
         # Configuration
@@ -52,7 +54,7 @@ class SystemEventProducer(EventProducer):
         self._cpu_threshold = config.get("cpu_threshold", 80)
         self._memory_threshold = config.get("memory_threshold", 80)
         self._disk_threshold = config.get("disk_threshold", 85)
-        self._monitor_processes = config.get("monitor_processes", False)
+        self._monitor_processes_enabled = config.get("monitor_processes", False)
         self._monitor_network = config.get("monitor_network", True)
         self._monitor_services = config.get("monitor_services", False)
 
@@ -108,7 +110,7 @@ class SystemEventProducer(EventProducer):
                     await self._monitor_network_interfaces()
 
                 # Monitor processes
-                if self._monitor_processes:
+                if self._monitor_processes_enabled:
                     await self._monitor_processes()
 
                 # Perform health checks
@@ -282,24 +284,26 @@ class SystemEventProducer(EventProducer):
     async def _publish_system_startup_event(self) -> None:
         """Publish system startup event."""
         event = SystemEvent(
+            event_type=SystemEventType.SYSTEM_STARTUP.value,
             system_event_type=SystemEventType.SYSTEM_STARTUP,
             source=self._producer_name,
             hostname=self._hostname,
             system_info=self._system_info,
         )
 
-        await self.publish_event(event)
+        self.publish_event(event)
 
     async def _publish_system_shutdown_event(self) -> None:
         """Publish system shutdown event."""
         event = SystemEvent(
+            event_type=SystemEventType.SYSTEM_SHUTDOWN.value,
             system_event_type=SystemEventType.SYSTEM_SHUTDOWN,
             source=self._producer_name,
             hostname=self._hostname,
             system_info=self._system_info,
         )
 
-        await self.publish_event(event)
+        self.publish_event(event)
 
     async def _publish_resource_event(
         self, resource_type: str, current_value: float, threshold: float, unit: str
@@ -317,10 +321,10 @@ class SystemEventProducer(EventProducer):
                 "disk": SystemEventType.DISK_SPACE_LOW,
             }
 
+            event_type = event_type_map.get(resource_type, SystemEventType.CPU_HIGH_USAGE)
             event = SystemResourceEvent(
-                system_event_type=event_type_map.get(
-                    resource_type, SystemEventType.CPU_HIGH_USAGE
-                ),
+                event_type=event_type.value,
+                system_event_type=event_type,
                 source=self._producer_name,
                 hostname=self._hostname,
                 system_info=self._system_info,
@@ -331,7 +335,7 @@ class SystemEventProducer(EventProducer):
                 trend_direction="up" if current_value > threshold else "stable",
             )
 
-            await self.publish_event(event)
+            self.publish_event(event)
 
         self._alert_counts[alert_key] = alert_count + 1
 
@@ -340,6 +344,7 @@ class SystemEventProducer(EventProducer):
     ) -> None:
         """Publish network interface event."""
         event = SystemNetworkEvent(
+            event_type=event_type.value,
             system_event_type=event_type,
             source=self._producer_name,
             hostname=self._hostname,
@@ -350,7 +355,7 @@ class SystemEventProducer(EventProducer):
             link_speed=getattr(stats, "speed", None),
         )
 
-        await self.publish_event(event)
+        self.publish_event(event)
 
     async def _publish_process_event(
         self, process: Any, event_type: SystemEventType
@@ -358,6 +363,7 @@ class SystemEventProducer(EventProducer):
         """Publish process event."""
         try:
             event = SystemProcessEvent(
+                event_type=event_type.value,
                 system_event_type=event_type,
                 source=self._producer_name,
                 hostname=self._hostname,
@@ -367,7 +373,7 @@ class SystemEventProducer(EventProducer):
                 process_state=process.info.get("status", "unknown"),
             )
 
-            await self.publish_event(event)
+            self.publish_event(event)
 
         except Exception as e:
             logger.error(f"Error publishing process event: {e}")
@@ -381,6 +387,7 @@ class SystemEventProducer(EventProducer):
         )
 
         event = SystemHealthEvent(
+            event_type=event_type.value,
             system_event_type=event_type,
             source=self._producer_name,
             hostname=self._hostname,
@@ -401,7 +408,7 @@ class SystemEventProducer(EventProducer):
             },
         )
 
-        await self.publish_event(event)
+        self.publish_event(event)
 
     def get_supported_event_types(self) -> Set[str]:
         """Get set of supported system event types."""
@@ -419,7 +426,7 @@ class SystemEventProducer(EventProducer):
                 "cpu_threshold": self._cpu_threshold,
                 "memory_threshold": self._memory_threshold,
                 "disk_threshold": self._disk_threshold,
-                "monitor_processes": self._monitor_processes,
+                "monitor_processes": self._monitor_processes_enabled,
                 "monitor_network": self._monitor_network,
                 "monitor_services": self._monitor_services,
                 "current_resources": {

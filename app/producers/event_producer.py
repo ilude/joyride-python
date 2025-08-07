@@ -229,17 +229,18 @@ class EventProducer(StartableComponent, ABC):
         """
         return self._config.get(key, default)
 
-    async def health_check(self) -> bool:
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform a health check on the producer.
 
         Returns:
-            True if the producer is healthy, False otherwise
+            Dictionary with health status and details
         """
+        health = {"healthy": True}
         try:
             # Basic health check - ensure producer is running
             if not self._is_running:
-                return False
+                health["healthy"] = False
 
             # Check if too many errors have occurred
             if self._event_count > 0:
@@ -249,14 +250,15 @@ class EventProducer(StartableComponent, ABC):
                         f"Producer {self._producer_name} has high error rate: "
                         f"{error_rate:.2%}"
                     )
-                    return False
+                    health["healthy"] = False
 
             # Allow subclasses to add their own health checks
-            return await self._producer_health_check()
-
+            health["producer_health"] = await self._producer_health_check()
         except Exception as e:
             logger.error(f"Health check failed for producer {self._producer_name}: {e}")
-            return False
+            health["healthy"] = False
+            health["error"] = str(e)
+        return health
 
     async def _producer_health_check(self) -> bool:
         """
