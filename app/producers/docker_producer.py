@@ -45,10 +45,10 @@ class DockerEventProducer(EventProducer):
         super().__init__(event_bus, producer_name, config)
 
         # Docker client configuration
-        self._docker_url = config.get("docker_url", "unix://var/run/docker.sock")
-        self._api_version = config.get("api_version", "auto")
-        self._timeout = config.get("timeout", 60)
-        self._event_filters = config.get("event_filters", {})
+        self._docker_url = self._config.get("docker_url", "unix://var/run/docker.sock")
+        self._api_version = self._config.get("api_version", "auto")
+        self._timeout = self._config.get("timeout", 60)
+        self._event_filters = self._config.get("event_filters", {})
 
         # Docker client and event stream
         self._docker_client: Optional[docker.DockerClient] = None
@@ -187,7 +187,6 @@ class DockerEventProducer(EventProducer):
             ("container", "unpause"): DockerEventType.CONTAINER_UNPAUSE,
             ("container", "create"): DockerEventType.CONTAINER_CREATE,
             ("container", "destroy"): DockerEventType.CONTAINER_DESTROY,
-            ("container", "rename"): DockerEventType.CONTAINER_RENAME,
             ("container", "update"): DockerEventType.CONTAINER_UPDATE,
             ("network", "connect"): DockerEventType.NETWORK_CONNECT,
             ("network", "disconnect"): DockerEventType.NETWORK_DISCONNECT,
@@ -384,26 +383,15 @@ class DockerEventProducer(EventProducer):
         """Get set of supported Docker event types."""
         return self._supported_event_types.copy()
 
-    async def health_check(self) -> Dict[str, Any]:
-        """Perform health check for Docker event producer."""
-        health_data = await super().health_check()
+    async def _producer_health_check(self) -> bool:
+        """Perform Docker-specific health check."""
+        if not self._docker_client:
+            return False
 
-        # Add Docker-specific health information
-        docker_health = {
-            "docker_connection": False,
-            "docker_url": self._docker_url,
-            "api_version": self._api_version,
-            "event_stream_active": self._event_stream is not None,
-        }
-
-        if self._docker_client:
-            try:
-                await asyncio.get_event_loop().run_in_executor(
-                    None, self._docker_client.ping
-                )
-                docker_health["docker_connection"] = True
-            except Exception as e:
-                docker_health["docker_error"] = str(e)
-
-        health_data["docker"] = docker_health
-        return health_data
+        try:
+            await asyncio.get_event_loop().run_in_executor(
+                None, self._docker_client.ping
+            )
+            return True
+        except Exception:
+            return False
