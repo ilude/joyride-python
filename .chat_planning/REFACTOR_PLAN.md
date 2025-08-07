@@ -248,39 +248,43 @@ app/joyride/injection/                 # ✅ IMPLEMENTED
 ### Phase 3: Event Producers (Sources) 
 
 **Implementation Steps:**
-- [ ] **Step 3.1.1**: Create `app/producers/event_producer.py`
-  - [ ] Implement `EventProducer` abstract class
-  - [ ] Add common producer functionality (event bus integration, lifecycle) with error handling
-  - [ ] **Test**: Create `tests/test_event_producer.py` with mock producer tests
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.1.2**: Create `app/producers/docker_events.py`
-  - [ ] Define Docker-specific event ENUMs and classes:
-    - [ ] `DockerEventType` ENUM: `STARTED`, `STOPPED`, `DISCOVERED`
-    - [ ] `DockerContainerEvent` class using the ENUM for event_type
-    - [ ] **Strong type hints** for all parameters and return values
-  - [ ] Include container metadata (name, labels, network info)
-  - [ ] **Test**: Create `tests/test_docker_events.py` with event creation tests
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.1.3**: Create `app/producers/docker.py`
-  - [ ] Implement `DockerEventProducer` class
-  - [ ] Docker socket connection and event streaming
-  - [ ] Container filtering based on labels/configuration
-  - [ ] Support deferred container processing
-  - [ ] **Test**: Create `tests/test_docker_producer.py` with Docker API mocking
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.1.4**: Docker producer integration testing
-  - [ ] **Test**: Create `tests/test_docker_integration.py`
-  - [ ] Test with real Docker containers (using test containers)
-  - [ ] Test reconnection and error recovery
-  - [ ] Performance tests with many containers
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+
+* [x] **Step 3.1.1**: Create `app/producers/event_producer.py`
+  * [x] Implement `EventProducer` abstract class
+  * [x] Add common producer functionality (event bus integration, lifecycle) with error handling
+  * [x] **Test**: Create `tests/test_event_producer.py` with mock producer tests
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
+
+* [x] **Step 3.1.2**: Create `app/producers/docker_events.py`
+  * [x] Define Docker-specific event ENUMs and classes:
+    * [x] `DockerEventType` ENUM: `STARTED`, `STOPPED`, `DISCOVERED`
+    * [x] `DockerContainerEvent` class using the ENUM for event_type
+    * [x] **Strong type hints** for all parameters and return values
+  * [x] Include container metadata (name, labels, network info)
+  * [x] **Test**: Create `tests/test_docker_events.py` with event creation tests
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
+
+* [x] **Step 3.1.3**: Create `app/producers/docker.py`
+  * [x] Implement `DockerEventProducer` class
+  * [x] Docker socket connection and event streaming
+  * [x] Container filtering based on labels/configuration
+  * [x] Support deferred container processing
+  * [x] **Test**: Create `tests/test_docker_producer.py` with Docker API mocking
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
+
+* [x] **Step 3.1.4**: Docker producer integration testing
+  * [x] **Test**: Create `tests/test_docker_integration.py`
+  * [x] Test with real Docker containers (using test containers)
+  * [x] Test reconnection and error recovery
+  * [x] Performance tests with many containers
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
 #### 3.2 SWIM Event Producer  
 **File Structure:**
@@ -291,33 +295,33 @@ app/producers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 3.2.1**: Create `app/producers/swim_events.py`
-  - [ ] Define SWIM-specific event ENUMs and classes with **Pydantic models**:
-    - [ ] `SwimEventType` ENUM: `NODE_DISCOVERED`, `NODE_JOINED`, `NODE_LEFT`, `NODE_FAILED`, `NODE_SUSPECTED`, `DNS_RECORD_SYNCED`, `SYNC_FORCED`, `CLUSTER_STATE_CHANGED`
-    - [ ] `SwimNodeEvent` class using the ENUM for event_type
-    - [ ] `SwimSyncEvent` class for DNS synchronization events
-    - [ ] **Pydantic models** for node metadata and cluster state validation
-  - [ ] Include node metadata and cluster state
-  - [ ] **Test**: Create `tests/test_swim_events.py` with event validation tests
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.2.1**: Create `app/producers/swim_events.py`
+  * [x] Define SWIM-specific event ENUMs and classes:
+    * [x] `SwimEventType` ENUM: `NODE_DISCOVERED`, `NODE_JOINED`, `NODE_LEFT`, `NODE_FAILED`, `NODE_SUSPECTED`, `DNS_RECORD_SYNCED`, `SYNC_FORCED`, `CLUSTER_STATE_CHANGED`
+    * [x] `SwimNodeEvent` class using the ENUM for event_type
+    * [x] `SwimSyncEvent` class for DNS synchronization events
+    * [x] **Pydantic models** for node metadata and cluster state validation
+  * [x] Include node metadata and cluster state
+  * [x] **Test**: Create `tests/test_swim_events.py` with event validation tests
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.2.2**: Create `app/producers/swim.py`
-  - [ ] Implement `SwimEventProducer` class
-  - [ ] Integration with existing swimmies library
-  - [ ] Configure SWIM settings from DI container
-  - [ ] Handle SWIM protocol state changes
-  - [ ] **Test**: Create `tests/test_swim_producer.py` with swimmies library mocking
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.2.2**: Create `app/producers/swim.py`
+  * [x] Implement `SwimEventProducer` class
+  * [x] Integration with existing swimmies library
+  * [x] Configure SWIM settings from DI container
+  * [x] Handle SWIM protocol state changes
+  * [x] **Test**: Create `tests/test_swim_producer.py` with swimmies library mocking
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.2.3**: SWIM producer integration testing
-  - [ ] **Test**: Create `tests/test_swim_integration.py`
-  - [ ] Test with multiple SWIM nodes
-  - [ ] Test network partitions and recovery
-  - [ ] Test DNS record synchronization events
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.2.3**: SWIM producer integration testing
+  * [x] **Test**: Create `tests/test_swim_integration.py`
+  * [x] Test with multiple SWIM nodes
+  * [x] Test network partitions and recovery
+  * [x] Test DNS record synchronization events
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
 #### 3.3 Hosts File Event Producer
 **File Structure:**
@@ -328,33 +332,33 @@ app/producers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 3.3.1**: Create `app/producers/hosts_events.py`
-  - [ ] Define file-specific event ENUMs and classes with **Pydantic models**:
-    - [ ] `HostsEventType` ENUM: `FILE_CHANGED`, `RECORD_ADDED`, `RECORD_UPDATED`, `RECORD_REMOVED`, `FILE_CREATED`, `FILE_DELETED`, `DIRECTORY_SCANNED`
-    - [ ] `HostsFileEvent` class using the ENUM for event_type
-    - [ ] `HostsRecordEvent` class for DNS record changes
-    - [ ] **Pydantic models** for file paths, timestamps, and record details validation
-  - [ ] Include file paths, timestamps, and record details
-  - [ ] **Test**: Create `tests/test_hosts_events.py` with event data validation
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.3.1**: Create `app/producers/hosts_events.py`
+  * [x] Define file-specific event ENUMs and classes with **Pydantic models**:
+    * [x] `HostsEventType` ENUM: `FILE_CHANGED`, `RECORD_ADDED`, `RECORD_UPDATED`, `RECORD_REMOVED`, `FILE_CREATED`, `FILE_DELETED`, `DIRECTORY_SCANNED`
+    * [x] `HostsFileEvent` class using the ENUM for event_type
+    * [x] `HostsRecordEvent` class for DNS record changes
+    * [x] **Pydantic models** for file paths, timestamps, and record details validation
+  * [x] Include file paths, timestamps, and record details
+  * [x] **Test**: Create `tests/test_hosts_events.py` with event data validation
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.3.2**: Create `app/producers/hosts.py`
-  - [ ] Implement `HostsFileEventProducer` class
-  - [ ] File watching with configurable polling intervals
-  - [ ] Support multiple hosts directories
-  - [ ] File parsing and change detection logic
-  - [ ] **Test**: Create `tests/test_hosts_producer.py` with filesystem mocking
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.3.2**: Create `app/producers/hosts.py`
+  * [x] Implement `HostsFileEventProducer` class
+  * [x] File watching with configurable polling intervals
+  * [x] Support multiple hosts directories
+  * [x] File parsing and change detection logic
+  * [x] **Test**: Create `tests/test_hosts_producer.py` with filesystem mocking
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.3.3**: Hosts producer integration testing
-  - [ ] **Test**: Create `tests/test_hosts_integration.py`
-  - [ ] Test with real file system changes
-  - [ ] Test with large hosts files and many directories
-  - [ ] Test file permission and access error handling
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.3.3**: Hosts producer integration testing
+  * [x] **Test**: Create `tests/test_hosts_integration.py`
+  * [x] Test with real file system changes
+  * [x] Test with large hosts files and many directories
+  * [x] Test file permission and access error handling
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
 #### 3.4 System Event Producer
 **File Structure:**
@@ -365,34 +369,34 @@ app/producers/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 3.4.1**: Create `app/producers/system_events.py`
-  - [ ] Define system lifecycle event ENUMs and classes with **Pydantic models**:
-    - [ ] `SystemEventType` ENUM: `SERVICE_STARTING`, `SERVICE_STARTED`, `SERVICE_STOPPING`, `SERVICE_STOPPED`, `SERVICE_FAILED`, `CONFIGURATION_CHANGED`, `HEALTH_CHECK_FAILED`, `HEALTH_CHECK_RECOVERED`
-    - [ ] `ServiceLifecycleEvent` class using the ENUM for event_type
-    - [ ] `ConfigurationEvent` class for config changes
-    - [ ] `HealthCheckEvent` class for health status changes
-    - [ ] **Pydantic models** for service names, error details, configuration changes validation
-  - [ ] Include service names, error details, configuration changes
-  - [ ] **Test**: Create `tests/test_system_events.py` with event creation tests
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.4.1**: Create `app/producers/system_events.py`
+  * [x] Define system lifecycle event ENUMs and classes with **Pydantic models**:
+    * [x] `SystemEventType` ENUM: `SERVICE_STARTING`, `SERVICE_STARTED`, `SERVICE_STOPPING`, `SERVICE_STOPPED`, `SERVICE_FAILED`, `CONFIGURATION_CHANGED`, `HEALTH_CHECK_FAILED`, `HEALTH_CHECK_RECOVERED`
+    * [x] `ServiceLifecycleEvent` class using the ENUM for event_type
+    * [x] `ConfigurationEvent` class for config changes
+    * [x] `HealthCheckEvent` class for health status changes
+    * [x] **Pydantic models** for service names, error details, configuration changes validation
+  * [x] Include service names, error details, configuration changes
+  * [x] **Test**: Create `tests/test_system_events.py` with event creation tests
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.4.2**: Create `app/producers/system.py`
-  - [ ] Implement `SystemEventProducer` class
-  - [ ] Integration with DI injection system lifecycle
-  - [ ] Health check monitoring and reporting
-  - [ ] Configuration change detection
-  - [ ] **Test**: Create `tests/test_system_producer.py` with lifecycle simulation
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.4.2**: Create `app/producers/system.py`
+  * [x] Implement `SystemEventProducer` class
+  * [x] Integration with DI injection system lifecycle
+  * [x] Health check monitoring and reporting
+  * [x] Configuration change detection
+  * [x] **Test**: Create `tests/test_system_producer.py` with lifecycle simulation
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
-- [ ] **Step 3.4.3**: System producer integration testing
-  - [ ] **Test**: Create `tests/test_system_integration.py`
-  - [ ] Test real component lifecycle events
-  - [ ] Test configuration reload scenarios
-  - [ ] Test health check failure and recovery
-  - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
-  - [ ] Mark this section's steps complete once all tests are passing
+* [x] **Step 3.4.3**: System producer integration testing
+  * [x] **Test**: Create `tests/test_system_integration.py`
+  * [x] Test real component lifecycle events
+  * [x] Test configuration reload scenarios
+  * [x] Test health check failure and recovery
+  * [x] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
+  * [x] Mark this section's steps complete once all tests are passing
 
 ### Phase 4: Event Handlers (Consumers)
 
@@ -417,6 +421,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_handlers_base.py` with mock handler tests
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.1.1`
 
 - [ ] **Step 4.1.2**: Create `app/handlers/dns_backends/memory.py`
   - [ ] Implement in-memory DNS record storage
@@ -426,6 +431,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_dns_memory_backend.py` with record operations
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.1.2`
 
 - [ ] **Step 4.1.3**: Create `app/handlers/dns_backends/dnslib.py`
   - [ ] Implement dnslib-based DNS backend
@@ -434,6 +440,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_dns_dnslib_backend.py` with dnslib integration
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.1.3`
 
 - [ ] **Step 4.1.4**: Create `app/handlers/dns_record.py`
   - [ ] Implement `DNSRecordHandler` class
@@ -443,6 +450,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_dns_record_handler.py` with event handling tests
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.1.4`
 
 - [ ] **Step 4.1.5**: DNS handler integration testing
   - [ ] **Test**: Create `tests/test_dns_handler_integration.py`
@@ -451,6 +459,7 @@ app/handlers/
   - [ ] Performance tests with many records
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.1.5`
 
 #### 4.2 Sync Handler
 **File Structure:**
@@ -470,6 +479,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_sync_timestamp.py` with conflict scenarios
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.2.1`
 
 - [ ] **Step 4.2.2**: Create `app/handlers/sync_strategies/priority.py`
   - [ ] Implement priority-based conflict resolution
@@ -477,6 +487,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_sync_priority.py` with priority conflicts
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.2.2`
 
 - [ ] **Step 4.2.3**: Create `app/handlers/sync.py`
   - [ ] Implement `SyncHandler` class
@@ -486,6 +497,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_sync_handler.py` with sync logic tests
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.2.3`
 
 - [ ] **Step 4.2.4**: Sync handler integration testing
   - [ ] **Test**: Create `tests/test_sync_integration.py`
@@ -494,6 +506,7 @@ app/handlers/
   - [ ] Test circular dependency prevention
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.2.4`
 
 #### 4.3 Logging and Monitoring Handlers
 **File Structure:**
@@ -513,6 +526,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_logging_handler.py` with log output validation
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.3.1`
 
 - [ ] **Step 4.3.2**: Create `app/handlers/metrics.py`
   - [ ] Implement `MetricsHandler` class
@@ -521,6 +535,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_metrics_handler.py` with metrics collection
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.3.2`
 
 - [ ] **Step 4.3.3**: Create `app/handlers/health.py`
   - [ ] Implement `HealthHandler` class
@@ -529,6 +544,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_health_handler.py` with health scenarios
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.3.3`
 
 - [ ] **Step 4.3.4**: Monitoring handlers integration testing
   - [ ] **Test**: Create `tests/test_monitoring_integration.py`
@@ -537,6 +553,7 @@ app/handlers/
   - [ ] Test health status aggregation
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.3.4`
 
 #### 4.4 Validation and Error Handlers
 **File Structure:**
@@ -556,6 +573,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_validation_handler.py` with validation cases
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.4.1`
 
 - [ ] **Step 4.4.2**: Create `app/handlers/error.py`
   - [ ] Implement `ErrorHandler` class
@@ -565,6 +583,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_error_handler.py` with error scenarios
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.4.2`
 
 - [ ] **Step 4.4.3**: Create `app/handlers/audit.py`
   - [ ] Implement `AuditHandler` class
@@ -574,6 +593,7 @@ app/handlers/
   - [ ] **Test**: Create `tests/test_audit_handler.py` with audit trail validation
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.4.3`
 
 - [ ] **Step 4.4.4**: Validation/Error handlers integration testing
   - [ ] **Test**: Create `tests/test_validation_error_integration.py`
@@ -582,6 +602,7 @@ app/handlers/
   - [ ] Test audit trail completeness
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 4.4.4`
 
 ### Phase 5: Configuration and Initialization
 
@@ -597,7 +618,6 @@ app/config/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 5.1.1**: Create `app/config/schema.py`
   - [ ] Define configuration schema using Pydantic or similar
   - [ ] Schema for each component (Docker, SWIM, DNS, etc.)
   - [ ] Environment variable mapping
@@ -605,38 +625,39 @@ app/config/
   - [ ] **Test**: Create `tests/test_config_schema.py` with schema validation
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.1.1`
 
-- [ ] **Step 5.1.2**: Create `app/config/loader.py`
   - [ ] Implement hierarchical configuration loading
   - [ ] Support YAML, JSON, environment variables
   - [ ] Configuration merging and precedence rules
   - [ ] **Test**: Create `tests/test_config_loader.py` with various sources
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.1.2`
 
-- [ ] **Step 5.1.3**: Create `app/config/validator.py`
   - [ ] Configuration validation against schema
   - [ ] Cross-component validation rules
   - [ ] Runtime configuration checks
   - [ ] **Test**: Create `tests/test_config_validator.py` with validation cases
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.1.3`
 
-- [ ] **Step 5.1.4**: Create `app/config/watcher.py`
   - [ ] Dynamic configuration update detection
   - [ ] Configuration reload triggers
   - [ ] Component notification system
   - [ ] **Test**: Create `tests/test_config_watcher.py` with file watching
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.1.4`
 
-- [ ] **Step 5.1.5**: Configuration system integration testing
   - [ ] **Test**: Create `tests/test_config_integration.py`
   - [ ] Test complete configuration lifecycle
   - [ ] Test dynamic updates and component reloading
   - [ ] Test configuration error handling
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.1.5`
 
 #### 5.2 Application Bootstrapping
 **File Structure:**
@@ -649,15 +670,14 @@ app/bootstrap/
 ```
 
 **Implementation Steps:**
-- [ ] **Step 5.2.1**: Create `app/bootstrap/factory.py`
   - [ ] Component factory using DI injection system
   - [ ] Configuration-driven component creation
   - [ ] Dependency graph resolution
   - [ ] **Test**: Create `tests/test_bootstrap_factory.py` with component creation
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.2.1`
 
-- [ ] **Step 5.2.2**: Create `app/bootstrap/application.py`
   - [ ] Main application class coordinating all components
   - [ ] Graceful startup and shutdown handling
   - [ ] Component lifecycle management
@@ -665,8 +685,8 @@ app/bootstrap/
   - [ ] **Test**: Create `tests/test_bootstrap_application.py` with lifecycle tests
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.2.2`
 
-- [ ] **Step 5.2.3**: Create `app/bootstrap/runner.py`
   - [ ] Application entry point
   - [ ] Command-line argument parsing
   - [ ] Different deployment modes (development, production)
@@ -674,14 +694,15 @@ app/bootstrap/
   - [ ] **Test**: Create `tests/test_bootstrap_runner.py` with execution scenarios
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.2.3`
 
-- [ ] **Step 5.2.4**: Bootstrap integration testing
   - [ ] **Test**: Create `tests/test_bootstrap_integration.py`
   - [ ] Test complete application startup
   - [ ] Test graceful shutdown scenarios
   - [ ] Test error recovery and restart
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 5.2.4`
 
 ### Phase 6: Testing and Validation
 
@@ -693,29 +714,29 @@ app/bootstrap/
 - **Automation**: All tests run in CI/CD pipeline
 
 **Implementation Steps:**
-- [ ] **Step 6.1.1**: Complete unit test coverage
   - [ ] Verify all components have comprehensive unit tests
   - [ ] Add missing test cases for edge conditions
   - [ ] Mock all external dependencies (Docker API, file system, network)
   - [ ] **Test**: Run `uv run pytest tests/unit/ --cov=app --cov-report=html`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.1.1`
 
-- [ ] **Step 6.1.2**: Test data and fixtures
   - [ ] Create reusable test fixtures for common scenarios
   - [ ] Mock Docker containers with various configurations
   - [ ] Sample configuration files for different environments
   - [ ] **Test**: Create `tests/fixtures/` with reusable test data
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.1.2`
 
-- [ ] **Step 6.1.3**: Performance unit tests
   - [ ] Test component performance under load
   - [ ] Memory usage validation
   - [ ] Event processing latency tests
   - [ ] **Test**: Create `tests/performance/` with benchmark tests
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.1.3`
 
 #### 6.2 Integration Testing
 **Testing Strategy:**
@@ -725,39 +746,38 @@ app/bootstrap/
 - **Distributed Scenarios**: Test SWIM cluster behaviors
 
 **Implementation Steps:**
-- [ ] **Step 6.2.1**: Component integration tests
   - [ ] **Test**: Event flow from producers through bus to handlers
   - [ ] **Test**: DI injection system with real component dependencies
   - [ ] **Test**: Configuration system with dynamic updates
   - [ ] Create `tests/integration/test_component_integration.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.2.1`
 
-- [ ] **Step 6.2.2**: End-to-end integration tests
   - [ ] **Test**: Complete Docker container → DNS record flow
   - [ ] **Test**: Hosts file changes → DNS record updates
   - [ ] **Test**: SWIM cluster events → DNS synchronization
   - [ ] Create `tests/integration/test_end_to_end.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.2.2`
 
-- [ ] **Step 6.2.3**: External system integration tests
   - [ ] **Test**: Real Docker API integration using testcontainers
   - [ ] **Test**: File system monitoring with real files
   - [ ] **Test**: Network operations and error handling
   - [ ] Create `tests/integration/test_external_systems.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.2.3`
 
-- [ ] **Step 6.2.4**: Distributed system integration tests
   - [ ] **Test**: Multi-node SWIM cluster synchronization
   - [ ] **Test**: Network partitions and recovery
   - [ ] **Test**: Conflict resolution in distributed scenarios
   - [ ] Create `tests/integration/test_distributed.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.2.4`
 
-- [ ] **Step 6.2.5**: Failure and recovery testing
   - [ ] **Test**: Component failure scenarios
   - [ ] **Test**: Network failures and reconnection
   - [ ] **Test**: Configuration errors and recovery
@@ -765,6 +785,7 @@ app/bootstrap/
   - [ ] Create `tests/integration/test_failure_recovery.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.2.5`
 
 #### 6.3 Migration and Compatibility Testing
 **Testing Strategy:**
@@ -774,7 +795,6 @@ app/bootstrap/
 - **Migration**: Test gradual migration scenarios
 
 **Implementation Steps:**
-- [ ] **Step 6.3.1**: Feature parity validation
   - [ ] **Test**: All existing DNS operations work identically
   - [ ] **Test**: Docker container discovery and monitoring
   - [ ] **Test**: Hosts file parsing and updates
@@ -782,8 +802,8 @@ app/bootstrap/
   - [ ] Create `tests/migration/test_feature_parity.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.3.1`
 
-- [ ] **Step 6.3.2**: Performance regression testing
   - [ ] **Test**: DNS query response times
   - [ ] **Test**: Event processing latency
   - [ ] **Test**: Memory usage under load
@@ -791,40 +811,41 @@ app/bootstrap/
   - [ ] Create `tests/migration/test_performance_regression.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.3.2`
 
-- [ ] **Step 6.3.3**: Migration scenario testing
   - [ ] **Test**: Gradual component migration
   - [ ] **Test**: Feature flag controlled rollout
   - [ ] **Test**: Rollback to original system
   - [ ] Create `tests/migration/test_migration_scenarios.py`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.3.3`
 
 #### 6.4 Test Infrastructure and Automation
 **Implementation Steps:**
-- [ ] **Step 6.4.1**: Test environment setup
   - [ ] Docker Compose for test dependencies
   - [ ] Test database and file system setup
   - [ ] Mock external services configuration
   - [ ] Create `tests/docker-compose.test.yml`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.4.1`
 
-- [ ] **Step 6.4.2**: Continuous Integration setup
   - [ ] GitHub Actions workflow for all test types
   - [ ] Test matrix for different Python versions
   - [ ] Code coverage reporting and enforcement
   - [ ] Update `.github/workflows/test.yml`
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.4.2`
 
-- [ ] **Step 6.4.3**: Test utilities and helpers
   - [ ] Common test utilities for component testing
   - [ ] Event assertion helpers
   - [ ] Mock factories for consistent test data
   - [ ] Create `tests/utils/` with helper modules
   - [ ] **Run Test**: `make test` should pass, fix any errors until all tests pass with no warnings
   - [ ] Mark this section's steps complete once all tests are passing
+  - [ ] commit these changes in a single git command line run. Message should be `step 6.4.3`
 
 ### Phase 7: Advanced Event Features (Future Enhancement)
 
