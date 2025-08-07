@@ -81,17 +81,21 @@ class DockerEvent(Event):
         self.time_nano = time_nano
 
         event_data = data or {}
-        event_data.update({
-            "docker_event_id": docker_event_id,
-            "docker_event_type": docker_event_type.value,
-            "docker_timestamp": docker_timestamp.isoformat() if docker_timestamp else None,
-            "docker_action": docker_action,
-            "actor_id": actor_id,
-            "actor_type": actor_type,
-            "actor_attributes": actor_attributes or {},
-            "scope": scope,
-            "time_nano": time_nano,
-        })
+        event_data.update(
+            {
+                "docker_event_id": docker_event_id,
+                "docker_event_type": docker_event_type.value,
+                "docker_timestamp": docker_timestamp.isoformat()
+                if docker_timestamp
+                else None,
+                "docker_action": docker_action,
+                "actor_id": actor_id,
+                "actor_type": actor_type,
+                "actor_attributes": actor_attributes or {},
+                "scope": scope,
+                "time_nano": time_nano,
+            }
+        )
 
         super().__init__(
             event_type=event_type or docker_event_type.value,
@@ -107,7 +111,7 @@ class DockerEvent(Event):
         # Call parent validation
         if not self._event_type:
             raise ValueError("event_type cannot be empty")
-        
+
         # Docker-specific validation
         if not self.docker_event_id:
             raise ValueError("docker_event_id cannot be empty")
@@ -153,7 +157,7 @@ class DockerContainerEvent(DockerEvent):
         container_state: Optional[DockerContainerState] = None,
         target_node_address: Optional[str] = None,
         target_node_port: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize Docker container event."""
         # Store container attributes BEFORE calling super()
@@ -187,7 +191,7 @@ class DockerContainerEvent(DockerEvent):
             docker_action=docker_action,
             actor_id=actor_id,
             actor_type=actor_type,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -213,7 +217,7 @@ class DockerNetworkEvent(DockerEvent):
         network_driver: Optional[str] = None,
         network_scope: Optional[str] = None,
         container_id: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize Docker network event."""
         network_data = {
@@ -237,7 +241,7 @@ class DockerNetworkEvent(DockerEvent):
             docker_action=docker_action,
             actor_id=actor_id,
             actor_type=actor_type,
-            **kwargs
+            **kwargs,
         )
 
         self.network_id = network_id
@@ -263,7 +267,7 @@ class DockerVolumeEvent(DockerEvent):
         volume_driver: Optional[str] = None,
         mount_point: Optional[str] = None,
         container_id: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize Docker volume event."""
         volume_data = {
@@ -286,7 +290,7 @@ class DockerVolumeEvent(DockerEvent):
             docker_action=docker_action,
             actor_id=actor_id,
             actor_type=actor_type,
-            **kwargs
+            **kwargs,
         )
 
         self.volume_name = volume_name
@@ -311,7 +315,7 @@ class DockerImageEvent(DockerEvent):
         image_name: Optional[str] = None,
         image_tags: Optional[List[str]] = None,
         image_size: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize Docker image event."""
         image_data = {
@@ -334,7 +338,7 @@ class DockerImageEvent(DockerEvent):
             docker_action=docker_action,
             actor_id=actor_id,
             actor_type=actor_type,
-            **kwargs
+            **kwargs,
         )
 
         self.image_id = image_id

@@ -1,7 +1,6 @@
 """Tests for Event Producers."""
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -24,9 +23,6 @@ class TestEventProducer:
     def test_event_producer_creation(self, event_bus, config):
         """Test EventProducer creation."""
         from app.producers.event_producer import EventProducer
-
-        # Note: EventProducer is abstract, so we test with a concrete implementation
-        producer = None  # Would need concrete implementation
 
         # This test validates the structure exists
         assert EventProducer is not None
@@ -273,9 +269,7 @@ async def test_event_producer_integration():
     """Test event producer integration."""
     # This test would verify that producers can actually publish events
     # when integrated with the event bus system
-    
-    event_bus = AsyncMock(spec=EventBus)
-    
+
     # Test that we can import all producers
     from app.producers import (
         DockerEventProducer,
@@ -296,14 +290,14 @@ async def test_event_producer_integration():
 def test_producer_module_exports():
     """Test that producer module exports all expected classes."""
     from app.producers import __all__
-    
+
     expected_exports = [
         "EventProducer",
         "DockerEventProducer",
-        "SWIMEventProducer", 
+        "SWIMEventProducer",
         "HostsFileEventProducer",
         "SystemEventProducer",
     ]
-    
+
     for export in expected_exports:
         assert export in __all__

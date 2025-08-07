@@ -5,7 +5,7 @@ import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Optional, Set
 
 from app.joyride.events import EventBus
 from app.producers.event_producer import EventProducer

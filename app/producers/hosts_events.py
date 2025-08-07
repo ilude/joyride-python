@@ -3,13 +3,14 @@ Hosts file events for monitoring hosts file changes.
 """
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from app.joyride.events import Event
 
 
 class HostsFileEventType(str, Enum):
     """Hosts file event types."""
+
     ENTRY_ADDED = "hosts.entry.added"
     ENTRY_REMOVED = "hosts.entry.removed"
     ENTRY_MODIFIED = "hosts.entry.modified"
@@ -29,7 +30,7 @@ class HostsEvent(Event):
         source: str,
         hosts_event_type: HostsFileEventType,
         file_path,
-        **kwargs
+        **kwargs,
     ):
         """Initialize hosts event."""
         self.hosts_event_type = hosts_event_type
@@ -37,22 +38,24 @@ class HostsEvent(Event):
 
         # Extract event-specific parameters and add to data
         event_data = kwargs.pop("data", {})
-        
+
         # Move all extra kwargs into the data dict
         for key, value in list(kwargs.items()):
             if key not in ["event_id", "timestamp", "metadata"]:
                 event_data[key] = kwargs.pop(key)
-        
-        event_data.update({
-            "hosts_event_type": hosts_event_type.value,
-            "file_path": str(file_path),
-        })
+
+        event_data.update(
+            {
+                "hosts_event_type": hosts_event_type.value,
+                "file_path": str(file_path),
+            }
+        )
 
         super().__init__(
             event_type=event_type or hosts_event_type.value,
             source=source,
             data=event_data,
-            **kwargs
+            **kwargs,
         )
 
     def _validate(self) -> None:
@@ -75,17 +78,17 @@ class HostsEntryEvent(HostsEvent):
         ip_address: str,
         hostnames: Optional[List[str]] = None,
         hostname: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize hosts entry event."""
         # Store the specific parameters
         self.ip_address = ip_address
         self.hostnames = hostnames or []
-        
+
         # Handle hostname or hostnames parameter
         if hostname and hostname not in self.hostnames:
             self.hostnames.insert(0, hostname)
-        
+
         super().__init__(
             event_type=hosts_event_type.value,
             source=source,
@@ -94,7 +97,7 @@ class HostsEntryEvent(HostsEvent):
             ip_address=ip_address,
             hostnames=self.hostnames,
             hostname=self.hostnames[0] if self.hostnames else None,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -110,26 +113,31 @@ class HostsEntryEvent(HostsEvent):
 
 class HostsFileEvent(HostsEvent):
     """Hosts file event."""
+
     pass
 
 
 class HostsFileModificationEvent(HostsEvent):
     """Hosts file modification event."""
+
     pass
 
 
 class HostsFileChangeEvent(HostsEvent):
     """Hosts file change event."""
+
     pass
 
 
 class HostsBackupEvent(HostsEvent):
     """Hosts file backup event."""
+
     pass
 
 
 class HostsParseErrorEvent(HostsEvent):
     """Hosts file parse error event."""
+
     pass
 
 

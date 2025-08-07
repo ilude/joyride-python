@@ -1,7 +1,7 @@
 """System event definitions for Joyride DNS Service."""
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from app.joyride.events import Event
 
@@ -47,7 +47,7 @@ class SystemEvent(Event):
         source: str,
         system_event_type: SystemEventType,
         hostname: str,
-        **kwargs
+        **kwargs,
     ):
         """Initialize system event."""
         self.system_event_type = system_event_type
@@ -60,18 +60,20 @@ class SystemEvent(Event):
 
         # Extract event-specific parameters and add to data
         event_data = kwargs.pop("data", {})
-        
+
         # Move all extra kwargs into the data dict
         for key, value in list(kwargs.items()):
             if key not in ["event_id", "timestamp", "metadata"]:
                 event_data[key] = kwargs.pop(key)
 
         # Add system data to event data
-        event_data.update({
-            "system_event_type": system_event_type.value,
-            "hostname": hostname,
-            "system_info": self.system_info,
-        })
+        event_data.update(
+            {
+                "system_event_type": system_event_type.value,
+                "hostname": hostname,
+                "system_info": self.system_info,
+            }
+        )
         if self.memory_usage is not None:
             event_data["memory_usage"] = self.memory_usage
         if self.cpu_usage is not None:
@@ -85,7 +87,7 @@ class SystemEvent(Event):
             event_type=event_type or system_event_type.value,
             source=source,
             data=event_data,
-            **kwargs
+            **kwargs,
         )
 
     def _validate(self) -> None:
@@ -108,7 +110,7 @@ class SystemResourceEvent(SystemEvent):
         current_value: float,
         unit: str,
         event_type: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize system resource event."""
         self.resource_type = resource_type
@@ -123,12 +125,14 @@ class SystemResourceEvent(SystemEvent):
 
         # Add resource data to event data
         event_data = kwargs.get("data", {})
-        event_data.update({
-            "resource_type": resource_type,
-            "current_value": current_value,
-            "unit": unit,
-            "affected_services": self.affected_services,
-        })
+        event_data.update(
+            {
+                "resource_type": resource_type,
+                "current_value": current_value,
+                "unit": unit,
+                "affected_services": self.affected_services,
+            }
+        )
         if self.threshold_value is not None:
             event_data["threshold_value"] = self.threshold_value
         if self.trend_direction:
@@ -146,7 +150,7 @@ class SystemResourceEvent(SystemEvent):
             source=source,
             system_event_type=system_event_type,
             hostname=hostname,
-            **kwargs
+            **kwargs,
         )
 
     @property

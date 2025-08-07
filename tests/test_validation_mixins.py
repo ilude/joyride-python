@@ -33,15 +33,15 @@ class TestStringValidator:
     def test_basic_string_validation(self):
         """Test basic string validation."""
         validator = StringValidator()
-        
+
         # Valid strings
         validator.validate("test", "field")
         validator.validate("hello world", "field")
-        
+
         # Invalid types
         with pytest.raises(ValueError, match="field must be a string"):
             validator.validate(123, "field")
-        
+
         with pytest.raises(ValueError, match="field must be a string"):
             validator.validate([], "field")
 
@@ -53,7 +53,7 @@ class TestStringValidator:
             validator.validate("", "field")
         with pytest.raises(ValueError, match="field cannot be empty"):
             validator.validate("   ", "field")  # Whitespace stripped
-        
+
         # Allow empty
         validator = StringValidator(allow_empty=True)
         validator.validate("", "field")
@@ -65,7 +65,7 @@ class TestStringValidator:
         validator = StringValidator()
         with pytest.raises(ValueError, match="field cannot be None"):
             validator.validate(None, "field")
-        
+
         # Allow empty (includes None)
         validator = StringValidator(allow_empty=True)
         validator.validate(None, "field")
@@ -73,16 +73,16 @@ class TestStringValidator:
     def test_length_validation(self):
         """Test string length validation."""
         validator = StringValidator(min_length=3, max_length=10)
-        
+
         # Valid lengths
         validator.validate("abc", "field")
         validator.validate("hello", "field")
         validator.validate("1234567890", "field")
-        
+
         # Too short
         with pytest.raises(ValueError, match="field must be at least 3 characters"):
             validator.validate("ab", "field")
-        
+
         # Too long
         with pytest.raises(ValueError, match="field must be at most 10 characters"):
             validator.validate("12345678901", "field")
@@ -92,11 +92,11 @@ class TestStringValidator:
         # Email-like pattern
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         validator = StringValidator(pattern=email_pattern)
-        
+
         # Valid emails
         validator.validate("test@example.com", "email")
         validator.validate("user.name+tag@example.org", "email")
-        
+
         # Invalid emails
         with pytest.raises(ValueError, match="email does not match required pattern"):
             validator.validate("invalid-email", "email")
@@ -107,7 +107,7 @@ class TestStringValidator:
         """Test using pre-compiled regex pattern."""
         pattern = re.compile(r"^[0-9]+$")
         validator = StringValidator(pattern=pattern)
-        
+
         validator.validate("12345", "field")
         with pytest.raises(ValueError, match="field does not match required pattern"):
             validator.validate("abc123", "field")
@@ -117,11 +117,11 @@ class TestStringValidator:
         # With stripping (default)
         validator = StringValidator(min_length=5)
         validator.validate("  hello  ", "field")  # Becomes "hello" (5 chars)
-        
+
         # Without stripping
         validator = StringValidator(min_length=5, strip_whitespace=False)
         validator.validate("  hello  ", "field")  # Stays "  hello  " (9 chars)
-        
+
         with pytest.raises(ValueError, match="field must be at least 5 characters"):
             validator.validate(" hi ", "field")  # Stays " hi " (4 chars, less than 5)
 
@@ -132,13 +132,13 @@ class TestNumericValidator:
     def test_basic_numeric_validation(self):
         """Test basic numeric validation."""
         validator = NumericValidator()
-        
+
         # Valid numbers
         validator.validate(42, "field")
         validator.validate(3.14, "field")
         validator.validate(-5, "field")
         validator.validate(0, "field")
-        
+
         # Invalid types
         with pytest.raises(ValueError, match="field must be int or float"):
             validator.validate("123", "field")
@@ -154,32 +154,32 @@ class TestNumericValidator:
     def test_integer_only_validation(self):
         """Test integer-only validation."""
         validator = NumericValidator(numeric_type=int)
-        
+
         validator.validate(42, "field")
         validator.validate(-5, "field")
-        
+
         with pytest.raises(ValueError, match="field must be int"):
             validator.validate(3.14, "field")
 
     def test_float_only_validation(self):
         """Test float-only validation."""
         validator = NumericValidator(numeric_type=float)
-        
+
         validator.validate(3.14, "field")
         validator.validate(-2.5, "field")
-        
+
         with pytest.raises(ValueError, match="field must be float"):
             validator.validate(42, "field")
 
     def test_range_validation(self):
         """Test min/max value validation."""
         validator = NumericValidator(min_value=0, max_value=100)
-        
+
         # Valid values
         validator.validate(0, "field")
         validator.validate(50, "field")
         validator.validate(100, "field")
-        
+
         # Out of range
         with pytest.raises(ValueError, match="field must be at least 0"):
             validator.validate(-1, "field")
@@ -191,7 +191,7 @@ class TestNumericValidator:
         # Allow zero (default)
         validator = NumericValidator()
         validator.validate(0, "field")
-        
+
         # Disallow zero
         validator = NumericValidator(allow_zero=False)
         with pytest.raises(ValueError, match="field cannot be zero"):
@@ -202,10 +202,10 @@ class TestNumericValidator:
     def test_positive_only_validation(self):
         """Test positive-only validation."""
         validator = NumericValidator(positive_only=True)
-        
+
         validator.validate(1, "field")
         validator.validate(3.14, "field")
-        
+
         with pytest.raises(ValueError, match="field must be positive"):
             validator.validate(0, "field")
         with pytest.raises(ValueError, match="field must be positive"):
@@ -214,10 +214,10 @@ class TestNumericValidator:
     def test_negative_only_validation(self):
         """Test negative-only validation."""
         validator = NumericValidator(negative_only=True)
-        
+
         validator.validate(-1, "field")
         validator.validate(-3.14, "field")
-        
+
         with pytest.raises(ValueError, match="field must be negative"):
             validator.validate(0, "field")
         with pytest.raises(ValueError, match="field must be negative"):
@@ -225,7 +225,9 @@ class TestNumericValidator:
 
     def test_conflicting_positive_negative_options(self):
         """Test validation of conflicting options."""
-        with pytest.raises(ValueError, match="Cannot specify both positive_only and negative_only"):
+        with pytest.raises(
+            ValueError, match="Cannot specify both positive_only and negative_only"
+        ):
             NumericValidator(positive_only=True, negative_only=True)
 
 
@@ -235,12 +237,12 @@ class TestChoiceValidator:
     def test_basic_choice_validation(self):
         """Test basic choice validation."""
         validator = ChoiceValidator(choices=["red", "green", "blue"])
-        
+
         # Valid choices
         validator.validate("red", "color")
         validator.validate("green", "color")
         validator.validate("blue", "color")
-        
+
         # Invalid choice
         with pytest.raises(ValueError, match="color must be one of: blue, green, red"):
             validator.validate("yellow", "color")
@@ -251,7 +253,7 @@ class TestChoiceValidator:
         validator = ChoiceValidator(choices=["a", "b"])
         with pytest.raises(ValueError, match="field cannot be None"):
             validator.validate(None, "field")
-        
+
         # Allow None
         validator = ChoiceValidator(choices=["a", "b"], allow_none=True)
         validator.validate(None, "field")
@@ -260,9 +262,9 @@ class TestChoiceValidator:
         """Test case-sensitive validation."""
         # Case sensitive (default)
         validator = ChoiceValidator(choices=["Red", "Green", "Blue"])
-        
+
         validator.validate("Red", "color")
-        
+
         with pytest.raises(ValueError, match="color must be one of"):
             validator.validate("red", "color")
         with pytest.raises(ValueError, match="color must be one of"):
@@ -271,10 +273,9 @@ class TestChoiceValidator:
     def test_case_insensitive_validation(self):
         """Test case-insensitive validation."""
         validator = ChoiceValidator(
-            choices=["Red", "Green", "Blue"], 
-            case_sensitive=False
+            choices=["Red", "Green", "Blue"], case_sensitive=False
         )
-        
+
         # All case variations should work
         validator.validate("Red", "color")
         validator.validate("red", "color")
@@ -284,11 +285,11 @@ class TestChoiceValidator:
     def test_non_string_choices(self):
         """Test choices with non-string values."""
         validator = ChoiceValidator(choices=[1, 2, 3, "four"])
-        
+
         validator.validate(1, "field")
         validator.validate(2, "field")
         validator.validate("four", "field")
-        
+
         with pytest.raises(ValueError, match="field must be one of"):
             validator.validate(5, "field")
         with pytest.raises(ValueError, match="field must be one of"):
@@ -299,7 +300,7 @@ class TestChoiceValidator:
         # Set
         validator = ChoiceValidator(choices={"a", "b", "c"})
         validator.validate("a", "field")
-        
+
         # Tuple
         validator = ChoiceValidator(choices=("x", "y", "z"))
         validator.validate("x", "field")
@@ -311,13 +312,13 @@ class TestIPAddressValidator:
     def test_ipv4_validation(self):
         """Test IPv4 address validation."""
         validator = IPAddressValidator(allow_ipv4=True, allow_ipv6=False)
-        
+
         # Valid IPv4
         validator.validate("192.168.1.1", "ip")
         validator.validate("10.0.0.1", "ip")
         validator.validate("255.255.255.255", "ip")
         validator.validate("0.0.0.0", "ip")
-        
+
         # Invalid IPv4
         with pytest.raises(ValueError, match="ip must be a valid IPv4 address"):
             validator.validate("256.1.1.1", "ip")
@@ -329,13 +330,13 @@ class TestIPAddressValidator:
     def test_ipv6_validation(self):
         """Test IPv6 address validation."""
         validator = IPAddressValidator(allow_ipv4=False, allow_ipv6=True)
-        
+
         # Valid IPv6
         validator.validate("2001:0db8:85a3:0000:0000:8a2e:0370:7334", "ip")
         validator.validate("::1", "ip")
         validator.validate("::", "ip")
         validator.validate("2001:db8::1", "ip")
-        
+
         # Invalid IPv6
         with pytest.raises(ValueError, match="ip IPv4 addresses are not allowed"):
             validator.validate("192.168.1.1", "ip")
@@ -345,7 +346,7 @@ class TestIPAddressValidator:
     def test_dual_stack_validation(self):
         """Test allowing both IPv4 and IPv6."""
         validator = IPAddressValidator(allow_ipv4=True, allow_ipv6=True)
-        
+
         # Both should work
         validator.validate("192.168.1.1", "ip")
         validator.validate("2001:db8::1", "ip")
@@ -353,12 +354,12 @@ class TestIPAddressValidator:
     def test_cidr_validation(self):
         """Test CIDR notation validation."""
         validator = IPAddressValidator(allow_cidr=True)
-        
+
         # Valid CIDR
         validator.validate("192.168.1.0/24", "network")
         validator.validate("10.0.0.0/8", "network")
         validator.validate("2001:db8::/32", "network")
-        
+
         # Invalid CIDR
         with pytest.raises(ValueError, match="network has invalid CIDR format"):
             validator.validate("192.168.1.1/", "network")
@@ -372,7 +373,7 @@ class TestIPAddressValidator:
     def test_none_and_empty_validation(self):
         """Test None and empty string validation."""
         validator = IPAddressValidator()
-        
+
         with pytest.raises(ValueError, match="ip cannot be None"):
             validator.validate(None, "ip")
         with pytest.raises(ValueError, match="ip cannot be empty"):
@@ -383,7 +384,7 @@ class TestIPAddressValidator:
     def test_non_string_validation(self):
         """Test non-string value validation."""
         validator = IPAddressValidator()
-        
+
         with pytest.raises(ValueError, match="ip must be a string"):
             validator.validate(123, "ip")
 
@@ -400,17 +401,17 @@ class TestCompositeValidator:
         """Test applying multiple validators."""
         string_validator = StringValidator(min_length=3, max_length=10)
         choice_validator = ChoiceValidator(choices=["short", "medium", "long"])
-        
+
         composite = CompositeValidator([string_validator, choice_validator])
-        
+
         # Valid value that passes all validators
         composite.validate("short", "field")
         composite.validate("medium", "field")
-        
+
         # Fails string length validation
         with pytest.raises(ValueError, match="field must be at least 3 characters"):
             composite.validate("hi", "field")
-        
+
         # Fails choice validation (valid length but invalid choice)
         with pytest.raises(ValueError, match="field must be one of"):
             composite.validate("valid", "field")  # 5 chars, within length limit
@@ -420,9 +421,9 @@ class TestCompositeValidator:
         # First validator will catch the error
         validator1 = StringValidator(allow_empty=False)
         validator2 = ChoiceValidator(choices=["test"])
-        
+
         composite = CompositeValidator([validator1, validator2])
-        
+
         # Should fail on first validator (empty string)
         with pytest.raises(ValueError, match="field cannot be empty"):
             composite.validate("", "field")
@@ -430,7 +431,7 @@ class TestCompositeValidator:
     def test_empty_validator_list(self):
         """Test composite validator with no validators."""
         composite = CompositeValidator([])
-        
+
         # Should pass (no validation)
         composite.validate("anything", "field")
         composite.validate(None, "field")
@@ -447,7 +448,7 @@ class TestPredefinedValidators:
         DNS_RECORD_TYPE_VALIDATOR.validate("AAAA", "record_type")
         DNS_RECORD_TYPE_VALIDATOR.validate("a", "record_type")  # Case insensitive
         DNS_RECORD_TYPE_VALIDATOR.validate("cname", "record_type")
-        
+
         # Invalid record type
         with pytest.raises(ValueError, match="record_type must be one of"):
             DNS_RECORD_TYPE_VALIDATOR.validate("INVALID", "record_type")
@@ -458,7 +459,7 @@ class TestPredefinedValidators:
         HEALTH_STATUS_VALIDATOR.validate("healthy", "status")
         HEALTH_STATUS_VALIDATOR.validate("DEGRADED", "status")  # Case insensitive
         HEALTH_STATUS_VALIDATOR.validate("unhealthy", "status")
-        
+
         # Invalid status
         with pytest.raises(ValueError, match="status must be one of"):
             HEALTH_STATUS_VALIDATOR.validate("broken", "status")
@@ -469,7 +470,7 @@ class TestPredefinedValidators:
         ERROR_SEVERITY_VALIDATOR.validate("debug", "severity")
         ERROR_SEVERITY_VALIDATOR.validate("INFO", "severity")  # Case insensitive
         ERROR_SEVERITY_VALIDATOR.validate("critical", "severity")
-        
+
         # Invalid severity
         with pytest.raises(ValueError, match="severity must be one of"):
             ERROR_SEVERITY_VALIDATOR.validate("urgent", "severity")
@@ -478,7 +479,7 @@ class TestPredefinedValidators:
         """Test positive integer validator."""
         POSITIVE_INTEGER_VALIDATOR.validate(1, "count")
         POSITIVE_INTEGER_VALIDATOR.validate(100, "count")
-        
+
         with pytest.raises(ValueError, match="count must be positive"):
             POSITIVE_INTEGER_VALIDATOR.validate(0, "count")
         with pytest.raises(ValueError, match="count must be positive"):
@@ -490,7 +491,7 @@ class TestPredefinedValidators:
         """Test non-negative integer validator."""
         NON_NEGATIVE_INTEGER_VALIDATOR.validate(0, "ttl")
         NON_NEGATIVE_INTEGER_VALIDATOR.validate(3600, "ttl")
-        
+
         with pytest.raises(ValueError, match="ttl must be at least 0"):
             NON_NEGATIVE_INTEGER_VALIDATOR.validate(-1, "ttl")
         with pytest.raises(ValueError, match="ttl must be int"):
@@ -500,7 +501,7 @@ class TestPredefinedValidators:
         """Test non-empty string validator."""
         NON_EMPTY_STRING_VALIDATOR.validate("test", "name")
         NON_EMPTY_STRING_VALIDATOR.validate("hello world", "name")
-        
+
         with pytest.raises(ValueError, match="name cannot be empty"):
             NON_EMPTY_STRING_VALIDATOR.validate("", "name")
         with pytest.raises(ValueError, match="name cannot be empty"):
@@ -513,11 +514,15 @@ class TestPredefinedValidators:
         HOSTNAME_VALIDATOR.validate("sub.example.com", "hostname")
         HOSTNAME_VALIDATOR.validate("host", "hostname")
         HOSTNAME_VALIDATOR.validate("my-server.example.org", "hostname")
-        
+
         # Invalid hostnames
-        with pytest.raises(ValueError, match="hostname does not match required pattern"):
+        with pytest.raises(
+            ValueError, match="hostname does not match required pattern"
+        ):
             HOSTNAME_VALIDATOR.validate("-invalid.com", "hostname")
-        with pytest.raises(ValueError, match="hostname does not match required pattern"):
+        with pytest.raises(
+            ValueError, match="hostname does not match required pattern"
+        ):
             HOSTNAME_VALIDATOR.validate("invalid-.com", "hostname")
         with pytest.raises(ValueError, match="hostname cannot be empty"):
             HOSTNAME_VALIDATOR.validate("", "hostname")
@@ -526,7 +531,7 @@ class TestPredefinedValidators:
         """Test IPv4-only validator."""
         IPV4_VALIDATOR.validate("192.168.1.1", "ip")
         IPV4_VALIDATOR.validate("10.0.0.1", "ip")
-        
+
         with pytest.raises(ValueError, match="ip IPv6 addresses are not allowed"):
             IPV4_VALIDATOR.validate("2001:db8::1", "ip")
         with pytest.raises(ValueError, match="ip must be a valid IPv4 address"):
@@ -543,15 +548,15 @@ class TestValidationMixinInterface:
 
     def test_custom_validator_implementation(self):
         """Test implementing a custom validator."""
-        
+
         class CustomValidator(ValidationMixin):
             def validate(self, value, field_name):
                 if value != "custom":
                     raise ValueError(f"{field_name} must be 'custom'")
-        
+
         validator = CustomValidator()
         validator.validate("custom", "field")
-        
+
         with pytest.raises(ValueError, match="field must be 'custom'"):
             validator.validate("other", "field")
 
@@ -562,29 +567,31 @@ class TestValidationMixinIntegration:
     def test_field_name_in_error_messages(self):
         """Test that field names appear correctly in error messages."""
         validator = StringValidator(min_length=5)
-        
+
         with pytest.raises(ValueError, match="username must be at least 5 characters"):
             validator.validate("hi", "username")
-        
+
         with pytest.raises(ValueError, match="password must be at least 5 characters"):
             validator.validate("abc", "password")
 
     def test_complex_validation_scenario(self):
         """Test a complex validation scenario."""
         # Create a validator for DNS record names
-        dns_name_validator = CompositeValidator([
-            StringValidator(
-                allow_empty=False,
-                max_length=253,
-                pattern=r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
-            )
-        ])
-        
+        dns_name_validator = CompositeValidator(
+            [
+                StringValidator(
+                    allow_empty=False,
+                    max_length=253,
+                    pattern=r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$",
+                )
+            ]
+        )
+
         # Valid DNS names
         dns_name_validator.validate("example.com", "dns_name")
         dns_name_validator.validate("sub.example.com", "dns_name")
         dns_name_validator.validate("my-server.example.org", "dns_name")
-        
+
         # Invalid DNS names
         with pytest.raises(ValueError):
             dns_name_validator.validate("", "dns_name")
@@ -595,11 +602,11 @@ class TestValidationMixinIntegration:
         """Test validation behavior with type conversion scenarios."""
         # Numeric validator should handle actual numbers, not strings
         validator = NumericValidator(min_value=0, max_value=100)
-        
+
         validator.validate(50, "percentage")
         validator.validate(0, "percentage")
         validator.validate(100, "percentage")
-        
+
         # Should reject string numbers (no automatic conversion)
         with pytest.raises(ValueError, match="percentage must be int or float"):
             validator.validate("50", "percentage")

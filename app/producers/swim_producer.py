@@ -8,7 +8,6 @@ from app.joyride.events import EventBus
 from app.producers.event_producer import EventProducer
 from app.producers.swim_events import (
     SWIMClusterEvent,
-    SWIMEvent,
     SWIMEventType,
     SWIMGossipEvent,
     SWIMMembershipEvent,

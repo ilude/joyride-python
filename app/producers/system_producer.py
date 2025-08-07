@@ -16,7 +16,6 @@ from app.producers.system_events import (
     SystemNetworkEvent,
     SystemProcessEvent,
     SystemResourceEvent,
-    SystemServiceEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -161,7 +160,6 @@ class SystemEventProducer(EventProducer):
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage("/")
-            load_avg = psutil.getloadavg() if hasattr(psutil, "getloadavg") else None
 
             # Check CPU usage
             if cpu_percent > self._cpu_threshold:

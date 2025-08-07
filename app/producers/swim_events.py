@@ -1,8 +1,7 @@
 """SWIM protocol event definitions for event producers."""
 
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from app.joyride.events.event import Event
 
@@ -46,6 +45,7 @@ class SWIMEventType(str, Enum):
 
 class SWIMNodeState(str, Enum):
     """SWIM node states."""
+
     ALIVE = "alive"
     SUSPECTED = "suspected"
     DEAD = "dead"
@@ -61,7 +61,7 @@ class SWIMEvent(Event):
         source: str,
         swim_event_type: SWIMEventType,
         node_id: str,
-        **kwargs
+        **kwargs,
     ):
         """Initialize SWIM event."""
         self.swim_event_type = swim_event_type
@@ -69,22 +69,24 @@ class SWIMEvent(Event):
 
         # Extract event-specific parameters and add to data
         event_data = kwargs.pop("data", {})
-        
+
         # Move all extra kwargs into the data dict
         for key, value in list(kwargs.items()):
             if key not in ["event_id", "timestamp", "metadata"]:
                 event_data[key] = kwargs.pop(key)
-        
-        event_data.update({
-            "swim_event_type": swim_event_type.value,
-            "node_id": node_id,
-        })
+
+        event_data.update(
+            {
+                "swim_event_type": swim_event_type.value,
+                "node_id": node_id,
+            }
+        )
 
         super().__init__(
             event_type=event_type or swim_event_type.value,
             source=source,
             data=event_data,
-            **kwargs
+            **kwargs,
         )
 
     def _validate(self) -> None:
@@ -109,7 +111,7 @@ class SWIMNodeEvent(SWIMEvent):
         target_node_port: Optional[int] = None,
         target_node_state: Optional[SWIMNodeState] = None,
         event_type: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize SWIM node event."""
         self.target_node_id = target_node_id
@@ -126,7 +128,7 @@ class SWIMNodeEvent(SWIMEvent):
             target_node_address=target_node_address,
             target_node_port=target_node_port,
             target_node_state=target_node_state.value if target_node_state else None,
-            **kwargs
+            **kwargs,
         )
 
     def _validate(self) -> None:
@@ -156,7 +158,7 @@ class SWIMNodeEvent(SWIMEvent):
 
 class SWIMProtocolEvent(SWIMEvent):
     """SWIM protocol event."""
-    
+
     def _validate(self) -> None:
         """Validate SWIM protocol event data."""
         super()._validate()
@@ -164,7 +166,7 @@ class SWIMProtocolEvent(SWIMEvent):
 
 class SWIMFailureDetectionEvent(SWIMEvent):
     """SWIM failure detection event."""
-    
+
     def _validate(self) -> None:
         """Validate SWIM failure detection event data."""
         super()._validate()
@@ -172,7 +174,7 @@ class SWIMFailureDetectionEvent(SWIMEvent):
 
 class SWIMGossipEvent(SWIMEvent):
     """SWIM gossip event."""
-    
+
     def _validate(self) -> None:
         """Validate SWIM gossip event data."""
         super()._validate()
@@ -180,7 +182,7 @@ class SWIMGossipEvent(SWIMEvent):
 
 class SWIMMembershipEvent(SWIMEvent):
     """SWIM membership event."""
-    
+
     def _validate(self) -> None:
         """Validate SWIM membership event data."""
         super()._validate()
@@ -188,7 +190,7 @@ class SWIMMembershipEvent(SWIMEvent):
 
 class SWIMClusterEvent(SWIMEvent):
     """SWIM cluster event."""
-    
+
     def _validate(self) -> None:
         """Validate SWIM cluster event data."""
         super()._validate()
